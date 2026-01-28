@@ -1,0 +1,7 @@
+{
+  "name": "Ramadan Spirit Tracker",
+  "description": "A comprehensive Telegram Mini App for tracking prayers, fasting, Quran reading, and daily deeds during the holy month of Ramadan, enhanced with AI-driven spiritual insights.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
