@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { UserData, Language, DayProgress } from '../types';
 import { TRANSLATIONS, XP_VALUES, BADGES } from '../constants';
 
@@ -38,6 +38,36 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   }, [userData.progress]);
 
   const generatePromoCode = () => {
+    // Подтягиваем количество приглашённых друзей с бэкенда бота
+    useEffect(() => {
+      if (!userData.myPromoCode) return; // если промокода нет – нечего спрашивать
+
+      // URL сервиса бота на Railway
+      const BOT_API_URL = "https://imantap-bot-production.up.railway.app"; 
+      // пример: "https://imantap-bot-production.up.railway.app"
+
+      const loadReferralCount = async () => {
+        try {
+          const res = await fetch(
+            `${BOT_API_URL}/referrals?code=${encodeURIComponent(userData.myPromoCode)}`
+          );
+          if (!res.ok) return;
+
+          const data = await res.json();
+          const invitedCount = data.invitedCount ?? 0;
+
+          // Обновляем только referralCount
+          setUserData({
+            ...userData,
+            referralCount: invitedCount,
+          });
+        } catch (e) {
+          console.error("Failed to load referral count", e);
+        }
+      };
+
+      loadReferralCount();
+    }, [userData.myPromoCode]);
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   };
 
