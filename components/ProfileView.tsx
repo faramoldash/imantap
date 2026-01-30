@@ -239,7 +239,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         {/* User Badges Strip */}
         <div className="mt-6 pt-4 border-t border-slate-50 overflow-x-auto no-scrollbar">
            <div className="flex space-x-2">
-             {userData.unlockedBadges && userData.unlockedBadges.length > 0 ? (
+             {Array.isArray(userData.unlockedBadges) && userData.unlockedBadges.length > 0 ? (
                userData.unlockedBadges.map(badgeId => {
                  const badge = BADGES.find(b => b.id === badgeId);
                  if(!badge) return null;
