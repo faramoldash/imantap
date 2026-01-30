@@ -24,8 +24,12 @@ const AIInsights: React.FC<{ day: number, language: Language }> = ({ day, langua
   useEffect(() => {
     const fetchInsight = async () => {
       setLoading(true);
-      const data = await getDailySpiritualInsight(day, language);
-      if (data) setInsight(data);
+      try {
+        const data = await getDailySpiritualInsight(day, language);
+        if (data) setInsight(data);
+      } catch (e) {
+        console.error("Failed to fetch insight", e);
+      }
       setLoading(false);
     };
     fetchInsight();
@@ -34,14 +38,24 @@ const AIInsights: React.FC<{ day: number, language: Language }> = ({ day, langua
   const handleGetDua = async () => {
     if (!userState.trim()) return;
     setDuaLoading(true);
-    const data = await getDuaRecommendation(userState, language);
-    if (data) setDua(data);
+    try {
+      const data = await getDuaRecommendation(userState, language);
+      if (data) setDua(data);
+    } catch (e) {
+      console.error("Failed to fetch dua", e);
+    }
     setDuaLoading(false);
   };
 
   const shareToTelegram = (text: string) => {
-    const url = `https://t.me/share/url?url=&text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    const shareUrl = `https://t.me/share/url?url=&text=${encodeURIComponent(text)}`;
+    // Check if running inside Telegram WebApp
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg?.openTelegramLink) {
+        tg.openTelegramLink(shareUrl);
+    } else {
+        window.open(shareUrl, '_blank');
+    }
   };
 
   const handleShareInsight = () => {
@@ -126,7 +140,7 @@ const AIInsights: React.FC<{ day: number, language: Language }> = ({ day, langua
           <button 
             onClick={handleGetDua}
             disabled={duaLoading || !userState.trim()}
-            className="bg-amber-600 text-white rounded-2xl py-3 font-bold text-sm shadow-lg shadow-amber-200 disabled:opacity-50"
+            className="bg-amber-600 text-white rounded-2xl py-3 font-bold text-sm shadow-lg shadow-amber-200 disabled:opacity-50 transition-all active:scale-95"
           >
             {duaLoading ? t.duaGenerating : t.duaBtn}
           </button>
@@ -137,7 +151,7 @@ const AIInsights: React.FC<{ day: number, language: Language }> = ({ day, langua
             <div className="flex justify-end mb-2">
               <button 
                 onClick={handleShareDua}
-                className="text-[9px] font-black text-amber-600 bg-amber-50 px-2 py-1 rounded-full flex items-center space-x-1"
+                className="text-[9px] font-black text-amber-600 bg-amber-50 px-2 py-1 rounded-full flex items-center space-x-1 active:scale-90 transition-transform"
               >
                 <span>{t.shareBtn}</span>
                 <span>✈️</span>

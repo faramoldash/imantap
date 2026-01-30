@@ -19,7 +19,10 @@ export interface DayProgress {
   hadith: boolean;
   duha: boolean;
   charity: boolean;
-  charityAmount: number;
+  charityAmount: number; // Legacy/Total
+  charitySadaqah: number;
+  charityZakat: number;
+  charityFitrana: number;
   dhuhr: boolean;
   lessons: boolean;
   asr: boolean;
@@ -35,15 +38,24 @@ export interface DayProgress {
 
 export interface UserData {
   name: string;
+  username?: string; // Telegram username (e.g. @user)
+  photoUrl?: string; // Telegram profile picture URL
   startDate: string;
   progress: Record<number, DayProgress>;
   memorizedNames: number[]; 
   completedJuzs: number[];
-  completedTasks: number[]; // IDs of predefined tasks
-  deletedPredefinedTasks: number[]; // IDs of predefined tasks user chose to delete/hide
-  customTasks: CustomTask[]; // User added tasks
-  quranGoal: number;
+  completedTasks: number[]; 
+  deletedPredefinedTasks: number[]; 
+  customTasks: CustomTask[]; 
+  quranGoal: number; // Total Juz goal
+  dailyQuranGoal: number; // Daily pages goal
+  dailyCharityGoal: number; // Daily charity goal
   language: Language;
+  xp: number;
+  referralCount: number;
+  myPromoCode?: string; // The user's unique generated code
+  hasRedeemedReferral: boolean; // Has the user entered a friend's code?
+  unlockedBadges: string[];
 }
 
-export type ViewType = 'dashboard' | 'calendar' | 'quran' | 'ai-insights' | 'tasks' | 'useful-materials' | 'names-99';
+export type ViewType = 'dashboard' | 'calendar' | 'quran' | 'tasks' | 'profile' | 'names-99' | 'rewards';
