@@ -38,36 +38,50 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   }, [userData.progress]);
 
   const generatePromoCode = () => {
-    useEffect(() => {
-      if (!userData.myPromoCode) return;
-
-      const BOT_API_URL = "https://imantap-bot-production.up.railway.app";
-
-      const loadReferralCount = async () => {
-        try {
-          const res = await fetch(
-            `${BOT_API_URL}/referrals?code=${encodeURIComponent(userData.myPromoCode)}`
-          );
-          if (!res.ok) return;
-
-          const data = await res.json();
-          const invitedCount = data.invitedCount ?? 0;
-
-          // Функциональное обновление, чтобы не затереть другие поля
-          setUserData((prev) => ({
-            ...prev,
-            referralCount: invitedCount,
-          }));
-        } catch (e) {
-          console.error("Failed to load referral count", e);
-        }
-      };
-
-      loadReferralCount();
-      // Зависимость ТОЛЬКО от промокода и setUserData, чтобы не вызвать цикл
-    }, [userData.myPromoCode, setUserData]);
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   };
+
+  // Загружаем счётчик приглашённых с бота
+  useEffect(() => {
+    const BOT_API_URL = "https://imantap-bot-production.up.railway.app";
+
+    const loadCount = async () => {
+      // Если промокода нет — генерируем его сейчас
+      let code = userData.myPromoCode;
+      if (!code) {
+        code = generatePromoCode();
+        setUserData((prev) => ({
+          ...prev,
+          myPromoCode: code,
+        }));
+      }
+
+      // Запрашиваем счётчик
+      try {
+        const res = await fetch(
+          `${BOT_API_URL}/referrals?code=${encodeURIComponent(code)}`
+        );
+        if (!res.ok) {
+          console.warn("Failed to fetch referral count, status:", res.status);
+          return;
+        }
+
+        const data = await res.json();
+        const count = data.invitedCount ?? 0;
+
+        console.log("Loaded referral count:", count, "for code:", code);
+
+        setUserData((prev) => ({
+          ...prev,
+          referralCount: count,
+        }));
+      } catch (err) {
+        console.error("Error loading referral count:", err);
+      }
+    };
+
+    loadCount();
+  }, []); // Пустой массив зависимостей — срабатывает только 1 раз при монтировании
 
   const inviteFriend = () => {
     // 1. Берём/создаём промокод
