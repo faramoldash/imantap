@@ -38,13 +38,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   }, [userData.progress]);
 
   const generatePromoCode = () => {
-    // Подтягиваем количество приглашённых друзей с бэкенда бота
     useEffect(() => {
-      if (!userData.myPromoCode) return; // если промокода нет – нечего спрашивать
+      if (!userData.myPromoCode) return;
 
-      // URL сервиса бота на Railway
-      const BOT_API_URL = "https://imantap-bot-production.up.railway.app"; 
-      // пример: "https://imantap-bot-production.up.railway.app"
+      const BOT_API_URL = "https://imantap-bot-production.up.railway.app";
 
       const loadReferralCount = async () => {
         try {
@@ -56,18 +53,18 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
           const data = await res.json();
           const invitedCount = data.invitedCount ?? 0;
 
-          // Обновляем только referralCount
-          setUserData({
-            ...userData,
+          // Используем функциональное обновление, чтобы не потерять другие поля
+          setUserData((prev) => ({
+            ...prev,
             referralCount: invitedCount,
-          });
+          }));
         } catch (e) {
           console.error("Failed to load referral count", e);
         }
       };
 
       loadReferralCount();
-    }, [userData.myPromoCode]);
+    }, [userData.myPromoCode, setUserData]);
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   };
 
