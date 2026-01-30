@@ -42,30 +42,28 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   };
 
   const inviteFriend = () => {
-    let code = userData.myPromoCode;
-    
-    // Generate code if it doesn't exist yet
+    // 1. Берём уже существующий промокод
+    const code = userData.myPromoCode;
+
     if (!code) {
-        code = generatePromoCode();
-        setUserData({
-            ...userData,
-            myPromoCode: code
-        });
+      alert("Промокод пока не создан");
+      return;
     }
 
-    const botLink = "https://t.me/RamadanTrackerBot"; 
-    const inviteLink = `${botLink}?start=${code}`;
-    const text = language === 'kk' 
-        ? `🌙 Рамазан айына бірге дайындалайық! Менің промокодымды «${code}» қолданып, +100 XP бонус ал!` 
-        : `🌙 Давай готовиться к Рамадану вместе! Используй мой промокод «${code}» и получи +100 XP бонус!`;
-    
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(text)}`;
-    
+    // 2. ВАЖНО: username вашего бота (БЕЗ @)
+    const BOT_USERNAME = "imantap_bot"; 
+    // ↑ если бот называется иначе — поменяйте ТОЛЬКО это
+
+    // 3. Формируем ПРАВИЛЬНУЮ реферальную ссылку
+    const link = `https://t.me/${BOT_USERNAME}?start=ref_${code}`;
+
+    // 4. Открываем ссылку ПРАВИЛЬНО для Telegram Mini App
     const tg = (window as any).Telegram?.WebApp;
-    if (tg?.openTelegramLink) {
-        tg.openTelegramLink(shareUrl);
+
+    if (tg && tg.openTelegramLink) {
+      tg.openTelegramLink(link);
     } else {
-        window.open(shareUrl, '_blank');
+      window.open(link, "_blank");
     }
   };
 

@@ -12,9 +12,22 @@ import RewardsView from './components/RewardsView';
 import ProfileView from './components/ProfileView';
 import Paywall from './components/Paywall';
 
+type TelegramUser = {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  language_code?: string;
+};
+
+type AppProps = {
+  telegramUser: TelegramUser | null;
+};
+
+
 const STORAGE_KEY = 'ramadan_tracker_data_v3';
 
-const App: React.FC = () => {
+const App: React.FC<AppProps> = ({ telegramUser }) => {
   // --- Payment / Auth State ---
   const [isCheckingPayment, setIsCheckingPayment] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
@@ -307,6 +320,11 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
       
+      {telegramUser && (
+        <div className="text-center text-sm text-slate-500 mt-4">
+          Ассаляму алейкум, {telegramUser.first_name}
+        </div>
+      )}
       {newBadge && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-24 pointer-events-none">
           <div className="bg-slate-900 text-white p-4 rounded-3xl shadow-2xl flex items-center space-x-4 animate-in slide-in-from-bottom-10 fade-in duration-500 w-full max-w-sm border border-slate-700 pointer-events-auto">
