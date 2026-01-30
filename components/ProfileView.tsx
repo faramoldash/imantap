@@ -45,49 +45,44 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   useEffect(() => {
     const BOT_API_URL = "https://imantap-bot-production.up.railway.app";
 
-    const loadCount = async () => {
-      // Если промокода нет — создаём его прямо сейчас
-      let code = userData.myPromoCode;
-      
-      if (!code) {
-        code = generatePromoCode();
-        console.log("🆕 Generated new promo code:", code);
-        
-        // Сохраняем промокод
-        setUserData((prev) => ({
-          ...prev,
-          myPromoCode: code,
-        }));
-      }
-
-      // Запрашиваем счётчик для этого кода
+    const loadUserData = async () => {
       try {
-        const res = await fetch(
-          `${BOT_API_URL}/referrals?code=${encodeURIComponent(code)}`
-        );
+        // Получаем Telegram user ID
+        const tg = (window as any).Telegram?.WebApp;
+        const telegramUser = tg?.initDataUnsafe?.user;
+        const userId = telegramUser?.id;
+
+        if (!userId) {
+          console.warn("⚠️ Telegram user ID not found, using fallback");
+          return;
+        }
+
+        console.log("🔍 Loading data for user:", userId);
+
+        // Запрашиваем данные пользователя с сервера
+        const res = await fetch(`${BOT_API_URL}/user/${userId}`);
         
         if (!res.ok) {
-          console.warn("⚠️ Failed to fetch referral count, status:", res.status);
+          console.warn("⚠️ Failed to fetch user data, status:", res.status);
           return;
         }
 
         const data = await res.json();
-        const count = data.invitedCount ?? 0;
+        console.log("✅ Loaded user data:", data);
 
-        console.log("✅ Loaded referral count:", count, "for code:", code);
-
+        // Обновляем состояние
         setUserData((prev) => ({
           ...prev,
-          referralCount: count,
+          myPromoCode: data.promoCode,
+          referralCount: data.invitedCount ?? 0,
         }));
       } catch (err) {
-        console.error("❌ Error loading referral count:", err);
+        console.error("❌ Error loading user data:", err);
       }
     };
 
-    loadCount();
-    // Срабатывает 1 раз при монтировании компонента
-  }, [userData.myPromoCode]);
+    loadUserData();
+  }, [setUserData]);
 
   const inviteFriend = () => {
     // 1. Берём/создаём промокод
