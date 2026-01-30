@@ -46,14 +46,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     const BOT_API_URL = "https://imantap-bot-production.up.railway.app";
 
     const loadCount = async () => {
-      // Если промокода нет — генерируем его сейчас
-      let code = userData.myPromoCode;
+      // Берём промокод (если его нет — он будет создан при первом нажатии кнопки)
+      const code = userData.myPromoCode;
+      
+      // Если промокода всё ещё нет — пропускаем запрос
       if (!code) {
-        code = generatePromoCode();
-        setUserData((prev) => ({
-          ...prev,
-          myPromoCode: code,
-        }));
+        console.log("No promo code yet, skipping referral count load");
+        return;
       }
 
       // Запрашиваем счётчик
@@ -69,19 +68,19 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         const data = await res.json();
         const count = data.invitedCount ?? 0;
 
-        console.log("Loaded referral count:", count, "for code:", code);
+        console.log("✅ Loaded referral count:", count, "for code:", code);
 
         setUserData((prev) => ({
           ...prev,
           referralCount: count,
         }));
       } catch (err) {
-        console.error("Error loading referral count:", err);
+        console.error("❌ Error loading referral count:", err);
       }
     };
 
     loadCount();
-  }, []); // Пустой массив зависимостей — срабатывает только 1 раз при монтировании
+  }, [userData.myPromoCode, setUserData]); // Срабатывает при появлении/смене промокода
 
   const inviteFriend = () => {
     // 1. Берём/создаём промокод
