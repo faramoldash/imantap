@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { UserData, Language, DayProgress } from '../types';
-import { TRANSLATIONS, XP_VALUES } from '../constants';
+import { TRANSLATIONS, XP_VALUES, BADGES } from '../constants';
 
 interface ProfileViewProps {
   userData: UserData;
@@ -17,6 +17,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   const [promoInput, setPromoInput] = useState('');
   const [promoError, setPromoError] = useState('');
   const [promoSuccess, setPromoSuccess] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
 
   // Calculate Statistics
   const stats = useMemo(() => {
@@ -68,7 +69,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     }
   };
 
-  const redeemPromoCode = () => {
+  const redeemPromoCode = async () => {
     setPromoError('');
     setPromoSuccess('');
 
@@ -81,14 +82,35 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         return;
     }
 
-    const newXp = userData.xp + XP_VALUES.referral;
-    setUserData({
-        ...userData,
-        xp: newXp,
-        hasRedeemedReferral: true
-    });
-    setPromoSuccess(t.promoSuccess);
-    setPromoInput('');
+    setIsValidating(true);
+
+    // Simulate API verification delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Mock database of valid codes (in a real app, this would be a server request)
+    const MOCK_VALID_CODES = ['RAMADAN', 'BEREKE', 'QAZAQSTAN', 'ALMATY', 'ASTANA', 'UMMA', 'SUNNAH', 'TEST'];
+    const isValid = MOCK_VALID_CODES.includes(input);
+
+    setIsValidating(false);
+
+    if (isValid) {
+        const newXp = userData.xp + XP_VALUES.referral;
+        setUserData({
+            ...userData,
+            xp: newXp,
+            hasRedeemedReferral: true
+        });
+        setPromoSuccess(t.promoSuccess);
+        setPromoInput('');
+    } else {
+        setPromoError(t.promoErrorNotFound);
+    }
+  };
+
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
   };
 
   const StatCard = ({ icon, label, value, colorClass }: any) => (
@@ -134,8 +156,27 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
                  <span className="text-xs font-bold text-slate-400">LVL {level}</span>
               </div>
               <p className="text-[10px] text-slate-400 uppercase tracking-wide">
-                 {t.joinDate}: {new Date(userData.startDate).toLocaleDateString()}
+                 {t.joinDate}: {new Date(userData.registrationDate || userData.startDate).toLocaleDateString()}
               </p>
+           </div>
+        </div>
+        
+        {/* User Badges Strip */}
+        <div className="mt-6 pt-4 border-t border-slate-50 overflow-x-auto no-scrollbar">
+           <div className="flex space-x-2">
+             {userData.unlockedBadges && userData.unlockedBadges.length > 0 ? (
+               userData.unlockedBadges.map(badgeId => {
+                 const badge = BADGES.find(b => b.id === badgeId);
+                 if(!badge) return null;
+                 return (
+                   <div key={badgeId} className="flex-shrink-0 bg-slate-50 p-2 rounded-2xl border border-slate-100" title={language === 'kk' ? badge.name_kk : badge.name_ru}>
+                     <span className="text-xl grayscale-0">{badge.icon}</span>
+                   </div>
+                 )
+               })
+             ) : (
+               <p className="text-[10px] text-slate-400 italic w-full text-center py-1">Әзірге жетістіктер жоқ...</p>
+             )}
            </div>
         </div>
       </div>
@@ -208,16 +249,18 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
                             setPromoInput(e.target.value);
                             setPromoError('');
                         }}
+                        disabled={isValidating}
+                        onFocus={handleInputFocus}
                         placeholder={t.promoInputPlaceholder}
-                        maxLength={6}
-                        className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-black uppercase outline-none focus:border-emerald-500 transition-colors"
+                        maxLength={10}
+                        className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-black uppercase outline-none focus:border-emerald-500 transition-colors disabled:opacity-50"
                     />
                     <button 
                         onClick={redeemPromoCode}
-                        disabled={!promoInput}
-                        className="bg-slate-900 text-white px-4 rounded-2xl font-black text-xs disabled:opacity-50"
+                        disabled={!promoInput || isValidating}
+                        className="bg-slate-900 text-white px-4 rounded-2xl font-black text-xs disabled:opacity-50 transition-all active:scale-95"
                     >
-                        {t.promoBtnRedeem}
+                        {isValidating ? t.promoBtnChecking : t.promoBtnRedeem}
                     </button>
                 </div>
                 {promoError && <p className="text-[10px] font-bold text-red-500 mt-2 ml-1">{promoError}</p>}

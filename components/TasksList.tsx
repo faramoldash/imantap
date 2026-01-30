@@ -87,6 +87,12 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
     setEditingId(null);
   };
 
+  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setTimeout(() => {
+      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  };
+
   const quranGoalPercent = Math.min(100, Math.round(((dayData.quranPages || 0) / (userData?.dailyQuranGoal || 1)) * 100));
   const charityGoalPercent = Math.min(100, Math.round(((dayData.charityAmount || 0) / (userData?.dailyCharityGoal || 1)) * 100));
 
@@ -116,6 +122,7 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                 inputMode="numeric"
                 value={userData?.dailyQuranGoal || ''} 
                 onChange={(e) => handleGoalLimitUpdate('dailyQuranGoal', e.target.value)}
+                onFocus={handleInputFocus}
                 className="w-full bg-white border border-slate-100 rounded-xl px-4 py-3 text-xs font-black text-slate-700 outline-none"
               />
             </div>
@@ -126,6 +133,7 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                 inputMode="numeric"
                 value={userData?.dailyCharityGoal || ''} 
                 onChange={(e) => handleGoalLimitUpdate('dailyCharityGoal', e.target.value)}
+                onFocus={handleInputFocus}
                 className="w-full bg-white border border-slate-100 rounded-xl px-4 py-3 text-xs font-black text-slate-700 outline-none"
               />
             </div>
@@ -148,6 +156,7 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                       inputMode="numeric"
                       value={quranPagesInput} 
                       onChange={handleQuranPagesChange}
+                      onFocus={handleInputFocus}
                       placeholder="0"
                       className="w-14 bg-slate-50 border border-slate-100 rounded-xl py-2 px-2 text-xs font-black text-center outline-none"
                     />
@@ -202,6 +211,7 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
             type="text"
             value={newTaskText}
             onChange={(e) => setNewTaskText(e.target.value)}
+            onFocus={handleInputFocus}
             onKeyPress={(e) => e.key === 'Enter' && addCustomGoal()}
             placeholder={t.tasksAddPlaceholder}
             className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium px-3 outline-none"
@@ -241,6 +251,7 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                     onChange={(e) => setEditingText(e.target.value)}
                     onBlur={saveEdit}
                     onKeyPress={(e) => e.key === 'Enter' && saveEdit()}
+                    onFocus={handleInputFocus}
                     className="flex-1 bg-white border border-emerald-200 rounded-lg px-2 py-1 text-sm font-medium outline-none"
                   />
                 ) : (

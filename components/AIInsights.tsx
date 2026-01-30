@@ -134,6 +134,11 @@ const AIInsights: React.FC<{ day: number, language: Language }> = ({ day, langua
             type="text"
             value={userState}
             onChange={(e) => setUserState(e.target.value)}
+            onFocus={(e) => {
+               setTimeout(() => {
+                 e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+               }, 300);
+            }}
             placeholder={t.duaPlaceholder}
             className="bg-white border border-amber-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 ring-amber-400 outline-none"
           />

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { UserData, Language } from '../types';
-import { TRANSLATIONS, QURAN_SCHEDULE } from '../constants';
+import { TRANSLATIONS, QURAN_SCHEDULE, XP_VALUES } from '../constants';
 
 interface QuranTrackerProps {
   userData: UserData;
@@ -35,40 +35,74 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
     setUserData({ ...userData, completedJuzs: next });
   };
 
+  const handleKhatamFinish = () => {
+    setUserData({
+      ...userData,
+      completedJuzs: [],
+      quranKhatams: (userData.quranKhatams || 0) + 1,
+      xp: userData.xp + (XP_VALUES.khatam || 1000)
+    });
+  };
+
   return (
     <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* 1. Progress Summary */}
+      {/* 1. Progress Summary or Khatam Button */}
       <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-50 flex flex-col items-center">
-        <h3 className="text-lg font-black text-slate-800 mb-8 uppercase tracking-widest">{t.quranProgress}</h3>
+        <h3 className="text-lg font-black text-slate-800 mb-6 uppercase tracking-widest">{t.quranProgress}</h3>
         
-        <div className="relative flex items-center justify-center">
-          <svg width={size} height={size} className="transform -rotate-90">
-            <circle
-              cx={center}
-              cy={center}
-              r={radius}
-              stroke="#f8fafc"
-              strokeWidth={strokeWidth}
-              fill="transparent"
-            />
-            <circle
-              cx={center}
-              cy={center}
-              r={radius}
-              stroke="#10b981"
-              strokeWidth={strokeWidth}
-              fill="transparent"
-              strokeDasharray={circumference}
-              strokeDashoffset={percent === 100 ? 0 : offset}
-              strokeLinecap="round"
-              className="transition-all duration-1000 ease-out"
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-black text-slate-800 leading-none">{percent}%</span>
-            <span className="text-[9px] font-black text-slate-400 mt-2 uppercase tracking-[0.2em]">{completedCount} / 30 {t.quranJuzCol}</span>
-          </div>
-        </div>
+        {percent === 100 ? (
+           <div className="flex flex-col items-center text-center animate-in zoom-in duration-500">
+              <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center text-5xl mb-4 shadow-inner">
+                🕋
+              </div>
+              <h2 className="text-2xl font-black text-emerald-700 mb-2 leading-tight">{t.quranKhatamCompleted}</h2>
+              <p className="text-sm text-slate-500 mb-6 px-4">
+                 МашаАлла! Сіз Құранды толық оқып шықтыңыз. +1000 XP
+              </p>
+              <button 
+                onClick={handleKhatamFinish}
+                className="bg-emerald-600 text-white px-8 py-4 rounded-[2rem] font-black shadow-lg shadow-emerald-200 active:scale-95 transition-transform"
+              >
+                {t.quranStartOver}
+              </button>
+           </div>
+        ) : (
+            <div className="relative flex items-center justify-center">
+            <svg width={size} height={size} className="transform -rotate-90">
+                <circle
+                cx={center}
+                cy={center}
+                r={radius}
+                stroke="#f8fafc"
+                strokeWidth={strokeWidth}
+                fill="transparent"
+                />
+                <circle
+                cx={center}
+                cy={center}
+                r={radius}
+                stroke="#10b981"
+                strokeWidth={strokeWidth}
+                fill="transparent"
+                strokeDasharray={circumference}
+                strokeDashoffset={percent === 100 ? 0 : offset}
+                strokeLinecap="round"
+                className="transition-all duration-1000 ease-out"
+                />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-4xl font-black text-slate-800 leading-none">{percent}%</span>
+                <span className="text-[9px] font-black text-slate-400 mt-2 uppercase tracking-[0.2em]">{completedCount} / 30 {t.quranJuzCol}</span>
+            </div>
+            </div>
+        )}
+
+        {userData.quranKhatams > 0 && (
+            <div className="mt-8 bg-amber-50 px-6 py-2 rounded-full border border-amber-100 flex items-center space-x-2">
+                <span className="text-lg">📿</span>
+                <span className="text-xs font-black text-amber-700 uppercase">{t.quranKhatamCount}: {userData.quranKhatams}</span>
+            </div>
+        )}
       </div>
 
       {/* 2. Authentic Hadith Section */}

@@ -21,6 +21,9 @@ const App: React.FC = () => {
 
   const [userData, setUserData] = useState<UserData>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
+    // FORCE KAZAKH LANGUAGE CONSTANT
+    const forcedLang: Language = 'kk';
+
     if (saved) {
       const parsed = JSON.parse(saved);
       return { 
@@ -33,12 +36,16 @@ const App: React.FC = () => {
         hasRedeemedReferral: parsed.hasRedeemedReferral || false,
         myPromoCode: parsed.myPromoCode || undefined,
         username: parsed.username || undefined,
-        photoUrl: parsed.photoUrl || undefined
+        photoUrl: parsed.photoUrl || undefined,
+        // Preserve existing registrationDate or default to startDate (historical behavior)
+        registrationDate: parsed.registrationDate || parsed.startDate,
+        quranKhatams: parsed.quranKhatams || 0,
+        // Force language update even for existing users
+        language: forcedLang 
       };
     }
     
-    const initialLang: Language = 'kk';
-    const templates: CustomTask[] = DEFAULT_GOALS[initialLang].map((text, idx) => ({
+    const templates: CustomTask[] = DEFAULT_GOALS[forcedLang].map((text, idx) => ({
         id: `template-${idx}-${Date.now()}`,
         text,
         completed: false
@@ -47,16 +54,18 @@ const App: React.FC = () => {
     return {
       name: 'Брат/Сестра',
       startDate: RAMADAN_START_DATE,
+      registrationDate: new Date().toISOString(), // Use current date for new users
       progress: {},
       memorizedNames: [],
       completedJuzs: [],
+      quranKhatams: 0,
       completedTasks: [],
       deletedPredefinedTasks: [],
       customTasks: templates,
       quranGoal: 30, 
       dailyQuranGoal: 5,
       dailyCharityGoal: 1000,
-      language: initialLang,
+      language: forcedLang,
       xp: 0,
       referralCount: 0,
       unlockedBadges: [],
@@ -74,8 +83,6 @@ const App: React.FC = () => {
       const user = tg?.initDataUnsafe?.user;
       
       // FOR DEVELOPMENT ONLY:
-      // If no telegram user (browser testing), allow access. 
-      // Change to 'false' to test Paywall in browser.
       if (!user) {
         setTimeout(() => {
             setHasAccess(true); 
@@ -85,24 +92,13 @@ const App: React.FC = () => {
       }
 
       try {
-        // 2. REAL IMPLEMENTATION:
-        // Replace this with your actual Backend API call.
-        // const response = await fetch(`https://your-backend.com/api/check-payment?userId=${user.id}`);
-        // const data = await response.json();
-        // setHasAccess(data.isPaid);
-
         // 3. MOCK IMPLEMENTATION (Simulated):
-        // For now, we simulate a network request that grants access.
-        // In a real scenario, this defaults to FALSE until the server confirms payment.
         await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Logic: You can temporarily hardcode `true` here to develop, 
-        // but in production, this relies on the backend.
         setHasAccess(true); 
 
       } catch (error) {
         console.error("Payment check failed", error);
-        setHasAccess(false); // Default to block on error
+        setHasAccess(false); 
       } finally {
         setIsCheckingPayment(false);
       }
@@ -121,20 +117,16 @@ const App: React.FC = () => {
         const username = user.username ? `@${user.username}` : undefined;
         const photoUrl = user.photo_url;
 
-        let newLang = userData.language;
-        if (user.language_code) {
-             if (user.language_code === 'ru' || user.language_code === 'kz' || user.language_code === 'kk') {
-                 newLang = user.language_code === 'ru' ? 'ru' : 'kk';
-             }
-        }
+        // Force Kazakh language regardless of user settings
+        const forcedLang: Language = 'kk';
 
-        if (userData.name !== fullName || userData.username !== username || userData.photoUrl !== photoUrl) {
+        if (userData.name !== fullName || userData.username !== username || userData.photoUrl !== photoUrl || userData.language !== forcedLang) {
             setUserData(prev => ({
                 ...prev,
                 name: fullName,
                 username: username,
                 photoUrl: photoUrl,
-                language: prev.name === 'Брат/Сестра' ? newLang : prev.language 
+                language: forcedLang 
             }));
         }
     }
@@ -215,6 +207,14 @@ const App: React.FC = () => {
     if (totalTaraweeh >= 5) unlock('taraweeh_star');
     if (data.memorizedNames.length >= 10) unlock('names_scholar');
     if (data.xp >= 4000) unlock('ramadan_hero');
+    
+    // New Badges Logic
+    if (data.quranKhatams > 0) unlock('khatam_master');
+    
+    const completedCustomTasks = (data.customTasks || []).filter(t => t.completed).length;
+    if (completedCustomTasks >= 5) unlock('goal_achiever');
+    
+    if (data.referralCount >= 10) unlock('community_builder');
 
     if (newlyUnlockedId) {
       const badgeInfo = BADGES.find(b => b.id === newlyUnlockedId);
@@ -292,7 +292,7 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 space-y-4">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
             <p className="text-emerald-500 font-bold animate-pulse text-sm tracking-widest uppercase">
-                {userData.language === 'kk' ? 'Деректерді тексеру...' : 'Проверка доступа...'}
+                {userData.language === 'kk' ? 'Деректерді тексеру...' : 'Деректерді тексеру...'}
             </p>
         </div>
     );
@@ -314,7 +314,7 @@ const App: React.FC = () => {
             <div className="flex-1">
               <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">ЖАҢА ЖЕТІСТІК!</p>
               <h4 className="font-bold text-lg leading-tight">
-                {userData.language === 'kk' ? newBadge.name_kk : newBadge.name_ru}
+                {newBadge.name_kk}
               </h4>
             </div>
             <button onClick={() => setNewBadge(null)} className="text-slate-500">✕</button>

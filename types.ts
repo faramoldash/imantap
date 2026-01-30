@@ -40,10 +40,12 @@ export interface UserData {
   name: string;
   username?: string; // Telegram username (e.g. @user)
   photoUrl?: string; // Telegram profile picture URL
-  startDate: string;
+  startDate: string; // Target start date (e.g. Ramadan start)
+  registrationDate?: string; // Actual date user joined app
   progress: Record<number, DayProgress>;
   memorizedNames: number[]; 
   completedJuzs: number[];
+  quranKhatams: number; // Number of times Quran was completed
   completedTasks: number[]; 
   deletedPredefinedTasks: number[]; 
   customTasks: CustomTask[]; 

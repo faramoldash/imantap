@@ -35,11 +35,23 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
     return true;
   };
 
-  const featuredName = NAMES_99.find(n => n.id === 1);
-  const otherNames = NAMES_99.filter(n => n.id !== 1 && isNameVisible(n.id));
-  const showFeatured = featuredName && isNameVisible(featuredName.id);
-
+  // We no longer separate the first name. All names are treated equally in the grid.
+  const visibleNames = NAMES_99.filter(n => isNameVisible(n.id));
   const selectedName = NAMES_99.find(n => n.id === selectedId);
+
+  const goToNextName = () => {
+     if (selectedId === null) return;
+     // Find current index in the full list to determine next ID
+     const currentIndex = NAMES_99.findIndex(n => n.id === selectedId);
+     if (currentIndex !== -1 && currentIndex < NAMES_99.length - 1) {
+         setSelectedId(NAMES_99[currentIndex + 1].id);
+     } else {
+         // Loop back to start or close? Let's close if it's the last one.
+         setSelectedId(null); 
+     }
+  };
+
+  const hasNext = selectedId !== null && selectedId < 99;
 
   return (
     <div className="space-y-6 pb-24 pt-4">
@@ -54,12 +66,12 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
             <p className="text-emerald-400 font-black tracking-widest text-xs uppercase">{memorizedCount} / 99 {t.namesMemorized}</p>
           </div>
           <div className="relative w-20 h-20">
-            <svg className="w-full h-full transform -rotate-90">
-              <circle cx="40" cy="40" r="35" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
               <circle 
-                cx="40" cy="40" r="35" fill="transparent" stroke="#10b981" strokeWidth="8" 
-                strokeDasharray={2 * Math.PI * 35} 
-                strokeDashoffset={2 * Math.PI * 35 * (1 - progressPercent / 100)}
+                cx="50" cy="50" r="40" fill="transparent" stroke="#10b981" strokeWidth="10" 
+                strokeDasharray={2 * Math.PI * 40} 
+                strokeDashoffset={2 * Math.PI * 40 * (1 - progressPercent / 100)}
                 strokeLinecap="round"
                 className="transition-all duration-1000 ease-in-out"
               />
@@ -86,31 +98,9 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
         ))}
       </div>
 
-      {/* Featured Name: Аллаһ */}
-      {showFeatured && featuredName && (
-        <div 
-          onClick={() => setSelectedId(featuredName.id)}
-          className={`mx-auto w-full p-10 rounded-[2.5rem] border transition-all relative overflow-hidden cursor-pointer flex flex-col items-center justify-center space-y-4 ${
-            userData.memorizedNames?.includes(featuredName.id) 
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-900 shadow-inner' 
-              : 'bg-white border-slate-200 shadow-lg shadow-emerald-50 hover:border-emerald-300'
-          } active:scale-95`}
-        >
-          <div className="text-center">
-            <span className="text-7xl font-serif block text-emerald-900 leading-none mb-4">{featuredName.arabic}</span>
-            <span className="text-base font-black text-emerald-600 block uppercase tracking-[0.4em] leading-tight">
-              {featuredName.translit}
-            </span>
-          </div>
-          {userData.memorizedNames?.includes(featuredName.id) && (
-            <div className="absolute top-4 right-4 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-sm border border-white">✓</div>
-          )}
-        </div>
-      )}
-
-      {/* Other Names Grid - 3 columns */}
+      {/* Names Grid - 3 columns for ALL items */}
       <div className="grid grid-cols-3 gap-3">
-        {otherNames.map((item) => {
+        {visibleNames.map((item) => {
           const isMemorized = userData.memorizedNames?.includes(item.id);
 
           return (
@@ -123,9 +113,9 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
                   : 'bg-white border-slate-100 shadow-sm hover:border-emerald-200'
               } active:scale-95`}
             >
-              <div className="text-center">
-                <span className="text-xl font-serif block text-emerald-900 leading-none mb-1">{item.arabic}</span>
-                <span className="text-[7px] font-black text-slate-400 block uppercase tracking-tighter leading-tight truncate px-0.5">
+              <div className="text-center w-full flex flex-col items-center justify-center h-full">
+                <span className="text-xl font-serif block text-emerald-900 leading-none mb-1 px-1 w-full truncate">{item.arabic}</span>
+                <span className="text-[7px] font-black text-slate-400 block uppercase tracking-tighter leading-tight px-0.5 w-full break-words whitespace-normal line-clamp-2">
                   {item.translit}
                 </span>
               </div>
@@ -178,19 +168,32 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
                 </p>
               </div>
 
-              <button
-                onClick={() => {
-                  toggleMemorized(selectedName.id);
-                }}
-                className={`w-full py-5 rounded-[1.8rem] text-sm font-black transition-all shadow-xl active:scale-95 flex items-center justify-center space-x-2 ${
-                  userData.memorizedNames?.includes(selectedName.id)
-                    ? 'bg-red-50 text-red-600 border border-red-100'
-                    : 'bg-emerald-600 text-white shadow-emerald-200'
-                }`}
-              >
-                <span>{userData.memorizedNames?.includes(selectedName.id) ? t.namesUnmark : t.namesButton}</span>
-                {userData.memorizedNames?.includes(selectedName.id) ? <span>✕</span> : <span>✓</span>}
-              </button>
+              <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      toggleMemorized(selectedName.id);
+                    }}
+                    className={`w-full py-5 rounded-[1.8rem] text-sm font-black transition-all shadow-xl active:scale-95 flex items-center justify-center space-x-2 ${
+                      userData.memorizedNames?.includes(selectedName.id)
+                        ? 'bg-red-50 text-red-600 border border-red-100'
+                        : 'bg-emerald-600 text-white shadow-emerald-200'
+                    }`}
+                  >
+                    <span>{userData.memorizedNames?.includes(selectedName.id) ? t.namesUnmark : t.namesButton}</span>
+                    {userData.memorizedNames?.includes(selectedName.id) ? <span>✕</span> : <span>✓</span>}
+                  </button>
+                  
+                  {/* Show "Next Name" button if the current one is memorized and there is a next one */}
+                  {userData.memorizedNames?.includes(selectedName.id) && hasNext && (
+                      <button
+                        onClick={goToNextName}
+                        className="w-full py-4 rounded-[1.8rem] text-sm font-black bg-slate-900 text-white shadow-lg active:scale-95 transition-transform flex items-center justify-center space-x-2"
+                      >
+                         <span>{t.namesNext}</span>
+                         <span>→</span>
+                      </button>
+                  )}
+              </div>
             </div>
           </div>
         </div>
