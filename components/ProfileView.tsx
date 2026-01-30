@@ -43,23 +43,25 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
 
   const inviteFriend = () => {
     // 1. Берём уже существующий промокод
-    const code = userData.myPromoCode;
+    let code = userData.myPromoCode;
 
+    // Если промокода ещё нет – генерируем и сохраняем
     if (!code) {
-      alert("Промокод пока не создан");
-      return;
+      code = generatePromoCode();
+      setUserData({
+        ...userData,
+        myPromoCode: code
+      });
     }
 
-    // 2. ВАЖНО: username вашего бота (БЕЗ @)
-    const BOT_USERNAME = "imantap_bot"; 
-    // ↑ если бот называется иначе — поменяйте ТОЛЬКО это
+    // 2. Имя вашего бота (username без @)
+    const BOT_USERNAME = "imantap_bot"; // например: "imantap_bot"
 
-    // 3. Формируем ПРАВИЛЬНУЮ реферальную ссылку
+    // 3. Формируем правильную ссылку
     const link = `https://t.me/${BOT_USERNAME}?start=ref_${code}`;
 
-    // 4. Открываем ссылку ПРАВИЛЬНО для Telegram Mini App
+    // 4. Открываем ссылку через Telegram WebApp
     const tg = (window as any).Telegram?.WebApp;
-
     if (tg && tg.openTelegramLink) {
       tg.openTelegramLink(link);
     } else {
