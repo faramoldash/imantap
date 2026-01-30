@@ -53,7 +53,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
           const data = await res.json();
           const invitedCount = data.invitedCount ?? 0;
 
-          // Используем функциональное обновление, чтобы не потерять другие поля
+          // Функциональное обновление, чтобы не затереть другие поля
           setUserData((prev) => ({
             ...prev,
             referralCount: invitedCount,
@@ -64,6 +64,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       };
 
       loadReferralCount();
+      // Зависимость ТОЛЬКО от промокода и setUserData, чтобы не вызвать цикл
     }, [userData.myPromoCode, setUserData]);
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   };
@@ -103,6 +104,24 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     } else {
       window.open(shareUrl, "_blank");
     }
+    // НОВОЕ: принудительно обновляем счётчик после шаринга
+    setTimeout(async () => {
+      try {
+        const BOT_API_URL = "https://imantap-bot-production.up.railway.app";
+        const res = await fetch(
+          `${BOT_API_URL}/referrals?code=${encodeURIComponent(code)}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setUserData((prev) => ({
+            ...prev,
+            referralCount: data.invitedCount ?? 0,
+          }));
+        }
+      } catch (e) {
+        console.error("Failed to refresh referral count", e);
+      }
+    }, 2000); // через 2 секунды после шаринга
   };
 
   const redeemPromoCode = async () => {
