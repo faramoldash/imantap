@@ -87,7 +87,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
 
     loadCount();
     // Срабатывает 1 раз при монтировании компонента
-  }, [setUserData]);
+  }, [userData.myPromoCode]);
 
   const inviteFriend = () => {
     // 1. Берём/создаём промокод
