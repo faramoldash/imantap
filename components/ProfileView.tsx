@@ -42,10 +42,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   };
 
   const inviteFriend = () => {
-    // 1. Берём уже существующий промокод
+    // 1. Берём/создаём промокод
     let code = userData.myPromoCode;
 
-    // Если промокода ещё нет – генерируем и сохраняем
     if (!code) {
       code = generatePromoCode();
       setUserData({
@@ -54,18 +53,28 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       });
     }
 
-    // 2. Имя вашего бота (username без @)
-    const BOT_USERNAME = "imantap_bot"; // например: "imantap_bot"
+    // 2. Username бота без @
+    const BOT_USERNAME = "imantap_bot";
 
-    // 3. Формируем правильную ссылку
-    const link = `https://t.me/${BOT_USERNAME}?start=ref_${code}`;
+    // 3. Реферальная ссылка, которой поделимся
+    const botLink = `https://t.me/${BOT_USERNAME}?start=ref_${code}`;
 
-    // 4. Открываем ссылку через Telegram WebApp
+    // 4. Текст для друга
+    const text =
+      language === "kk"
+        ? `🌙 Рамазан айына бірге дайындалайық! Менің промокодымды «${code}» қолданып, +100 XP бонус ал!\n\nБотқа өту: ${botLink}`
+        : `🌙 Давай готовиться к Рамадану вместе! Используй мой промокод «${code}» и получи +100 XP бонус!\n\nПерейти к боту: ${botLink}`;
+
+    // 5. Формируем share-url
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(
+      botLink
+    )}&text=${encodeURIComponent(text)}`;
+
     const tg = (window as any).Telegram?.WebApp;
-    if (tg && tg.openTelegramLink) {
-      tg.openTelegramLink(link);
+    if (tg?.openTelegramLink) {
+      tg.openTelegramLink(shareUrl);
     } else {
-      window.open(link, "_blank");
+      window.open(shareUrl, "_blank");
     }
   };
 
