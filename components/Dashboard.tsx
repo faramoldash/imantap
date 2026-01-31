@@ -93,7 +93,10 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const toggleItem = (key: keyof DayProgress, e?: React.MouseEvent<HTMLElement>) => {
-    const isCompleted = data[key]; // Current state before toggle
+    // Сохраняем позицию скролла ПЕРЕД изменениями
+    const scrollPosition = window.scrollY;
+    
+    const isCompleted = data[key];
     const xpVal = XP_VALUES[key as string] || 0;
     
     if (e) {
@@ -101,6 +104,11 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
 
     updateProgress(selectedDay, { [key]: !data[key] });
+    
+    // Восстанавливаем позицию скролла ПОСЛЕ изменений
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollPosition);
+    });
   };
 
   const handleCharityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,21 +147,28 @@ const Dashboard: React.FC<DashboardProps> = ({
   const levelName = t[`level${Math.min(level, 5)}`];
 
   const toggleMemorized = (id: number, e?: React.MouseEvent<HTMLElement>) => {
+    // Сохраняем позицию скролла
+    const scrollPosition = window.scrollY;
+    
     if (!userData || !setUserData) return;
     const current = userData.memorizedNames || [];
     const isMemorized = current.includes(id);
     const next = isMemorized ? current.filter(x => x !== id) : [...current, id];
     
-    // Award XP directly via userData update for Names
     const nameXp = XP_VALUES['name'] || 15;
     const xpDelta = isMemorized ? -nameXp : nameXp;
     
     if (e) triggerAnimation(e, xpDelta);
 
     setUserData({ 
-        ...userData, 
-        memorizedNames: next,
-        xp: Math.max(0, userData.xp + xpDelta)
+      ...userData, 
+      memorizedNames: next,
+      xp: Math.max(0, userData.xp + xpDelta)
+    });
+    
+    // Восстанавливаем позицию скролла
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollPosition);
     });
   };
 
@@ -220,9 +235,15 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Floating Animations Container (Fixed to viewport to avoid overflow issues) */}
       {floatingTexts.map((ft) => (
         <div 
-           key={ft.id}
-           className="fixed pointer-events-none z-50 text-emerald-600 font-black text-sm drop-shadow-md animate-out fade-out slide-out-to-top-10 duration-1000 fill-mode-forwards"
-           style={{ left: ft.x, top: ft.y, transform: 'translate(-50%, -100%)' }}
+          key={ft.id}
+          className="fixed pointer-events-none z-50 text-emerald-600 font-black text-sm drop-shadow-md animate-out fade-out slide-out-to-top-10 duration-1000 fill-mode-forwards"
+          style={{ 
+            left: ft.x, 
+            top: ft.y, 
+            transform: 'translate(-50%, -100%)',
+            willChange: 'transform, opacity',
+            contain: 'layout style paint'
+          }}
         >
           {ft.text}
         </div>
