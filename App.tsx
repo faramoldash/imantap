@@ -13,6 +13,10 @@ import TasksList from './components/TasksList';
 import RewardsView from './components/RewardsView';
 import ProfileView from './components/ProfileView';
 import Paywall from './components/Paywall';
+import PendingScreen from './components/PendingScreen';
+import DemoBanner from './components/DemoBanner';
+import { checkUserAccess, AccessData } from './utils/api';
+
 
 type TelegramUser = {
   id: number;
@@ -39,6 +43,7 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   // --- Payment / Auth State ---
   const [isCheckingPayment, setIsCheckingPayment] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
+  const [accessData, setAccessData] = useState<AccessData | null>(null);
   const [backendUserData, setBackendUserData] = useState<BackendUserData | null>(null);
 
   // Default user data structure
@@ -80,27 +85,27 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   // --- Payment Verification Logic ---
   useEffect(() => {
     const verifyPayment = async () => {
-      // 1. Get Telegram User ID
       const tg = (window as any).Telegram?.WebApp;
       const user = tg?.initDataUnsafe?.user;
+
+      // FOR DEVELOPMENT: используем тестовый ID
+      const userId = user?.id || 62872218; // Ваш ID для теста
       
-      // FOR DEVELOPMENT ONLY:
-      if (!user) {
-        setTimeout(() => {
-            setHasAccess(true); 
-            setIsCheckingPayment(false);
-        }, 1000);
-        return;
-      }
-
       try {
-        // 3. MOCK IMPLEMENTATION (Simulated):
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setHasAccess(true); 
-
+        console.log('🔍 Проверка доступа для user ID:', userId);
+        const access = await checkUserAccess(userId);
+        
+        console.log('✅ Результат проверки:', access);
+        setAccessData(access);
+        setHasAccess(access.hasAccess);
       } catch (error) {
-        console.error("Payment check failed", error);
-        setHasAccess(false); 
+        console.error("❌ Payment check failed", error);
+        setHasAccess(false);
+        setAccessData({
+          hasAccess: false,
+          paymentStatus: 'unpaid',
+          reason: 'error'
+        });
       } finally {
         setIsCheckingPayment(false);
       }
@@ -501,13 +506,18 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   // --- RENDER LOADING STATE ---
   if (isCheckingPayment || isLoading) {
     return (
-        <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 space-y-4">
-            <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-emerald-500 font-bold animate-pulse text-sm tracking-widest uppercase">
-                {userData.language === 'kk' ? 'Деректерді тексеру...' : 'Деректерді тексеру...'}
-            </p>
-        </div>
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 space-y-4">
+        <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-emerald-500 font-bold animate-pulse text-sm tracking-widest uppercase">
+          {userData.language === 'kk' ? 'Деректерді тексеру...' : 'Деректерді тексеру...'}
+        </p>
+      </div>
     );
+  }
+
+  // --- RENDER PENDING SCREEN (Ожидание проверки) ---
+  if (!hasAccess && accessData?.paymentStatus === 'pending') {
+    return <PendingScreen language={userData.language} />;
   }
 
   // --- RENDER PAYWALL IF NOT PAID ---
@@ -515,9 +525,20 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
     return <Paywall language={userData.language} />;
   }
 
+  // --- CHECK IF DEMO MODE ---
+  const showDemoBanner = accessData?.paymentStatus === 'demo' && accessData.demoExpires;
+
   // --- RENDER MAIN APP ---
   return (
-    <div className="min-h-screen pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
+    <div className={`min-h-screen pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50 ${showDemoBanner ? 'pt-16' : ''}`}>
+      {/* Demo Banner (если демо-режим) */}
+      {showDemoBanner && (
+        <DemoBanner 
+          demoExpires={accessData.demoExpires!} 
+          language={userData.language} 
+        />
+      )}
+
       {/* Индикатор синхронизации */}
       <SyncIndicator status={syncStatus} onRetry={retrySync} />
       {telegramUser && (

@@ -127,3 +127,48 @@ export function autoSyncUserData(userData: UserData, delay: number = 2000) {
     syncUserDataToServer(userData);
   }, delay);
 }
+
+/**
+ * Проверить доступ пользователя (оплата/демо/pending)
+ */
+export interface AccessData {
+  hasAccess: boolean;
+  paymentStatus: 'paid' | 'unpaid' | 'pending' | 'demo';
+  reason?: string;
+  demoExpires?: string;
+}
+
+export async function checkUserAccess(userId: number): Promise<AccessData> {
+  try {
+    const response = await fetch(`${BOT_API_URL}/api/user/${userId}/access`);
+    
+    if (!response.ok) {
+      console.error('❌ Ошибка проверки доступа:', response.status);
+      return {
+        hasAccess: false,
+        paymentStatus: 'unpaid',
+        reason: 'connection_error'
+      };
+    }
+    
+    const result = await response.json();
+    
+    if (result.success && result.data) {
+      console.log('✅ Данные доступа:', result.data);
+      return result.data;
+    }
+    
+    return {
+      hasAccess: false,
+      paymentStatus: 'unpaid',
+      reason: 'unknown_error'
+    };
+  } catch (error) {
+    console.error('❌ Ошибка проверки доступа:', error);
+    return {
+      hasAccess: false,
+      paymentStatus: 'unpaid',
+      reason: 'network_error'
+    };
+  }
+}
