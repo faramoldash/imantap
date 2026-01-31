@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { UserData, ViewType, DayProgress, Language, CustomTask } from './types';
 import { TOTAL_DAYS, INITIAL_DAY_PROGRESS, TRANSLATIONS, XP_VALUES, RAMADAN_START_DATE, DEFAULT_GOALS, BADGES } from './constants';
 import Dashboard from './components/Dashboard';
@@ -8,6 +8,7 @@ import QuranTracker from './components/QuranTracker';
 import Navigation from './components/Navigation';
 import NamesMemorizer from './components/NamesMemorizer';
 import SyncIndicator, { SyncStatus } from './components/SyncIndicator';
+import { syncQueue } from './src/utils/syncQueue';
 import TasksList from './components/TasksList';
 import RewardsView from './components/RewardsView';
 import ProfileView from './components/ProfileView';
@@ -234,78 +235,162 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   }, [calculateRamadanStatus]);
 
   // Save to localStorage AND sync to server whenever userData changes
+  // Debounce hook
+  const useDebounce = (callback: Function, delay: number) => {
+    const timeoutRef = useRef<NodeJS.Timeout>();
+    
+    return useCallback((...args: any[]) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    }, [callback, delay]);
+  };
+
+  // Функция синхронизации с сервером
+  const syncToServerFn = useCallback(async () => {
+    const tg = (window as any).Telegram?.WebApp;
+    const userId = tg?.initDataUnsafe?.user?.id;
+
+    if (!userId) {
+      setSyncStatus('offline');
+      return false;
+    }
+
+    // Проверяем онлайн статус
+    if (!navigator.onLine) {
+      setSyncStatus('offline');
+      console.log('📴 Offline - adding to queue');
+      
+      // Добавляем в очередь
+      syncQueue.add({
+        userId,
+        name: userData.name,
+        photoUrl: userData.photoUrl,
+        startDate: userData.startDate,
+        registrationDate: userData.registrationDate,
+        progress: userData.progress,
+        memorizedNames: userData.memorizedNames,
+        completedJuzs: userData.completedJuzs,
+        quranKhatams: userData.quranKhatams,
+        completedTasks: userData.completedTasks,
+        deletedPredefinedTasks: userData.deletedPredefinedTasks,
+        customTasks: userData.customTasks,
+        quranGoal: userData.quranGoal,
+        dailyQuranGoal: userData.dailyQuranGoal,
+        dailyCharityGoal: userData.dailyCharityGoal,
+        language: userData.language,
+        xp: userData.xp,
+        hasRedeemedReferral: userData.hasRedeemedReferral,
+        unlockedBadges: userData.unlockedBadges
+      });
+      
+      return false;
+    }
+
+    try {
+      setSyncStatus('syncing');
+      
+      const response = await fetch(
+        `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: userData.name,
+            photoUrl: userData.photoUrl,
+            startDate: userData.startDate,
+            registrationDate: userData.registrationDate,
+            progress: userData.progress,
+            memorizedNames: userData.memorizedNames,
+            completedJuzs: userData.completedJuzs,
+            quranKhatams: userData.quranKhatams,
+            completedTasks: userData.completedTasks,
+            deletedPredefinedTasks: userData.deletedPredefinedTasks,
+            customTasks: userData.customTasks,
+            quranGoal: userData.quranGoal,
+            dailyQuranGoal: userData.dailyQuranGoal,
+            dailyCharityGoal: userData.dailyCharityGoal,
+            language: userData.language,
+            xp: userData.xp,
+            hasRedeemedReferral: userData.hasRedeemedReferral,
+            unlockedBadges: userData.unlockedBadges
+          }),
+        }
+      );
+
+      if (response.ok) {
+        console.log('✅ Synced to server');
+        setSyncStatus('success');
+        return true;
+      } else {
+        console.error('❌ Sync failed:', response.status);
+        setSyncStatus('error');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Sync error:', error);
+      setSyncStatus('error');
+      return false;
+    }
+  }, [userData, setSyncStatus]);
+
+  // Debounced sync (5 секунд вместо немедленной синхронизации)
+  const debouncedSync = useDebounce(syncToServerFn, 5000);
+
+  // Save to localStorage AND sync to server whenever userData changes
   useEffect(() => {
     if (!isLoading) {
-      // Сохраняем в localStorage
+      // Сохраняем в localStorage немедленно
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
       
-      // Автоматически синхронизируем с сервером (с задержкой 2 секунды)
-      const syncToServer = async () => {
-        const tg = (window as any).Telegram?.WebApp;
-        const userId = tg?.initDataUnsafe?.user?.id;
+      // Синхронизируем с задержкой
+      debouncedSync();
+    }
+  }, [userData, isLoading, debouncedSync]);
 
-        if (!userId) {
-          setSyncStatus('offline');
-          return;
-        }
-
-        // Проверяем онлайн статус
-        if (!navigator.onLine) {
-          setSyncStatus('offline');
-          return;
-        }
-
+  // Online/Offline listeners
+  useEffect(() => {
+    const handleOnline = async () => {
+      console.log('🌐 Back online! Processing queue...');
+      
+      const processed = await syncQueue.processQueue(async (data) => {
         try {
-          setSyncStatus('syncing');
-          
           const response = await fetch(
-            `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`,
+            `https://imantap-bot-production.up.railway.app/api/user/${data.userId}/sync`,
             {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                name: userData.name,
-                photoUrl: userData.photoUrl,
-                startDate: userData.startDate,
-                registrationDate: userData.registrationDate,
-                progress: userData.progress,
-                memorizedNames: userData.memorizedNames,
-                completedJuzs: userData.completedJuzs,
-                quranKhatams: userData.quranKhatams,
-                completedTasks: userData.completedTasks,
-                deletedPredefinedTasks: userData.deletedPredefinedTasks,
-                customTasks: userData.customTasks,
-                quranGoal: userData.quranGoal,
-                dailyQuranGoal: userData.dailyQuranGoal,
-                dailyCharityGoal: userData.dailyCharityGoal,
-                language: userData.language,
-                xp: userData.xp,
-                hasRedeemedReferral: userData.hasRedeemedReferral,
-                unlockedBadges: userData.unlockedBadges
-              }),
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data),
             }
           );
-
-          if (response.ok) {
-            console.log('✅ Данные синхронизированы с сервером');
-            setSyncStatus('success');
-          } else {
-            console.error('❌ Ошибка синхронизации:', response.status);
-            setSyncStatus('error');
-          }
-        } catch (error) {
-          console.error('❌ Ошибка синхронизации:', error);
-          setSyncStatus('error');
+          return response.ok;
+        } catch {
+          return false;
         }
-      };
+      });
+      
+      if (processed > 0) {
+        setSyncStatus('success');
+      }
+    };
+    
+    const handleOffline = () => {
+      console.log('📴 Gone offline');
+      setSyncStatus('offline');
+    };
 
-      // Задержка 2 секунды перед синхронизацией
-      const timeout = setTimeout(syncToServer, 2000);
-      return () => clearTimeout(timeout);
-    }
-  }, [userData, isLoading]);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [setSyncStatus]);
 
   // Функция для повторной попытки синхронизации
   const retrySync = useCallback(() => {
