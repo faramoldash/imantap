@@ -24,6 +24,12 @@ type AppProps = {
   telegramUser: TelegramUser | null;
 };
 
+interface BackendUserData {
+  userId: string;
+  promoCode: string;
+  invitedCount: number;
+  username?: string;
+}
 
 const STORAGE_KEY = 'ramadan_tracker_data_v3';
 
@@ -31,6 +37,7 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   // --- Payment / Auth State ---
   const [isCheckingPayment, setIsCheckingPayment] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
+  const [backendUserData, setBackendUserData] = useState<BackendUserData | null>(null);
 
   const [userData, setUserData] = useState<UserData>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -120,6 +127,39 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
     verifyPayment();
   }, []);
 
+  // --- Sync with Backend ---
+  useEffect(() => {
+    const loadBackendData = async () => {
+      const tg = (window as any).Telegram?.WebApp;
+      const user = tg?.initDataUnsafe?.user;
+      
+      if (user?.id) {
+        try {
+          const response = await fetch(
+            `https://imantap-bot-production.up.railway.app/user/${user.id}`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              setBackendUserData(data.data);
+              
+              // Обновляем referralCount в локальном состоянии
+              setUserData(prev => ({
+                ...prev,
+                referralCount: data.data.invitedCount || 0,
+                myPromoCode: data.data.promoCode || prev.myPromoCode
+              }));
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load backend data:', error);
+        }
+      }
+    };
+    
+    loadBackendData();
+  }, []);
 
   // --- Sync with Telegram Data ---
   useEffect(() => {
@@ -321,8 +361,14 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
     <div className="min-h-screen pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
       
       {telegramUser && (
-        <div className="text-center text-sm text-slate-500 mt-4">
-          Ассаляму алейкум, {telegramUser.first_name}
+        <div className="text-center text-sm text-slate-500 mt-4 space-y-1">
+          <div>Ассаляму алейкум, {telegramUser.first_name}</div>
+          {backendUserData && (
+            <div className="text-xs">
+              📋 Промокод: <strong>{backendUserData.promoCode}</strong> | 
+              👥 Рефералдар: <strong>{backendUserData.invitedCount}</strong>
+            </div>
+          )}
         </div>
       )}
       {newBadge && (
