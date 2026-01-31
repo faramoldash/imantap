@@ -2,6 +2,7 @@
 import React from 'react';
 import { ViewType, Language } from '../types';
 import { TRANSLATIONS } from '../constants';
+import { haptics } from '../src/utils/haptics';
 
 interface NavigationProps {
   currentView: ViewType;
@@ -24,7 +25,10 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, language 
       {items.map((item) => (
         <button
           key={item.id}
-          onClick={() => setView(item.id)}
+          onClick={() => {
+            haptics.selection();
+            setView('dashboard');
+          }}
           className={`flex flex-col items-center justify-center space-y-1 transition-all flex-shrink-0 min-w-[64px] ${
             currentView === item.id ? 'text-emerald-600 scale-105' : 'text-slate-400'
           }`}

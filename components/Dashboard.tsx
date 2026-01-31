@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DayProgress, Language, UserData, ViewType } from '../types';
 import { TRANSLATIONS, TRACKER_KEYS, TOTAL_DAYS, NAMES_99, XP_VALUES } from '../constants';
+import { haptics } from '../src/utils/haptics';
 
 interface DashboardProps {
   day: number;
@@ -67,14 +68,11 @@ const Dashboard: React.FC<DashboardProps> = ({
   const toggleItem = (key: keyof DayProgress, e?: React.MouseEvent<HTMLElement>) => {
     const isCompleted = data[key];
     
-    // Только haptic feedback, без анимаций
-    const tg = (window as any).Telegram?.WebApp;
-    if (tg?.HapticFeedback) {
-      if (isCompleted) {
-        tg.HapticFeedback.impactOccurred('light');
-      } else {
-        tg.HapticFeedback.notificationOccurred('success');
-      }
+    // Haptic feedback
+    if (isCompleted) {
+      haptics.light(); // Снятие галочки - легкая вибрация
+    } else {
+      haptics.success(); // Установка галочки - успех
     }
 
     updateProgress(selectedDay, { [key]: !data[key] });
@@ -126,13 +124,10 @@ const Dashboard: React.FC<DashboardProps> = ({
     const xpDelta = isMemorized ? -nameXp : nameXp;
     
     // Haptic feedback
-    const tg = (window as any).Telegram?.WebApp;
-    if (tg?.HapticFeedback) {
-      if (isMemorized) {
-        tg.HapticFeedback.impactOccurred('light');
-      } else {
-        tg.HapticFeedback.notificationOccurred('success');
-      }
+    if (isMemorized) {
+      haptics.light();
+    } else {
+      haptics.success();
     }
 
     setUserData({ 
@@ -156,7 +151,12 @@ const Dashboard: React.FC<DashboardProps> = ({
 
     return (
       <div
-        onClick={() => !isLocked && onDaySelect(dayNum)}
+        onClick={() => {
+          if (!isLocked) {
+            haptics.selection();
+            onDaySelect(dayNum);
+          }
+        }}
         className={`relative flex flex-col items-center justify-center transition-all ${
           isLocked ? 'cursor-not-allowed opacity-40 grayscale' : 'cursor-pointer'
         } ${isSelected ? 'scale-110 z-10' : 'opacity-80'}`}
@@ -216,7 +216,10 @@ const Dashboard: React.FC<DashboardProps> = ({
       )}
 
       {/* Level Summary */}
-      <section onClick={() => setView('rewards')} className="cursor-pointer active:scale-[0.98] transition-transform">
+      <section onClick={() => {
+        haptics.medium();
+        setView('rewards');
+      }} className="cursor-pointer active:scale-[0.98] transition-transform">
         <div className="bg-white p-6 rounded-[2.5rem] shadow-md border border-slate-100 flex items-center space-x-5">
            <div className="w-16 h-16 bg-emerald-600 rounded-3xl flex items-center justify-center text-3xl shadow-lg shadow-emerald-200 text-white font-serif">
              {level >= 5 ? '👑' : level >= 3 ? '⚔️' : '🌙'}
@@ -263,7 +266,10 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="space-y-6">
         
         {/* Fasting Card */}
-        <div onClick={(e) => toggleItem('fasting', e)} className={`p-6 rounded-[2.5rem] transition-all cursor-pointer flex items-center justify-between active:scale-95 ${data.fasting ? 'bg-emerald-600 text-white shadow-xl' : 'bg-white text-emerald-900 border border-slate-100 shadow-sm'}`}>
+        <div onClick={(e) => {
+          haptics.medium();
+          toggleItem('fasting', e);
+        }} className={`p-6 rounded-[2.5rem] transition-all cursor-pointer flex items-center justify-between active:scale-95 ${data.fasting ? 'bg-emerald-600 text-white shadow-xl' : 'bg-white text-emerald-900 border border-slate-100 shadow-sm'}`}>
           <div className="flex items-center space-x-4">
             <div className={`p-4 rounded-[1.5rem] ${data.fasting ? 'bg-white/20' : 'bg-emerald-50'}`}><span className="text-2xl">{data.fasting ? '🌙' : '🍽️'}</span></div>
             <div>
@@ -317,7 +323,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                   {t.namesDailyTitle}
                 </h4>
                 <button 
-                  onClick={() => setView('names-99')}
+                  onClick={() => {
+                    haptics.selection();
+                    setView('dashboard');
+                  }}
                   className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-colors backdrop-blur-sm shadow-lg border border-white/20"
                 >
                   {t.viewAllNames} →
