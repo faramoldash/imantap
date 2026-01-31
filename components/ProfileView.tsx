@@ -85,10 +85,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     return { totalFasts, totalQuran, totalCharity, totalPrayers };
   }, [userData.progress]);
 
-  const generatePromoCode = () => {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
-  };
-
   // Загружаем счётчик приглашённых с бота
   useEffect(() => {
     const BOT_API_URL = "https://imantap-bot-production.up.railway.app";
@@ -133,58 +129,29 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   }, [setUserData]);
 
   const inviteFriend = () => {
-    // 1. Берём/создаём промокод
-    let code = userData.myPromoCode;
-
-    if (!code) {
-      code = generatePromoCode();
-      setUserData({
-        ...userData,
-        myPromoCode: code
-      });
-    }
-
-    // 2. Username бота без @
-    const BOT_USERNAME = "imantap_bot";
-
-    // 3. Реферальная ссылка, которой поделимся
-    const botLink = `https://t.me/${BOT_USERNAME}?start=ref_${code}`;
-
-    // 4. Текст для друга
-    const text =
-      language === "kk"
-        ? `🌙 Рамазан айына бірге дайындалайық! Менің промокодымды «${code}» қолданып, +100 XP бонус ал!\n\nБотқа өту: ${botLink}`
-        : `🌙 Давай готовиться к Рамадану вместе! Используй мой промокод «${code}» и получи +100 XP бонус!\n\nПерейти к боту: ${botLink}`;
-
-    // 5. Формируем share-url
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(
-      botLink
-    )}&text=${encodeURIComponent(text)}`;
-
-    const tg = (window as any).Telegram?.WebApp;
-    if (tg?.openTelegramLink) {
-      tg.openTelegramLink(shareUrl);
-    } else {
-      window.open(shareUrl, "_blank");
-    }
-    // НОВОЕ: принудительно обновляем счётчик после шаринга
-    setTimeout(async () => {
-      try {
-        const BOT_API_URL = "https://imantap-bot-production.up.railway.app";
-        const res = await fetch(
-          `${BOT_API_URL}/referrals?code=${encodeURIComponent(code)}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          setUserData((prev) => ({
-            ...prev,
-            referralCount: data.invitedCount ?? 0,
-          }));
-        }
-      } catch (e) {
-        console.error("Failed to refresh referral count", e);
+      const code = userData.myPromoCode;
+      
+      // Если промокод не загрузился из бота - показать ошибку
+      if (!code) {
+          console.error('❌ Промокод не загружен из бота');
+          return;
       }
-    }, 2000); // через 2 секунды после шаринга
+
+      const botUsername = 'imantap_bot';
+      const botLink = `https://t.me/${botUsername}`;
+      const inviteLink = `${botLink}?start=ref_${code}`;
+      const text = language === 'kk' 
+          ? `🌙 Рамазан айына бірге дайындалайық! Менің промокодымды «${code}» қолданып, +100 XP бонус ал!` 
+          : `🌙 Давай готовиться к Рамадану вместе! Используй мой промокод «${code}» и получи +100 XP бонус!`;
+      
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(text)}`;
+      
+      const tg = (window as any).Telegram?.WebApp;
+      if (tg?.openTelegramLink) {
+          tg.openTelegramLink(shareUrl);
+      } else {
+          window.open(shareUrl, '_blank');
+      }
   };
 
   const redeemPromoCode = async () => {
