@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Language, ViewType } from '../types';
 import { TRANSLATIONS, USEFUL_MATERIALS } from '../constants';
+import { haptics } from '../src/utils/haptics';
 
 interface UsefulMaterialsProps {
   language: Language;
@@ -118,7 +119,10 @@ const UsefulMaterials: React.FC<UsefulMaterialsProps> = ({ language, setView }) 
       </div>
 
       <div 
-        onClick={() => setView('names-99')}
+        onClick={() => {
+          haptics.selection();
+          setView('dashboard');
+        }}
         className="bg-gradient-to-br from-amber-400 to-amber-600 p-6 rounded-[2.5rem] shadow-lg shadow-amber-100 text-white flex items-center justify-between cursor-pointer active:scale-95 transition-all"
       >
         <div className="flex items-center space-x-4">
