@@ -39,42 +39,19 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   const [hasAccess, setHasAccess] = useState(false);
   const [backendUserData, setBackendUserData] = useState<BackendUserData | null>(null);
 
-  const [userData, setUserData] = useState<UserData>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    // FORCE KAZAKH LANGUAGE CONSTANT
+  // Default user data structure
+  const getDefaultUserData = (): UserData => {
     const forcedLang: Language = 'kk';
-
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return { 
-        ...parsed,
-        xp: parsed.xp || 0,
-        referralCount: parsed.referralCount || 0,
-        unlockedBadges: parsed.unlockedBadges || [],
-        dailyQuranGoal: parsed.dailyQuranGoal || 5,
-        dailyCharityGoal: parsed.dailyCharityGoal || 1000,
-        hasRedeemedReferral: parsed.hasRedeemedReferral || false,
-        myPromoCode: parsed.myPromoCode || undefined,
-        username: parsed.username || undefined,
-        photoUrl: parsed.photoUrl || undefined,
-        // Preserve existing registrationDate or default to startDate (historical behavior)
-        registrationDate: parsed.registrationDate || parsed.startDate,
-        quranKhatams: parsed.quranKhatams || 0,
-        // Force language update even for existing users
-        language: forcedLang 
-      };
-    }
-    
     const templates: CustomTask[] = DEFAULT_GOALS[forcedLang].map((text, idx) => ({
-        id: `template-${idx}-${Date.now()}`,
-        text,
-        completed: false
+      id: `template-${idx}-${Date.now()}`,
+      text,
+      completed: false
     }));
 
     return {
       name: 'Брат/Сестра',
       startDate: RAMADAN_START_DATE,
-      registrationDate: new Date().toISOString(), // Use current date for new users
+      registrationDate: new Date().toISOString(),
       progress: {},
       memorizedNames: [],
       completedJuzs: [],
@@ -82,7 +59,7 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
       completedTasks: [],
       deletedPredefinedTasks: [],
       customTasks: templates,
-      quranGoal: 30, 
+      quranGoal: 30,
       dailyQuranGoal: 5,
       dailyCharityGoal: 1000,
       language: forcedLang,
@@ -91,8 +68,10 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
       unlockedBadges: [],
       hasRedeemedReferral: false,
     };
-  });
+  };
 
+  const [userData, setUserData] = useState<UserData>(getDefaultUserData());
+  const [isLoading, setIsLoading] = useState(true);
   const [newBadge, setNewBadge] = useState<typeof BADGES[0] | null>(null);
 
   // --- Payment Verification Logic ---
@@ -127,63 +106,79 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
     verifyPayment();
   }, []);
 
-  // --- Sync with Backend ---
+  // Load user data from MongoDB and merge with localStorage
   useEffect(() => {
-    const loadBackendData = async () => {
-      const tg = (window as any).Telegram?.WebApp;
-      const user = tg?.initDataUnsafe?.user;
-      
-      if (user?.id) {
-        try {
-          const response = await fetch(
-            `https://imantap-bot-production.up.railway.app/user/${user.id}`
-          );
-          
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-              setBackendUserData(data.data);
-              
-              // Обновляем referralCount в локальном состоянии
-              setUserData(prev => ({
-                ...prev,
-                referralCount: data.data.invitedCount || 0,
-                myPromoCode: data.data.promoCode || prev.myPromoCode
-              }));
-            }
+    const loadData = async () => {
+      try {
+        const tg = (window as any).Telegram?.WebApp;
+        const user = tg?.initDataUnsafe?.user;
+
+        // 1. Загружаем данные из localStorage (для быстрого старта)
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        let localData: UserData | null = null;
+        
+        if (savedData) {
+          try {
+            localData = JSON.parse(savedData);
+            setUserData(localData); // Показываем локальные данные сразу
+          } catch (err) {
+            console.error('❌ Ошибка парсинга localStorage:', err);
           }
-        } catch (error) {
-          console.error('Failed to load backend data:', error);
         }
+
+        // 2. Загружаем данные с сервера (если есть Telegram user)
+        if (user?.id) {
+          console.log('🔍 Загрузка данных с сервера для user ID:', user.id);
+
+          const response = await fetch(
+            `https://imantap-bot-production.up.railway.app/api/user/${user.id}/full`
+          );
+
+          if (response.ok) {
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+              const serverData = result.data;
+              console.log('✅ Данные загружены с сервера:', serverData);
+
+              // 3. Мерджим данные: приоритет у сервера
+              const mergedData: UserData = {
+                ...(localData || getDefaultUserData()),
+                ...serverData,
+                // Telegram данные всегда берём из Telegram WebApp
+                name: user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : serverData.name || 'User',
+                username: user.username ? `@${user.username}` : serverData.username,
+                photoUrl: user.photo_url || serverData.photoUrl,
+                // Промокод и рефералы всегда с сервера
+                myPromoCode: serverData.myPromoCode,
+                referralCount: serverData.referralCount,
+                // Язык всегда казахский
+                language: 'kk'
+              };
+
+              console.log('✅ Данные объединены:', mergedData);
+              setUserData(mergedData);
+              
+              // Сохраняем в localStorage для кэша
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedData));
+            }
+          } else {
+            console.log('⚠️ Используем локальные данные (сервер недоступен)');
+          }
+        } else {
+          console.log('⚠️ Telegram user не найден, используем локальные данные');
+        }
+
+      } catch (error) {
+        console.error('❌ Ошибка загрузки данных:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
-    
-    loadBackendData();
+
+    loadData();
   }, []);
 
-  // --- Sync with Telegram Data ---
-  useEffect(() => {
-    const tg = (window as any).Telegram?.WebApp;
-    if (tg?.initDataUnsafe?.user) {
-        const user = tg.initDataUnsafe.user;
-        const fullName = `${user.first_name} ${user.last_name || ''}`.trim();
-        const username = user.username ? `@${user.username}` : undefined;
-        const photoUrl = user.photo_url;
-
-        // Force Kazakh language regardless of user settings
-        const forcedLang: Language = 'kk';
-
-        if (userData.name !== fullName || userData.username !== username || userData.photoUrl !== photoUrl || userData.language !== forcedLang) {
-            setUserData(prev => ({
-                ...prev,
-                name: fullName,
-                username: username,
-                photoUrl: photoUrl,
-                language: forcedLang 
-            }));
-        }
-    }
-  }, []);
 
   const calculateRamadanStatus = useCallback(() => {
     const start = new Date(userData.startDate);
@@ -236,9 +231,65 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
     return () => clearInterval(interval);
   }, [calculateRamadanStatus]);
 
+  // Save to localStorage AND sync to server whenever userData changes
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-  }, [userData]);
+    if (!isLoading) {
+      // Сохраняем в localStorage
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+      
+      // Автоматически синхронизируем с сервером (с задержкой 2 секунды)
+      const syncToServer = async () => {
+        const tg = (window as any).Telegram?.WebApp;
+        const userId = tg?.initDataUnsafe?.user?.id;
+
+        if (!userId) {
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                name: userData.name,
+                photoUrl: userData.photoUrl,
+                startDate: userData.startDate,
+                registrationDate: userData.registrationDate,
+                progress: userData.progress,
+                memorizedNames: userData.memorizedNames,
+                completedJuzs: userData.completedJuzs,
+                quranKhatams: userData.quranKhatams,
+                completedTasks: userData.completedTasks,
+                deletedPredefinedTasks: userData.deletedPredefinedTasks,
+                customTasks: userData.customTasks,
+                quranGoal: userData.quranGoal,
+                dailyQuranGoal: userData.dailyQuranGoal,
+                dailyCharityGoal: userData.dailyCharityGoal,
+                language: userData.language,
+                xp: userData.xp,
+                hasRedeemedReferral: userData.hasRedeemedReferral,
+                unlockedBadges: userData.unlockedBadges
+              }),
+            }
+          );
+
+          if (response.ok) {
+            console.log('✅ Данные синхронизированы с сервером');
+          }
+        } catch (error) {
+          console.error('❌ Ошибка синхронизации:', error);
+        }
+      };
+
+      // Задержка 2 секунды перед синхронизацией
+      const timeout = setTimeout(syncToServer, 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [userData, isLoading]);
 
   // --- GAMIFICATION LOGIC ---
   const checkBadges = (data: UserData) => {
@@ -340,7 +391,7 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   };
 
   // --- RENDER LOADING STATE ---
-  if (isCheckingPayment) {
+  if (isCheckingPayment || isLoading) {
     return (
         <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 space-y-4">
             <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
