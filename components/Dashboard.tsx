@@ -20,13 +20,6 @@ interface DashboardProps {
 
 type CharityCategory = 'charitySadaqah' | 'charityZakat' | 'charityFitrana';
 
-interface FloatingText {
-  id: number;
-  text: string;
-  x: number;
-  y: number;
-}
-
 const Dashboard: React.FC<DashboardProps> = ({ 
   day: selectedDay, 
   realTodayDay,
@@ -44,9 +37,6 @@ const Dashboard: React.FC<DashboardProps> = ({
   const t = TRANSLATIONS[language];
   const [activeCategory, setActiveCategory] = useState<CharityCategory>('charitySadaqah');
   const [charityInput, setCharityInput] = useState('');
-  
-  // Animation State
-  const [floatingTexts, setFloatingTexts] = useState<FloatingText[]>([]);
 
   // Monthly totals for charity
   const monthlyTotals = useMemo(() => {
@@ -74,41 +64,20 @@ const Dashboard: React.FC<DashboardProps> = ({
     setCharityInput(val > 0 ? val.toString() : '');
   }, [selectedDay, activeCategory, data]);
 
-  const triggerAnimation = (e: React.MouseEvent<HTMLElement>, val: number) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const id = Date.now();
-    const text = val > 0 ? `+${val} XP` : `${val} XP`;
-    
-    // Adjust coordinates to be relative to the viewport but centered on button
-    setFloatingTexts(prev => [...prev, { 
-      id, 
-      text, 
-      x: rect.left + rect.width / 2, 
-      y: rect.top 
-    }]);
-
-    setTimeout(() => {
-      setFloatingTexts(prev => prev.filter(item => item.id !== id));
-    }, 1000);
-  };
-
   const toggleItem = (key: keyof DayProgress, e?: React.MouseEvent<HTMLElement>) => {
-    // Сохраняем позицию скролла ПЕРЕД изменениями
-    const scrollPosition = window.scrollY;
-    
     const isCompleted = data[key];
-    const xpVal = XP_VALUES[key as string] || 0;
     
-    if (e) {
-      triggerAnimation(e, !isCompleted ? xpVal : -xpVal);
+    // Только haptic feedback, без анимаций
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg?.HapticFeedback) {
+      if (isCompleted) {
+        tg.HapticFeedback.impactOccurred('light');
+      } else {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
     }
 
     updateProgress(selectedDay, { [key]: !data[key] });
-    
-    // Восстанавливаем позицию скролла ПОСЛЕ изменений
-    requestAnimationFrame(() => {
-      window.scrollTo(0, scrollPosition);
-    });
   };
 
   const handleCharityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,10 +116,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   const levelName = t[`level${Math.min(level, 5)}`];
 
   const toggleMemorized = (id: number, e?: React.MouseEvent<HTMLElement>) => {
-    // Сохраняем позицию скролла
-    const scrollPosition = window.scrollY;
-    
     if (!userData || !setUserData) return;
+    
     const current = userData.memorizedNames || [];
     const isMemorized = current.includes(id);
     const next = isMemorized ? current.filter(x => x !== id) : [...current, id];
@@ -158,17 +125,20 @@ const Dashboard: React.FC<DashboardProps> = ({
     const nameXp = XP_VALUES['name'] || 15;
     const xpDelta = isMemorized ? -nameXp : nameXp;
     
-    if (e) triggerAnimation(e, xpDelta);
+    // Haptic feedback
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg?.HapticFeedback) {
+      if (isMemorized) {
+        tg.HapticFeedback.impactOccurred('light');
+      } else {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
+    }
 
     setUserData({ 
       ...userData, 
       memorizedNames: next,
       xp: Math.max(0, userData.xp + xpDelta)
-    });
-    
-    // Восстанавливаем позицию скролла
-    requestAnimationFrame(() => {
-      window.scrollTo(0, scrollPosition);
     });
   };
 
@@ -232,22 +202,6 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="space-y-6 pb-24 relative">
-      {/* Floating Animations Container (Fixed to viewport to avoid overflow issues) */}
-      {floatingTexts.map((ft) => (
-        <div 
-          key={ft.id}
-          className="fixed pointer-events-none z-50 text-emerald-600 font-black text-sm drop-shadow-md animate-out fade-out slide-out-to-top-10 duration-1000 fill-mode-forwards"
-          style={{ 
-            left: ft.x, 
-            top: ft.y, 
-            transform: 'translate(-50%, -100%)',
-            willChange: 'transform, opacity',
-            contain: 'layout style paint'
-          }}
-        >
-          {ft.text}
-        </div>
-      ))}
 
       {/* Real-time Countdown Card */}
       {!ramadanInfo.isStarted && (
