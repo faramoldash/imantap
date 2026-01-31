@@ -7,6 +7,7 @@ import Calendar from './components/Calendar';
 import QuranTracker from './components/QuranTracker';
 import Navigation from './components/Navigation';
 import NamesMemorizer from './components/NamesMemorizer';
+import SyncIndicator, { SyncStatus } from './components/SyncIndicator';
 import TasksList from './components/TasksList';
 import RewardsView from './components/RewardsView';
 import ProfileView from './components/ProfileView';
@@ -72,6 +73,7 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
 
   const [userData, setUserData] = useState<UserData>(getDefaultUserData());
   const [isLoading, setIsLoading] = useState(true);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [newBadge, setNewBadge] = useState<typeof BADGES[0] | null>(null);
 
   // --- Payment Verification Logic ---
@@ -243,10 +245,19 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
         const userId = tg?.initDataUnsafe?.user?.id;
 
         if (!userId) {
+          setSyncStatus('offline');
+          return;
+        }
+
+        // Проверяем онлайн статус
+        if (!navigator.onLine) {
+          setSyncStatus('offline');
           return;
         }
 
         try {
+          setSyncStatus('syncing');
+          
           const response = await fetch(
             `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`,
             {
@@ -279,9 +290,14 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
 
           if (response.ok) {
             console.log('✅ Данные синхронизированы с сервером');
+            setSyncStatus('success');
+          } else {
+            console.error('❌ Ошибка синхронизации:', response.status);
+            setSyncStatus('error');
           }
         } catch (error) {
           console.error('❌ Ошибка синхронизации:', error);
+          setSyncStatus('error');
         }
       };
 
@@ -290,6 +306,13 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
       return () => clearTimeout(timeout);
     }
   }, [userData, isLoading]);
+
+  // Функция для повторной попытки синхронизации
+  const retrySync = useCallback(() => {
+    setSyncStatus('idle');
+    // Триггерим повторное сохранение через изменение userData
+    setUserData(prev => ({ ...prev }));
+  }, []);
 
   // --- GAMIFICATION LOGIC ---
   const checkBadges = (data: UserData) => {
@@ -410,7 +433,8 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   // --- RENDER MAIN APP ---
   return (
     <div className="min-h-screen pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
-      
+      {/* Индикатор синхронизации */}
+      <SyncIndicator status={syncStatus} onRetry={retrySync} />
       {telegramUser && (
         <div className="text-center text-sm text-slate-500 mt-4 space-y-1">
           <div>Ассаляму алейкум, {telegramUser.first_name}</div>
