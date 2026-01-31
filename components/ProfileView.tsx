@@ -19,6 +19,54 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   const [promoSuccess, setPromoSuccess] = useState('');
   const [isValidating, setIsValidating] = useState(false);
 
+  // ===== СИНХРОНИЗАЦИЯ С БОТОМ =====
+  React.useEffect(() => {
+    const loadDataFromBot = async () => {
+      try {
+        // Получаем Telegram WebApp
+        const tg = (window as any).Telegram?.WebApp;
+        const telegramUserId = tg?.initDataUnsafe?.user?.id;
+        
+        if (!telegramUserId) {
+          console.log('⚠️ Telegram user ID не найден');
+          return;
+        }
+        
+        console.log('🔍 Загрузка данных для user ID:', telegramUserId);
+        
+        // Запрос к боту
+        const response = await fetch(
+          `https://imantap-bot-production.up.railway.app/api/user/${telegramUserId}`
+        );
+        
+        if (!response.ok) {
+          console.error('❌ Ошибка API:', response.status);
+          return;
+        }
+        
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          console.log('✅ Получены данные с бота:', result.data);
+          
+          // Обновляем userData с данными из бота
+          setUserData({
+            ...userData,
+            myPromoCode: result.data.promoCode,
+            referralCount: result.data.invitedCount
+          });
+          
+          console.log('✅ referralCount обновлён:', result.data.invitedCount);
+        }
+        
+      } catch (error) {
+        console.error('❌ Ошибка загрузки данных с бота:', error);
+      }
+    };
+    
+    loadDataFromBot();
+  }, []); // Пустой массив = выполнится 1 раз при монтировании компонента
+
   // Calculate Statistics
   const stats = useMemo(() => {
     const progressValues = Object.values(userData.progress) as DayProgress[];
