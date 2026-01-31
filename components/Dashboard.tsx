@@ -160,49 +160,60 @@ const Dashboard: React.FC<DashboardProps> = ({
   // Determine which days are available
   const maxAvailableDay = Math.max(1, realTodayDay);
 
-  const ProgressCircle = ({ percentage, isSelected, isToday, dayNum }: any) => {
+  const ProgressCircle = React.memo(({ percentage, isSelected, isToday, dayNum, maxAvailableDay, onDaySelect }: any) => {
     const radius = 15;
     const stroke = isSelected ? 4 : 2;
     const size = 42;
     const center = size / 2;
     const circumference = radius * 2 * Math.PI;
     const offset = circumference - (percentage / 100) * circumference;
-    
     const isLocked = dayNum > maxAvailableDay;
 
     return (
-      <div 
+      <div
         onClick={() => !isLocked && onDaySelect(dayNum)}
         className={`relative flex flex-col items-center justify-center transition-all ${
-           isLocked ? 'cursor-not-allowed opacity-40 grayscale' : 'cursor-pointer'
+          isLocked ? 'cursor-not-allowed opacity-40 grayscale' : 'cursor-pointer'
         } ${isSelected ? 'scale-110 z-10' : 'opacity-80'}`}
         style={{ width: size, height: size }}
       >
-        {isToday && !isLocked && <div className="absolute inset-0 bg-emerald-400/20 rounded-full animate-pulse blur-sm scale-125"></div>}
-        
+        <svg width={size} height={size} className="absolute">
+          <circle cx={center} cy={center} r={radius} fill="none" stroke="currentColor" strokeWidth={stroke} className="text-slate-200" />
+          <circle
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={stroke}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            className={isSelected ? 'text-emerald-600' : 'text-emerald-400'}
+            style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%', transition: 'stroke-dashoffset 0.3s ease' }}
+          />
+        </svg>
+        {isToday && !isLocked && <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full animate-pulse" />}
         {isLocked ? (
-            <div className="w-8 h-8 rounded-full border-2 border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-300">
-               🔒
-            </div>
+          <span className="text-lg">🔒</span>
         ) : (
-            <svg height={size} width={size} className="transform -rotate-90 relative">
-              <circle stroke={isSelected ? "#e2e8f0" : "#f1f5f9"} fill="transparent" strokeWidth={stroke} r={radius} cx={center} cy={center} />
-              <circle stroke="currentColor" fill={isSelected ? '#10b98125' : 'transparent'} strokeWidth={stroke} strokeDasharray={circumference} style={{ strokeDashoffset: offset }} r={radius} cx={center} cy={center} className={`${isSelected ? 'text-emerald-500' : isToday ? 'text-emerald-400' : 'text-emerald-600/40'} transition-all`} />
-            </svg>
+          <span className={`text-xs font-black ${isSelected ? 'text-emerald-600' : 'text-slate-700'}`}>{dayNum}</span>
         )}
-        
-        {!isLocked && <span className={`absolute text-[11px] font-black ${isSelected ? 'text-emerald-700' : isToday ? 'text-emerald-600' : 'text-slate-500'}`}>{dayNum}</span>}
+        {!isLocked && <div className="text-[8px] font-bold text-slate-400 absolute -bottom-4">{dayNum}</div>}
       </div>
     );
-  };
+  });
 
-  const ItemButton = ({ id, icon, small }: any) => (
-    <button onClick={(e) => toggleItem(id, e)} className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative active:scale-95 ${small ? 'h-20' : 'h-24'} ${data[id] ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' : 'bg-white border-slate-100 text-slate-600 shadow-sm'}`}>
-      <span className={small ? "text-xl" : "text-2xl"}>{icon}</span>
-      <span className="text-[9px] font-black text-center leading-tight uppercase px-0.5">{t.items[id]}</span>
-      {data[id] && <div className="absolute top-1.5 right-1.5 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center text-[8px] text-white shadow-md border border-white">✓</div>}
+  // Мемоизированный компонент для производительности
+  const ItemButton = React.memo(({ id, icon, small, data, toggleItem, t }: any) => (
+    <button 
+      onClick={(e) => toggleItem(id, e)} 
+      className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative active:scale-95 ${small ? 'h-20' : 'h-24'} ${data[id] ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' : 'bg-white border-slate-100 text-slate-600 shadow-sm'}`}
+    >
+      {icon}
+      <span className="text-[11px] font-bold text-center leading-tight">{t.items[id]}</span>
+      {data[id] && <span className="absolute top-1 right-1 text-xs">✓</span>}
     </button>
-  );
+  ));
 
   return (
     <div className="space-y-6 pb-24 relative">
@@ -260,7 +271,15 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
         <div className="grid grid-cols-7 gap-y-4 gap-x-2 justify-items-center overflow-x-auto pb-2 no-scrollbar">
           {Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).map((d) => (
-            <ProgressCircle key={d} dayNum={d} percentage={calculateProgress(d)} isSelected={selectedDay === d} isToday={realTodayDay === d} />
+            <ProgressCircle
+              key={d}
+              percentage={calculateProgress(d)}
+              isSelected={selectedDay === d}
+              isToday={d === realTodayDay}
+              dayNum={d}
+              maxAvailableDay={maxAvailableDay}
+              onDaySelect={onDaySelect}
+            />
           ))}
         </div>
       </div>
@@ -284,15 +303,15 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
            <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">Намаздар</h4>
            <div className="grid grid-cols-3 gap-3">
-              <ItemButton id="fajr" icon="🌅" small />
-              <ItemButton id="duha" icon="🌤️" small />
-              <ItemButton id="dhuhr" icon="☀️" small />
-              <ItemButton id="asr" icon="⛅" small />
-              <ItemButton id="maghrib" icon="🌇" small />
-              <ItemButton id="isha" icon="🌃" small />
-              <ItemButton id="taraweeh" icon="🕌" small />
-              <ItemButton id="tahajjud" icon="🌌" small />
-              <ItemButton id="witr" icon="✨" small />
+              <ItemButton id="fajr" icon="🌅" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="duha" icon="🌤️" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="dhuhr" icon="☀️" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="asr" icon="⛅" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="maghrib" icon="🌇" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="isha" icon="🌃" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="taraweeh" icon="🕌" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="tahajjud" icon="🌌" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="witr" icon="✨" small data={data} toggleItem={toggleItem} t={t} />
            </div>
         </div>
 
@@ -300,14 +319,14 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
            <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">Рухани амалдар</h4>
            <div className="grid grid-cols-3 gap-3">
-              <ItemButton id="quranRead" icon="📖" small />
-              <ItemButton id="morningDhikr" icon="🌅" small />
-              <ItemButton id="eveningDhikr" icon="🌃" small />
-              <ItemButton id="salawat" icon="📿" small />
-              <ItemButton id="names99" icon="📜" small />
-              <ItemButton id="hadith" icon="☪️" small />
-              <ItemButton id="lessons" icon="🎧" small />
-              <ItemButton id="book" icon="📚" small />
+              <ItemButton id="quranRead" icon="📖" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="morningDhikr" icon="🌅" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="eveningDhikr" icon="🌃" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="salawat" icon="📿" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="names99" icon="📜" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="hadith" icon="☪️" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="lessons" icon="🎧" small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="book" icon="📚" small data={data} toggleItem={toggleItem} t={t} />
            </div>
         </div>
 
