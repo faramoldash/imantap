@@ -65,7 +65,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     };
     
     loadDataFromBot();
-  }, []); // Пустой массив = выполнится 1 раз при монтировании компонента
+  }, []); // Пустой массив = выполнится 1 раз при монтировании
 
   // Calculate Statistics
   const stats = useMemo(() => {
