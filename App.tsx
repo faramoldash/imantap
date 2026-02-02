@@ -452,18 +452,6 @@ const App: React.FC = () => {
       {/* Индикатор синхронизации */}
       <SyncIndicator status={syncStatus} onRetry={retrySync} />
       
-      {userData.name && (
-        <div className="text-center text-sm text-slate-500 mt-4 space-y-1">
-          <div>Ассаляму алейкум, {userData.name}</div>
-          {userData.myPromoCode && (
-            <div className="text-xs">
-              📋 Промокод: <strong>{userData.myPromoCode}</strong> | 
-              👥 Рефералдар: <strong>{userData.referralCount || 0}</strong>
-            </div>
-          )}
-        </div>
-      )}
-      
       {newBadge && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-24 pointer-events-none">
           <div className="bg-slate-900 text-white p-4 rounded-3xl shadow-2xl flex items-center space-x-4 animate-in slide-in-from-bottom-10 fade-in duration-500 w-full max-w-sm border border-slate-700 pointer-events-auto">
