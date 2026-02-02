@@ -85,18 +85,22 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   // --- Payment Verification Logic ---
   useEffect(() => {
     const verifyPayment = async () => {
-      // Ждём инициализации
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Даём время на инициализацию
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
+      // Получаем userId НАПРЯМУЮ из window
       const tg = (window as any).Telegram?.WebApp;
-      const user = tg?.initDataUnsafe?.user;
       
-      // 🔥 ГЛАВНОЕ ИЗМЕНЕНИЕ: Получаем userId из props ИЛИ из WebApp
-      let userId = telegramUser?.id || user?.id;
+      // Пробуем получить из разных мест
+      const userId = 
+        tg?.initDataUnsafe?.user?.id ||           // Telegram WebApp
+        (window as any).__TELEGRAM_USER_ID__ ||   // Глобальная переменная
+        null;
       
-      console.log('🔍 telegramUser (props):', telegramUser);
-      console.log('🔍 user (WebApp):', user);
-      console.log('🔍 Final userId:', userId);
+      console.log('🔍 Telegram WebApp:', tg);
+      console.log('🔍 initDataUnsafe:', tg?.initDataUnsafe);
+      console.log('🔍 user:', tg?.initDataUnsafe?.user);
+      console.log('🔍 FINAL userId:', userId);
       
       if (!userId) {
         console.error('❌ User ID не найден! Показываю Paywall.');
@@ -111,25 +115,25 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
       }
       
       try {
-        console.log('🔍 Проверка доступа для user ID:', userId);
+        console.log('📡 Проверка доступа для user:', userId);
         const access = await checkUserAccess(userId);
         
-        console.log('✅ Данные доступа:', access);
+        console.log('✅ API ответ:', JSON.stringify(access, null, 2));
         
-        // 🔥 КРИТИЧЕСКИ ВАЖНО: Устанавливаем accessData ПЕРЕД hasAccess!
+        // КРИТИЧЕСКИ ВАЖНО: Устанавливаем ОБА state
         setAccessData(access);
         setHasAccess(access.hasAccess);
         
-        console.log('✅ hasAccess установлен:', access.hasAccess);
-        console.log('✅ paymentStatus:', access.paymentStatus);
+        console.log('✅ State установлен. hasAccess:', access.hasAccess, 'paymentStatus:', access.paymentStatus);
         
       } catch (error) {
-        console.error("❌ Ошибка проверки доступа:", error);
+        console.error("❌ Ошибка API:", error);
+        setIsCheckingPayment(false);
         setHasAccess(false);
         setAccessData({
           hasAccess: false,
           paymentStatus: 'unpaid',
-          reason: 'error'
+          reason: 'api_error'
         });
       } finally {
         setIsCheckingPayment(false);
@@ -137,7 +141,7 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
     };
 
     verifyPayment();
-  }, [telegramUser]);
+  }, []);
 
   // Load user data from MongoDB and merge with localStorage
   useEffect(() => {
