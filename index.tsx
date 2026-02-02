@@ -57,3 +57,4 @@ if (document.readyState === 'loading') {
   // Документ уже загружен - запускаем с задержкой
   setTimeout(initApp, 300);
 }
+// Build: Mon Feb  2 13:17:40 +05 2026
