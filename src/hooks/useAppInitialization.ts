@@ -66,10 +66,13 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
           }
         }
 
-        // 3. Если есть доступ, загружаем данные с сервера
+        // 3. Если есть доступ (или демо), загружаем данные с сервера
         let finalUserData: UserData;
-        
-        if (access.hasAccess) {
+
+        // Проверяем: есть полный доступ ИЛИ активный демо-режим
+        const hasDataAccess = access.hasAccess || access.paymentStatus === 'demo';
+
+        if (hasDataAccess) {
           try {
             const response = await fetch(`${BOT_API_URL}/api/user/${userId}/full`);
             
@@ -113,7 +116,7 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
 
         setState({
           isLoading: false,
-          hasAccess: access.hasAccess,
+          hasAccess: hasDataAccess,
           accessData: access,
           userData: finalUserData,
           error: null
