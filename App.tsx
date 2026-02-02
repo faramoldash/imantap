@@ -85,28 +85,28 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   // --- Payment Verification Logic ---
   useEffect(() => {
     const verifyPayment = async () => {
+      // Подождём чтобы Telegram WebApp точно инициализировался
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const tg = (window as any).Telegram?.WebApp;
       
       // 🔍 ДЕТАЛЬНАЯ ОТЛАДКА
-      console.log('🔍 window.Telegram:', (window as any).Telegram);
-      console.log('🔍 WebApp:', tg);
+      console.log('=== TELEGRAM WEBAPP DEBUG ===');
+      console.log('🔍 window.Telegram существует?', !!(window as any).Telegram);
+      console.log('🔍 WebApp существует?', !!tg);
       console.log('🔍 initDataUnsafe:', tg?.initDataUnsafe);
       console.log('🔍 user:', tg?.initDataUnsafe?.user);
+      console.log('🔍 user.id:', tg?.initDataUnsafe?.user?.id);
+      console.log('=============================');
       
       const user = tg?.initDataUnsafe?.user;
       const userId = user?.id;
       
-      console.log('🔍 Extracted userId:', userId);
-      
-      // ⚠️ ЕСЛИ НЕТ USER ID - ПОКАЗЫВАЕМ ОШИБКУ
+      // ❌ ЕСЛИ НЕТ USER ID - ОШИБКА!
       if (!userId) {
         console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Telegram user ID не найден!');
-        console.error('❌ Это может быть из-за:');
-        console.error('   1. Mini App открыт не из Telegram');
-        console.error('   2. telegram-web-app.js не загрузился');
-        console.error('   3. Telegram не передал данные пользователя');
         
-        // Показываем сообщение пользователю
+        // Показываем Paywall с сообщением об ошибке
         setIsCheckingPayment(false);
         setHasAccess(false);
         setAccessData({
