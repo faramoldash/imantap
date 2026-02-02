@@ -16,7 +16,26 @@ export function getTelegramWebApp(): TelegramWebApp | null {
  */
 export function getTelegramUserId(): number | null {
   const tg = getTelegramWebApp();
-  return tg?.initDataUnsafe?.user?.id || null;
+  
+  // Сначала пробуем получить из initDataUnsafe
+  if (tg?.initDataUnsafe?.user?.id) {
+    return tg.initDataUnsafe.user.id;
+  }
+  
+  // Fallback: пробуем получить из URL параметра (для кнопок клавиатуры)
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const startParam = urlParams.get('tgWebAppStartParam');
+    if (startParam) {
+      const userId = parseInt(startParam, 10);
+      if (!isNaN(userId)) {
+        console.log('✅ User ID получен из startParam:', userId);
+        return userId;
+      }
+    }
+  }
+  
+  return null;
 }
 
 /**
