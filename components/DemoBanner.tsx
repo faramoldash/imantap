@@ -1,59 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Language } from '../src/types/types';
 
 interface DemoBannerProps {
   demoExpires: string;
-  language: 'kk' | 'ru';
+  language: Language;
 }
 
 const DemoBanner: React.FC<DemoBannerProps> = ({ demoExpires, language }) => {
-  const isKk = language === 'kk';
-  
-  const [hoursLeft, setHoursLeft] = useState(0);
-  
+  const [timeLeft, setTimeLeft] = useState('');
+
   useEffect(() => {
-    const calculateHours = () => {
-      const now = new Date();
-      const expires = new Date(demoExpires);
-      const diff = expires.getTime() - now.getTime();
-      const hours = Math.max(0, Math.floor(diff / 1000 / 60 / 60));
-      setHoursLeft(hours);
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const expiry = new Date(demoExpires).getTime();
+      const diff = expiry - now;
+
+      if (diff <= 0) {
+        setTimeLeft(language === 'kk' ? 'Аяқталды' : 'Истёк');
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+      setTimeLeft(
+        language === 'kk'
+          ? `${hours} сағат ${minutes} минут`
+          : `${hours} часов ${minutes} минут`
+      );
     };
-    
-    calculateHours();
-    const interval = setInterval(calculateHours, 60000); // Update every minute
-    
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 60000);
     return () => clearInterval(interval);
-  }, [demoExpires]);
-  
-  const handleUpgrade = () => {
-    const tg = (window as any).Telegram?.WebApp;
-    if (tg) tg.close(); // Close Mini App and return to bot
-  };
-  
+  }, [demoExpires, language]);
+
   return (
-    <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-4 py-3 flex items-center gap-3 shadow-lg z-50">
-      {/* Icon */}
-      <div className="text-2xl">🎁</div>
-      
-      {/* Text */}
-      <div className="flex-1">
-        <div className="font-bold text-sm">
-          {isKk ? 'Демо-режим' : 'Демо-режим'}
+    <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 text-white shadow-lg">
+      <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <span className="text-2xl animate-pulse">🎁</span>
+          <div>
+            <p className="text-sm font-bold leading-tight">
+              {language === 'kk' ? 'Демо-режим' : 'Демо-режим'}
+            </p>
+            <p className="text-xs opacity-90">
+              {language === 'kk' ? 'Қалған уақыт' : 'Осталось'}: <span className="font-bold">{timeLeft}</span>
+            </p>
+          </div>
         </div>
-        <div className="text-xs opacity-90">
-          {isKk 
-            ? `Қалған уақыт: ${hoursLeft} сағат`
-            : `Осталось: ${hoursLeft} часов`}
-        </div>
+        <button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95">
+          {language === 'kk' ? 'Төлық нұсқа' : 'Полная версия'}
+        </button>
       </div>
-      
-      {/* Button */}
-      <button
-        onClick={handleUpgrade}
-        className="bg-white text-rose-600 font-bold text-sm px-4 py-2 rounded-lg hover:bg-rose-50 transition"
-      >
-        {isKk ? 'Толық нұсқа' : 'Полная версия'}
-      </button>
     </div>
   );
 };

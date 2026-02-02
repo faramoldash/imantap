@@ -440,7 +440,7 @@ const App: React.FC = () => {
 
   // --- RENDER MAIN APP ---
   return (
-    <div className={`min-h-screen pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50 ${showDemoBanner ? 'pt-16' : ''}`}>
+    <div className={`min-h-screen pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50 ${showDemoBanner ? 'pt-[72px]' : ''}`}>
       {/* Demo Banner */}
       {showDemoBanner && (
         <DemoBanner 
