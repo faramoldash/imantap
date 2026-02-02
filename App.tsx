@@ -532,44 +532,56 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
     }
   };
 
+  // 🔍 КРИТИЧЕСКАЯ ОТЛАДКА
+  console.log('=== RENDER CHECK ===');
+  console.log('hasAccess:', hasAccess);
+  console.log('accessData:', accessData);
+  console.log('paymentStatus:', accessData?.paymentStatus);
+  console.log('====================');
+
   // --- RENDER LOADING STATE ---
   if (isCheckingPayment || isLoading) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 space-y-4">
         <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
         <p className="text-emerald-500 font-bold animate-pulse text-sm tracking-widest uppercase">
-          {userData.language === 'kk' ? 'Деректерді тексеру...' : 'Деректерді тексеру...'}
+          Жүктелуде...
         </p>
       </div>
     );
   }
 
-  // --- RENDER PENDING SCREEN (Ожидание проверки) ---
+  // --- RENDER PENDING SCREEN ---
   if (accessData?.paymentStatus === 'pending') {
+    console.log('→ Показываю PENDING');
     return <PendingScreen language={userData.language} />;
   }
 
-  // --- RENDER PAYWALL IF NOT PAID (Нет доступа) ---
-  if (!hasAccess || accessData?.paymentStatus === 'unpaid') {
+  // --- RENDER PAYWALL ---
+  if (!hasAccess) {
+    console.log('→ Показываю PAYWALL (hasAccess = false)');
     return <Paywall language={userData.language} />;
   }
 
-  // --- CHECK IF DEMO MODE ---
-  const showDemoBanner = accessData?.paymentStatus === 'demo' && accessData.demoExpires;
+  // --- DEMO BANNER CHECK ---
+  const showDemoBanner = accessData?.paymentStatus === 'demo' && !!accessData.demoExpires;
+
+  console.log('→ Показываю MAIN APP. Demo banner:', showDemoBanner);
 
   // --- RENDER MAIN APP ---
   return (
     <div className={`min-h-screen pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50 ${showDemoBanner ? 'pt-16' : ''}`}>
-      {/* Demo Banner (если демо-режим) */}
+      {/* Demo Banner */}
       {showDemoBanner && (
         <DemoBanner 
           demoExpires={accessData.demoExpires!} 
           language={userData.language} 
         />
       )}
-
+      
       {/* Индикатор синхронизации */}
       <SyncIndicator status={syncStatus} onRetry={retrySync} />
+      
       {telegramUser && (
         <div className="text-center text-sm text-slate-500 mt-4 space-y-1">
           <div>Ассаляму алейкум, {telegramUser.first_name}</div>
@@ -581,15 +593,14 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
           )}
         </div>
       )}
+      
       {newBadge && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-24 pointer-events-none">
           <div className="bg-slate-900 text-white p-4 rounded-3xl shadow-2xl flex items-center space-x-4 animate-in slide-in-from-bottom-10 fade-in duration-500 w-full max-w-sm border border-slate-700 pointer-events-auto">
             <div className="text-4xl animate-bounce">{newBadge.icon}</div>
             <div className="flex-1">
               <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">ЖАҢА ЖЕТІСТІК!</p>
-              <h4 className="font-bold text-lg leading-tight">
-                {newBadge.name_kk}
-              </h4>
+              <h4 className="font-bold text-lg leading-tight">{newBadge.name_kk}</h4>
             </div>
             <button onClick={() => setNewBadge(null)} className="text-slate-500">✕</button>
           </div>
@@ -598,30 +609,30 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
 
       <header className="pt-16 px-6 pb-12 text-center bg-gradient-to-b from-emerald-900 to-emerald-800 rounded-b-[3rem] shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10">
-           <span className="text-9xl">🌙</span>
+          <span className="text-9xl">🌙</span>
         </div>
         
         <div className="flex justify-center mb-4 relative z-10">
-            <div 
-              onClick={() => handleViewChange('rewards')}
-              className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 flex items-center space-x-2 cursor-pointer active:scale-95 transition-transform"
-            >
-                <span className="text-xl">🏆</span>
-                <span className="text-white font-black text-sm">{userData.xp} XP</span>
-            </div>
+          <div 
+            onClick={() => handleViewChange('rewards')}
+            className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 flex items-center space-x-2 cursor-pointer active:scale-95 transition-transform"
+          >
+            <span className="text-xl">🏆</span>
+            <span className="text-white font-black text-sm">{userData.xp} XP</span>
+          </div>
         </div>
 
         <h1 className="text-2xl font-black text-white tracking-tight leading-tight uppercase relative z-10 whitespace-pre-line px-4">
-            {ramadanInfo.isStarted ? t.ramadanStartedTitle : t.preRamadanTitle}
+          {ramadanInfo.isStarted ? t.ramadanStartedTitle : t.preRamadanTitle}
         </h1>
         
         {currentView !== 'dashboard' && (
-            <button 
-                onClick={() => handleViewChange('dashboard')}
-                className="absolute top-6 right-6 bg-white/10 backdrop-blur-lg p-3 rounded-2xl border border-white/10 active:scale-90 transition-transform shadow-lg z-30"
-            >
-                🏠
-            </button>
+          <button 
+            onClick={() => handleViewChange('dashboard')}
+            className="absolute top-6 right-6 bg-white/10 backdrop-blur-lg p-3 rounded-2xl border border-white/10 active:scale-90 transition-transform shadow-lg z-30"
+          >
+            🏠
+          </button>
         )}
       </header>
 
@@ -632,6 +643,6 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
       <Navigation currentView={currentView} setView={handleViewChange} language={userData.language} />
     </div>
   );
-};
+  };
 
 export default App;
