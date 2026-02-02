@@ -548,12 +548,12 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   }
 
   // --- RENDER PENDING SCREEN (Ожидание проверки) ---
-  if (!hasAccess && accessData?.paymentStatus === 'pending') {
+  if (accessData?.paymentStatus === 'pending') {
     return <PendingScreen language={userData.language} />;
   }
 
-  // --- RENDER PAYWALL IF NOT PAID ---
-  if (!hasAccess) {
+  // --- RENDER PAYWALL IF NOT PAID (Нет доступа) ---
+  if (!hasAccess || accessData?.paymentStatus === 'unpaid') {
     return <Paywall language={userData.language} />;
   }
 
