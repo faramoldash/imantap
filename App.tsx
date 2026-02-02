@@ -86,16 +86,36 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   useEffect(() => {
     const verifyPayment = async () => {
       const tg = (window as any).Telegram?.WebApp;
-      const user = tg?.initDataUnsafe?.user;
-
-      // 🔍 ОТЛАДКА
-      console.log('🔍 Telegram WebApp:', tg);
-      console.log('🔍 initDataUnsafe:', tg?.initDataUnsafe);
-      console.log('🔍 User:', user);
-
-      const userId = user?.id || 62872218;
       
-      console.log('🔍 Final userId:', userId);
+      // 🔍 ДЕТАЛЬНАЯ ОТЛАДКА
+      console.log('🔍 window.Telegram:', (window as any).Telegram);
+      console.log('🔍 WebApp:', tg);
+      console.log('🔍 initDataUnsafe:', tg?.initDataUnsafe);
+      console.log('🔍 user:', tg?.initDataUnsafe?.user);
+      
+      const user = tg?.initDataUnsafe?.user;
+      const userId = user?.id;
+      
+      console.log('🔍 Extracted userId:', userId);
+      
+      // ⚠️ ЕСЛИ НЕТ USER ID - ПОКАЗЫВАЕМ ОШИБКУ
+      if (!userId) {
+        console.error('❌ КРИТИЧЕСКАЯ ОШИБКА: Telegram user ID не найден!');
+        console.error('❌ Это может быть из-за:');
+        console.error('   1. Mini App открыт не из Telegram');
+        console.error('   2. telegram-web-app.js не загрузился');
+        console.error('   3. Telegram не передал данные пользователя');
+        
+        // Показываем сообщение пользователю
+        setIsCheckingPayment(false);
+        setHasAccess(false);
+        setAccessData({
+          hasAccess: false,
+          paymentStatus: 'unpaid',
+          reason: 'no_telegram_user'
+        });
+        return;
+      }
       
       try {
         console.log('🔍 Проверка доступа для user ID:', userId);
