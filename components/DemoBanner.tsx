@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Language } from '../src/types/types';
+import { getTelegramWebApp } from '../src/utils/telegram';
 
 interface DemoBannerProps {
   demoExpires: string;
@@ -35,6 +36,22 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ demoExpires, language }) => {
     return () => clearInterval(interval);
   }, [demoExpires, language]);
 
+  const handleUpgrade = () => {
+    const tg = getTelegramWebApp();
+    if (tg) {
+      tg.showConfirm(
+        language === 'kk' 
+          ? 'Толық нұсқаға өту үшін ботқа оралыңыз және төлем жасаңыз.' 
+          : 'Для получения полной версии вернитесь в бот и оплатите.',
+        (confirmed) => {
+          if (confirmed) {
+            tg.close();
+          }
+        }
+      );
+    }
+  };
+
   return (
     <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 text-white">
       <div className="max-w-md mx-auto px-4 py-2.5 flex items-center justify-between">
@@ -49,7 +66,10 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ demoExpires, language }) => {
             </p>
           </div>
         </div>
-        <button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold transition-all active:scale-95">
+        <button 
+          onClick={handleUpgrade}
+          className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold transition-all active:scale-95"
+        >
           {language === 'kk' ? 'Толық нұсқа' : 'Полная версия'}
         </button>
       </div>
