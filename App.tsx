@@ -88,8 +88,14 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
       const tg = (window as any).Telegram?.WebApp;
       const user = tg?.initDataUnsafe?.user;
 
-      // FOR DEVELOPMENT: используем тестовый ID
-      const userId = user?.id || 62872218; // Ваш ID для теста
+      // 🔍 ОТЛАДКА
+      console.log('🔍 Telegram WebApp:', tg);
+      console.log('🔍 initDataUnsafe:', tg?.initDataUnsafe);
+      console.log('🔍 User:', user);
+
+      const userId = user?.id || 62872218;
+      
+      console.log('🔍 Final userId:', userId);
       
       try {
         console.log('🔍 Проверка доступа для user ID:', userId);
