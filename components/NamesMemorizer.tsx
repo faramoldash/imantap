@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Language, UserData } from '../types';
+import { Language, UserData } from '../src/types/types';
 import { TRANSLATIONS, NAMES_99 } from '../constants';
 
 interface NamesMemorizerProps {

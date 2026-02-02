@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Language } from '../types';
+import { Language } from '../src/types/types';
+import { getTelegramWebApp } from '../src/utils/telegram';
 
 interface PaywallProps {
   language: Language;
@@ -11,7 +12,7 @@ const Paywall: React.FC<PaywallProps> = ({ language }) => {
 
   const handleClose = () => {
     // Close the Mini App to return to the bot
-    const tg = (window as any).Telegram?.WebApp;
+    const tg = getTelegramWebApp();
     if (tg) {
       tg.close();
     }

@@ -1,11 +1,12 @@
 // src/utils/haptics.ts
+import { getTelegramWebApp } from './telegram';
 
 export const haptics = {
   /**
    * Легкая вибрация (checkbox, toggle)
    */
   light: () => {
-    const tg = (window as any).Telegram?.WebApp;
+    const tg = getTelegramWebApp();
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('light');
     }
@@ -15,7 +16,7 @@ export const haptics = {
    * Средняя вибрация (кнопки, navigation)
    */
   medium: () => {
-    const tg = (window as any).Telegram?.WebApp;
+    const tg = getTelegramWebApp();
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('medium');
     }
@@ -25,7 +26,7 @@ export const haptics = {
    * Сильная вибрация (важные действия)
    */
   heavy: () => {
-    const tg = (window as any).Telegram?.WebApp;
+    const tg = getTelegramWebApp();
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.impactOccurred('heavy');
     }
@@ -35,7 +36,7 @@ export const haptics = {
    * Успех (завершение задачи)
    */
   success: () => {
-    const tg = (window as any).Telegram?.WebApp;
+    const tg = getTelegramWebApp();
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.notificationOccurred('success');
     }
@@ -45,7 +46,7 @@ export const haptics = {
    * Ошибка (failed action)
    */
   error: () => {
-    const tg = (window as any).Telegram?.WebApp;
+    const tg = getTelegramWebApp();
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.notificationOccurred('error');
     }
@@ -55,7 +56,7 @@ export const haptics = {
    * Предупреждение
    */
   warning: () => {
-    const tg = (window as any).Telegram?.WebApp;
+    const tg = getTelegramWebApp();
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.notificationOccurred('warning');
     }
@@ -65,7 +66,7 @@ export const haptics = {
    * Выбор (selection changed)
    */
   selection: () => {
-    const tg = (window as any).Telegram?.WebApp;
+    const tg = getTelegramWebApp();
     if (tg?.HapticFeedback) {
       tg.HapticFeedback.selectionChanged();
     }

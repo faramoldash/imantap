@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { DayProgress, Language, UserData, ViewType } from '../types';
+import { DayProgress, Language, UserData, ViewType } from '../src/types/types';
 import { TRANSLATIONS, TRACKER_KEYS, TOTAL_DAYS, NAMES_99, XP_VALUES } from '../constants';
 import { haptics } from '../src/utils/haptics';
 
@@ -50,14 +50,21 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // Names of Allah for the day
   const dailyNames = useMemo(() => {
+    // Ограничиваем день диапазоном 1-30
+    const safeDay = Math.min(Math.max(selectedDay, 1), 30);
+    
     let startIndex = 0;
-    let count = selectedDay <= 21 ? 3 : 4;
-    if (selectedDay <= 21) {
-      startIndex = (selectedDay - 1) * 3;
+    let count = safeDay <= 21 ? 3 : 4;
+    
+    if (safeDay <= 21) {
+      startIndex = (safeDay - 1) * 3;
     } else {
-      startIndex = 63 + (selectedDay - 22) * 4;
+      startIndex = 63 + (safeDay - 22) * 4;
     }
-    return NAMES_99.slice(startIndex, startIndex + count);
+    
+    // Убеждаемся что не выходим за границы массива (99 имен)
+    const endIndex = Math.min(startIndex + count, NAMES_99.length);
+    return NAMES_99.slice(startIndex, endIndex);
   }, [selectedDay]);
 
   useEffect(() => {

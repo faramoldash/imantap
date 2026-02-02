@@ -1,8 +1,11 @@
+{/* Временно скрыто - AI Insights */}
+{/* <AIInsights day={selectedDay} language={userData.language} /> */}
 
 import React, { useState, useEffect } from 'react';
-import { getDailySpiritualInsight, getDuaRecommendation } from '../services/geminiService';
-import { Language } from '../types';
+import { getDailySpiritualInsight, getDuaRecommendation } from '../src/services/geminiService';
+import { Language } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
+import { getTelegramWebApp } from '../src/utils/telegram';
 
 interface InsightData {
   title: string;
@@ -49,12 +52,11 @@ const AIInsights: React.FC<{ day: number, language: Language }> = ({ day, langua
 
   const shareToTelegram = (text: string) => {
     const shareUrl = `https://t.me/share/url?url=&text=${encodeURIComponent(text)}`;
-    // Check if running inside Telegram WebApp
-    const tg = (window as any).Telegram?.WebApp;
+    const tg = getTelegramWebApp();
     if (tg?.openTelegramLink) {
-        tg.openTelegramLink(shareUrl);
+      tg.openTelegramLink(shareUrl);
     } else {
-        window.open(shareUrl, '_blank');
+      window.open(shareUrl, '_blank');
     }
   };
 

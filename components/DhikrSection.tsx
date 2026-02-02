@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Language } from '../types';
+import { Language } from '../src/types/types';
 import { TRANSLATIONS, MORNING_DHIKRS, EVENING_DHIKRS } from '../constants';
 
 const DhikrSection: React.FC<{ language: Language }> = ({ language }) => {

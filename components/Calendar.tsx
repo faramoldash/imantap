@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DayProgress, Language } from '../types';
+import { DayProgress, Language } from '../src/types/types';
 import { TOTAL_DAYS, TRANSLATIONS, TRACKER_KEYS } from '../constants';
 
 interface CalendarProps {

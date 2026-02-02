@@ -1,5 +1,5 @@
 import React from 'react';
-import { ViewType, Language } from '../types';
+import { ViewType, Language } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
 import { haptics } from '../src/utils/haptics';
 

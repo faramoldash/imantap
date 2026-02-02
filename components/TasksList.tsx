@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { UserData, Language, CustomTask, DayProgress } from '../types';
+import { UserData, Language, CustomTask, DayProgress } from '../src/types/types';
 import { TRANSLATIONS, INITIAL_DAY_PROGRESS } from '../constants';
 
 interface TasksListProps {

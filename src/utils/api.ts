@@ -1,20 +1,9 @@
 // utils/api.ts
-import { UserData } from '../types';
+import { UserData } from '../types/types';
+import { getTelegramUserId } from './telegram';
+
 
 const BOT_API_URL = 'https://imantap-bot-production.up.railway.app';
-
-/**
- * Получить Telegram User ID
- */
-export function getTelegramUserId(): number | null {
-  try {
-    const tg = (window as any).Telegram?.WebApp;
-    return tg?.initDataUnsafe?.user?.id || null;
-  } catch (error) {
-    console.error('❌ Ошибка получения Telegram ID:', error);
-    return null;
-  }
-}
 
 /**
  * Загрузить полные данные пользователя из MongoDB

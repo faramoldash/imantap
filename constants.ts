@@ -1,5 +1,5 @@
 
-import { DayProgress, Language } from './types';
+import { DayProgress, Language } from './src/types/types';
 
 export const TOTAL_DAYS = 30;
 

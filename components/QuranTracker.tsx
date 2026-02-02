@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UserData, Language } from '../types';
+import { UserData, Language } from '../src/types/types';
 import { TRANSLATIONS, QURAN_SCHEDULE, XP_VALUES } from '../constants';
 
 interface QuranTrackerProps {

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Language, ViewType } from '../types';
+import { Language, ViewType } from '../src/types/types';
 import { TRANSLATIONS, USEFUL_MATERIALS } from '../constants';
 import { haptics } from '../src/utils/haptics';
 

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
-import { UserData, ViewType, DayProgress, Language, CustomTask } from './types';
+import { UserData, ViewType, DayProgress, Language, CustomTask } from './src/types/types';
 import { TOTAL_DAYS, INITIAL_DAY_PROGRESS, TRANSLATIONS, XP_VALUES, RAMADAN_START_DATE, DEFAULT_GOALS, BADGES } from './constants';
 import Dashboard from './components/Dashboard';
 import Calendar from './components/Calendar';
@@ -15,20 +15,9 @@ import ProfileView from './components/ProfileView';
 import Paywall from './components/Paywall';
 import PendingScreen from './components/PendingScreen';
 import DemoBanner from './components/DemoBanner';
-import { checkUserAccess, AccessData } from './utils/api';
-
-
-type TelegramUser = {
-  id: number;
-  first_name?: string;
-  last_name?: string;
-  username?: string;
-  language_code?: string;
-};
-
-type AppProps = {
-  telegramUser: TelegramUser | null;
-};
+import { checkUserAccess, AccessData } from './src/utils/api';
+import { initTelegramApp, getTelegramUserId, getTelegramUser } from './src/utils/telegram';
+import { useAppInitialization } from './src/hooks/useAppInitialization';
 
 interface BackendUserData {
   userId: string;
@@ -39,15 +28,14 @@ interface BackendUserData {
 
 const STORAGE_KEY = 'ramadan_tracker_data_v3';
 
-const App: React.FC<AppProps> = ({ telegramUser }) => {
-  // --- Payment / Auth State ---
-  const [isCheckingPayment, setIsCheckingPayment] = useState(true);
-  const [hasAccess, setHasAccess] = useState(false);
-  const [accessData, setAccessData] = useState<AccessData | null>(null);
-  const [backendUserData, setBackendUserData] = useState<BackendUserData | null>(null);
+const App: React.FC = () => {
+  // Инициализация Telegram WebApp
+  useEffect(() => {
+    initTelegramApp();
+  }, []);
 
   // Default user data structure
-  const getDefaultUserData = (): UserData => {
+  const getDefaultUserData = useCallback((): UserData => {
     const forcedLang: Language = 'kk';
     const templates: CustomTask[] = DEFAULT_GOALS[forcedLang].map((text, idx) => ({
       id: `template-${idx}-${Date.now()}`,
@@ -75,147 +63,28 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
       unlockedBadges: [],
       hasRedeemedReferral: false,
     };
-  };
+  }, []);
+
+  // Используем хук для инициализации
+  const { 
+    isLoading, 
+    hasAccess, 
+    accessData, 
+    userData: initialUserData, 
+    error 
+  } = useAppInitialization(getDefaultUserData);
 
   const [userData, setUserData] = useState<UserData>(getDefaultUserData());
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Обновляем userData когда загрузка завершена
+  useEffect(() => {
+    if (initialUserData) {
+      setUserData(initialUserData);
+    }
+  }, [initialUserData]);
+
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [newBadge, setNewBadge] = useState<typeof BADGES[0] | null>(null);
-
-  // --- Payment Verification Logic ---
-  useEffect(() => {
-    const verifyPayment = async () => {
-      // Даём время на инициализацию
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Получаем userId НАПРЯМУЮ из window
-      const tg = (window as any).Telegram?.WebApp;
-      
-      // Пробуем получить из разных мест
-      const userId = 
-        tg?.initDataUnsafe?.user?.id ||           // Telegram WebApp
-        (window as any).__TELEGRAM_USER_ID__ ||   // Глобальная переменная
-        null;
-      
-      console.log('🔍 Telegram WebApp:', tg);
-      console.log('🔍 initDataUnsafe:', tg?.initDataUnsafe);
-      console.log('🔍 user:', tg?.initDataUnsafe?.user);
-      console.log('🔍 FINAL userId:', userId);
-      
-      if (!userId) {
-        console.error('❌ User ID не найден! Показываю Paywall.');
-        setIsCheckingPayment(false);
-        setHasAccess(false);
-        setAccessData({
-          hasAccess: false,
-          paymentStatus: 'unpaid',
-          reason: 'no_user_id'
-        });
-        return;
-      }
-      
-      try {
-        console.log('📡 Проверка доступа для user:', userId);
-        const access = await checkUserAccess(userId);
-        
-        console.log('✅ API ответ:', JSON.stringify(access, null, 2));
-        
-        // КРИТИЧЕСКИ ВАЖНО: Устанавливаем ОБА state
-        setAccessData(access);
-        setHasAccess(access.hasAccess);
-        
-        console.log('✅ State установлен. hasAccess:', access.hasAccess, 'paymentStatus:', access.paymentStatus);
-        
-      } catch (error) {
-        console.error("❌ Ошибка API:", error);
-        setIsCheckingPayment(false);
-        setHasAccess(false);
-        setAccessData({
-          hasAccess: false,
-          paymentStatus: 'unpaid',
-          reason: 'api_error'
-        });
-      } finally {
-        setIsCheckingPayment(false);
-      }
-    };
-
-    verifyPayment();
-  }, []);
-
-  // Load user data from MongoDB and merge with localStorage
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const tg = (window as any).Telegram?.WebApp;
-        const user = tg?.initDataUnsafe?.user;
-
-        // 1. Загружаем данные из localStorage (для быстрого старта)
-        const savedData = localStorage.getItem(STORAGE_KEY);
-        let localData: UserData | null = null;
-        
-        if (savedData) {
-          try {
-            localData = JSON.parse(savedData);
-            setUserData(localData); // Показываем локальные данные сразу
-          } catch (err) {
-            console.error('❌ Ошибка парсинга localStorage:', err);
-          }
-        }
-
-        // 2. Загружаем данные с сервера (если есть Telegram user)
-        if (user?.id) {
-          console.log('🔍 Загрузка данных с сервера для user ID:', user.id);
-
-          const response = await fetch(
-            `https://imantap-bot-production.up.railway.app/api/user/${user.id}/full`
-          );
-
-          if (response.ok) {
-            const result = await response.json();
-            
-            if (result.success && result.data) {
-              const serverData = result.data;
-              console.log('✅ Данные загружены с сервера:', serverData);
-
-              // 3. Мерджим данные: приоритет у сервера
-              const mergedData: UserData = {
-                ...(localData || getDefaultUserData()),
-                ...serverData,
-                // Telegram данные всегда берём из Telegram WebApp
-                name: user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : serverData.name || 'User',
-                username: user.username ? `@${user.username}` : serverData.username,
-                photoUrl: user.photo_url || serverData.photoUrl,
-                // Промокод и рефералы всегда с сервера
-                myPromoCode: serverData.myPromoCode,
-                referralCount: serverData.referralCount,
-                // Язык всегда казахский
-                language: 'kk'
-              };
-
-              console.log('✅ Данные объединены:', mergedData);
-              setUserData(mergedData);
-              
-              // Сохраняем в localStorage для кэша
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(mergedData));
-            }
-          } else {
-            console.log('⚠️ Используем локальные данные (сервер недоступен)');
-          }
-        } else {
-          console.log('⚠️ Telegram user не найден, используем локальные данные');
-        }
-
-      } catch (error) {
-        console.error('❌ Ошибка загрузки данных:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
-  }, []);
-
 
   const calculateRamadanStatus = useCallback(() => {
     const start = new Date(userData.startDate);
@@ -286,8 +155,7 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
 
   // Функция синхронизации с сервером
   const syncToServerFn = useCallback(async () => {
-    const tg = (window as any).Telegram?.WebApp;
-    const userId = tg?.initDataUnsafe?.user?.id;
+    const userId = getTelegramUserId();
 
     if (!userId) {
       setSyncStatus('offline');
@@ -540,13 +408,14 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
   console.log('====================');
 
   // --- RENDER LOADING STATE ---
-  if (isCheckingPayment || isLoading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 space-y-4">
-        <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-emerald-500 font-bold animate-pulse text-sm tracking-widest uppercase">
-          Жүктелуде...
-        </p>
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-4xl animate-pulse">🌙</div>
+          <div className="text-sm font-bold text-emerald-900">Жүктелуде...</div>
+          <div className="text-xs text-emerald-600">Деректерді синхрондау...</div>
+        </div>
       </div>
     );
   }
@@ -582,13 +451,13 @@ const App: React.FC<AppProps> = ({ telegramUser }) => {
       {/* Индикатор синхронизации */}
       <SyncIndicator status={syncStatus} onRetry={retrySync} />
       
-      {telegramUser && (
+      {userData.name && (
         <div className="text-center text-sm text-slate-500 mt-4 space-y-1">
-          <div>Ассаляму алейкум, {telegramUser.first_name}</div>
-          {backendUserData && (
+          <div>Ассаляму алейкум, {userData.name}</div>
+          {userData.myPromoCode && (
             <div className="text-xs">
-              📋 Промокод: <strong>{backendUserData.promoCode}</strong> | 
-              👥 Рефералдар: <strong>{backendUserData.invitedCount}</strong>
+              📋 Промокод: <strong>{userData.myPromoCode}</strong> | 
+              👥 Рефералдар: <strong>{userData.referralCount || 0}</strong>
             </div>
           )}
         </div>

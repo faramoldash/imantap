@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { UserData, Language, DayProgress } from '../types';
+import { UserData, Language, DayProgress } from '../src/types/types';
 import { TRANSLATIONS, XP_VALUES, BADGES } from '../constants';
 
 interface ProfileViewProps {

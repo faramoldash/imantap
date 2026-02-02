@@ -1,25 +1,22 @@
-// src/utils/syncQueue.ts
-
 interface QueueItem {
-  id: string;
-  timestamp: number;
+  userId: number;
   data: any;
+  timestamp: number;
 }
 
 class SyncQueue {
   private queue: QueueItem[] = [];
-  private readonly STORAGE_KEY = 'imantap_sync_queue';
+  private readonly STORAGE_KEY = 'sync_queue_v1';
 
   constructor() {
-    this.loadFromStorage();
+    this.loadQueue();
   }
 
-  private loadFromStorage() {
+  private loadQueue() {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         this.queue = JSON.parse(stored);
-        console.log(`📦 Loaded ${this.queue.length} items from sync queue`);
       }
     } catch (error) {
       console.error('Failed to load sync queue:', error);
@@ -27,7 +24,7 @@ class SyncQueue {
     }
   }
 
-  private saveToStorage() {
+  private saveQueue() {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.queue));
     } catch (error) {
@@ -36,54 +33,53 @@ class SyncQueue {
   }
 
   add(data: any) {
-    const item: QueueItem = {
-      id: `sync-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: Date.now(),
-      data
-    };
-    
-    this.queue.push(item);
-    this.saveToStorage();
-    console.log('📦 Added to sync queue:', item.id, `(total: ${this.queue.length})`);
+    this.queue.push({
+      userId: data.userId,
+      data,
+      timestamp: Date.now()
+    });
+    this.saveQueue();
+    console.log(`📦 Added to sync queue. Total items: ${this.queue.length}`);
   }
 
-  async processQueue(syncFunction: (data: any) => Promise<boolean>) {
-    if (this.queue.length === 0) return 0;
+  async processQueue(processor: (data: any) => Promise<boolean>): Promise<number> {
+    if (this.queue.length === 0) {
+      return 0;
+    }
 
-    console.log(`🔄 Processing ${this.queue.length} queued sync items...`);
-    const itemsToProcess = [...this.queue];
-    let successCount = 0;
-    
-    this.queue = [];
-    
-    for (const item of itemsToProcess) {
+    console.log(`🔄 Processing ${this.queue.length} items in sync queue...`);
+    let processed = 0;
+    const failed: QueueItem[] = [];
+
+    for (const item of this.queue) {
       try {
-        const success = await syncFunction(item.data);
+        const success = await processor(item.data);
         if (success) {
-          successCount++;
+          processed++;
+          console.log(`✅ Processed item for user ${item.userId}`);
         } else {
-          // Если не удалось, возвращаем в очередь
-          this.queue.push(item);
+          failed.push(item);
+          console.log(`❌ Failed to process item for user ${item.userId}`);
         }
       } catch (error) {
-        console.error('Queue processing error:', error);
-        // При ошибке также возвращаем
-        this.queue.push(item);
+        console.error('Error processing queue item:', error);
+        failed.push(item);
       }
     }
-    
-    this.saveToStorage();
-    console.log(`✅ Processed ${successCount}/${itemsToProcess.length} items`);
-    return successCount;
+
+    this.queue = failed;
+    this.saveQueue();
+    console.log(`📊 Processed: ${processed}, Failed: ${failed.length}`);
+    return processed;
   }
 
-  getCount() {
+  getSize(): number {
     return this.queue.length;
   }
 
   clear() {
     this.queue = [];
-    localStorage.removeItem(this.STORAGE_KEY);
+    this.saveQueue();
     console.log('🗑️ Sync queue cleared');
   }
 }
