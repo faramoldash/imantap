@@ -36,21 +36,21 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ demoExpires, language }) => {
   }, [demoExpires, language]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 text-white shadow-lg">
-      <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <span className="text-2xl animate-pulse">🎁</span>
+    <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 text-white">
+      <div className="max-w-md mx-auto px-4 py-2.5 flex items-center justify-between">
+        <div className="flex items-center space-x-2.5">
+          <span className="text-xl">🎁</span>
           <div>
-            <p className="text-sm font-bold leading-tight">
+            <p className="text-xs font-bold leading-tight">
               {language === 'kk' ? 'Демо-режим' : 'Демо-режим'}
             </p>
-            <p className="text-xs opacity-90">
-              {language === 'kk' ? 'Қалған уақыт' : 'Осталось'}: <span className="font-bold">{timeLeft}</span>
+            <p className="text-[10px] opacity-90">
+              {language === 'kk' ? 'Қалған' : 'Осталось'}: <span className="font-semibold">{timeLeft}</span>
             </p>
           </div>
         </div>
-        <button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95">
-          {language === 'kk' ? 'Төлық нұсқа' : 'Полная версия'}
+        <button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-2.5 py-1 rounded-full text-[10px] font-bold transition-all active:scale-95">
+          {language === 'kk' ? 'Толық нұсқа' : 'Полная версия'}
         </button>
       </div>
     </div>
