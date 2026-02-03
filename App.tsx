@@ -16,6 +16,7 @@ import Paywall from './components/Paywall';
 import PendingScreen from './components/PendingScreen';
 import DemoBanner from './components/DemoBanner';
 import PreparationTracker from './components/PreparationTracker';
+import BasicTracker from './components/BasicTracker';
 import { checkUserAccess, AccessData } from './src/utils/api';
 import { initTelegramApp, getTelegramUserId, getTelegramUser } from './src/utils/telegram';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
@@ -50,6 +51,7 @@ const App: React.FC = () => {
       registrationDate: new Date().toISOString(),
       progress: {},
       preparationProgress: {},
+      basicProgress: {},
       memorizedNames: [],
       completedJuzs: [],
       quranKhatams: 0,
@@ -113,6 +115,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedDay, setSelectedDay] = useState<number>(ramadanInfo.currentDay);
   const [realTodayDay, setRealTodayDay] = useState<number>(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
+  const [selectedBasicDate, setSelectedBasicDate] = useState<Date | null>(null);
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
 
   // --- Scroll Persistence Logic ---
@@ -485,6 +488,21 @@ const App: React.FC = () => {
     });
   }, []);
 
+  // ✅ И СРАЗУ ПОСЛЕ НЕЁ ДОБАВЬТЕ:
+  const updateBasicProgress = useCallback((dateStr: string, updates: Partial<DayProgress>) => {
+    setUserData(prev => {
+      const existing = prev.basicProgress?.[dateStr] || {};
+      
+      return {
+        ...prev,
+        basicProgress: {
+          ...prev.basicProgress,
+          [dateStr]: { ...existing, ...updates }
+        }
+      };
+    });
+  }, []);
+
   const handleUserDataUpdate = (newData: UserData) => {
     const newBadges = checkBadges(newData);
     if (newBadges) newData.unlockedBadges = newBadges;
@@ -492,6 +510,18 @@ const App: React.FC = () => {
   };
 
   const renderView = () => {
+    // ✅ БАЗОВЫЙ ТРЕКЕР
+    if (selectedBasicDate) {
+      return (
+        <BasicTracker
+          date={selectedBasicDate}
+          language={userData.language}
+          userData={userData}
+          onUpdate={updateBasicProgress}
+          onBack={() => setSelectedBasicDate(null)}
+        />
+      );
+    }
     // ✅ ЕСЛИ ВЫБРАН ДЕНЬ ПОДГОТОВКИ - ПОКАЗЫВАЕМ PreparationTracker
     if (selectedPreparationDay) {
       return (
@@ -507,7 +537,7 @@ const App: React.FC = () => {
     const dayData = userData.progress[selectedDay] || INITIAL_DAY_PROGRESS(selectedDay);
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard day={selectedDay} realTodayDay={realTodayDay} ramadanInfo={ramadanInfo} data={dayData} allProgress={userData.progress} updateProgress={updateProgress} language={userData.language} onDaySelect={(d) => setSelectedDay(d)} onPreparationDaySelect={(d) => setSelectedPreparationDay(d)} xp={userData.xp} userData={userData} setUserData={handleUserDataUpdate} setView={handleViewChange} />;
+        return <Dashboard day={selectedDay} realTodayDay={realTodayDay} ramadanInfo={ramadanInfo} data={dayData} allProgress={userData.progress} updateProgress={updateProgress} language={userData.language} onDaySelect={(d) => setSelectedDay(d)} onPreparationDaySelect={(d) => setSelectedPreparationDay(d)} onBasicDateSelect={(date) => setSelectedBasicDate(date)} xp={userData.xp} userData={userData} setUserData={handleUserDataUpdate} setView={handleViewChange} />;
       case 'calendar':
         return <Calendar progress={userData.progress} realTodayDay={realTodayDay} selectedDay={selectedDay} language={userData.language} onSelectDay={(d) => { setSelectedDay(d); handleViewChange('dashboard'); }} />;
       case 'quran':

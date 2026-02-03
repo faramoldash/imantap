@@ -3,10 +3,10 @@ import { DayProgress, Language } from './src/types/types';
 
 export const TOTAL_DAYS = 30;
 
-// ✅ НОВЫЕ КОНСТАНТЫ
-export const PREPARATION_START_DATE = '2026-02-12T00:00:00.000Z'; // 12 февраля - начало подготовки
-export const PREPARATION_DAYS = 7; // 12-18 февраля
-export const FIRST_TARAWEEH_DATE = '2026-02-18T00:00:00.000Z'; // 18 февраля - первый таравих
+// подготовка начинается с 9 февраля (10 дней)
+export const PREPARATION_START_DATE = '2026-02-09T00:00:00.000Z'; // 9 февраля
+export const PREPARATION_DAYS = 10; // 9-18 февраля (10 дней)
+export const FIRST_TARAWEEH_DATE = '2026-02-18T00:00:00.000Z'; // 18 февраля - первый день таравих намаза
 
 // Ramadan 2026 start date
 export const RAMADAN_START_DATE = '2026-02-19T00:00:00.000Z';

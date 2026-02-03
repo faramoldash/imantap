@@ -77,7 +77,11 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
   
   // Ораза в понедельник (1) и четверг (4)
   const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
-
+  
+  // ✅ ПРОВЕРКА: можно ли редактировать этот день
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const canEdit = currentDayDate <= today; // Можно редактировать только если дата наступила
   const data = userData.preparationProgress?.[day] || {
     day,
     fasting: false,
@@ -164,15 +168,18 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
                 </div>
               </div>
               <button
-                onClick={() => updateField('fasting', !data.fasting)}
-                className={`w-12 h-12 rounded-2xl transition-all active:scale-95 ${
-                  data.fasting
-                    ? 'bg-sky-600 text-white shadow-lg'
-                    : 'bg-slate-100 text-slate-400'
+                onClick={() => canEdit && updateField('fasting', !data.fasting)}
+                disabled={!canEdit}
+                className={`w-12 h-12 rounded-2xl transition-all ${
+                    !canEdit 
+                    ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
+                    : data.fasting
+                        ? 'bg-sky-600 text-white shadow-lg active:scale-95'
+                        : 'bg-slate-100 text-slate-400 active:scale-95'
                 }`}
-              >
-                {data.fasting ? '✓' : ''}
-              </button>
+                >
+                {!canEdit ? '🔒' : data.fasting ? '✓' : ''}
+                </button>
             </div>
           </section>
         )}
@@ -189,15 +196,18 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
                   {t[prayer as keyof typeof t]}
                 </span>
                 <button
-                  onClick={() => updateField(prayer as keyof DayProgress, !data[prayer as keyof DayProgress])}
-                  className={`w-10 h-10 rounded-xl transition-all active:scale-95 ${
-                    data[prayer as keyof DayProgress]
-                      ? 'bg-sky-600 text-white'
-                      : 'bg-slate-100 text-slate-400'
-                  }`}
-                >
-                  {data[prayer as keyof DayProgress] ? '✓' : ''}
-                </button>
+                    onClick={() => canEdit && updateField(prayer as keyof DayProgress, !data[prayer as keyof DayProgress])}
+                    disabled={!canEdit}
+                    className={`w-10 h-10 rounded-xl transition-all ${
+                        !canEdit
+                        ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                        : data[prayer as keyof DayProgress]
+                            ? 'bg-sky-600 text-white active:scale-95'
+                            : 'bg-slate-100 text-slate-400 active:scale-95'
+                    }`}
+                    >
+                    {!canEdit ? '🔒' : data[prayer as keyof DayProgress] ? '✓' : ''}
+                    </button>
               </div>
             ))}
             
@@ -211,15 +221,18 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
                   <span className="text-xs">⭐</span>
                 </div>
                 <button
-                  onClick={() => updateField('taraweeh', !data.taraweeh)}
-                  className={`w-10 h-10 rounded-xl transition-all active:scale-95 ${
-                    data.taraweeh
-                      ? 'bg-amber-500 text-white'
-                      : 'bg-amber-50 text-amber-300'
-                  }`}
-                >
-                  {data.taraweeh ? '✓' : ''}
-                </button>
+                    onClick={() => canEdit && updateField('taraweeh', !data.taraweeh)}
+                    disabled={!canEdit}
+                    className={`w-10 h-10 rounded-xl transition-all ${
+                        !canEdit
+                        ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                        : data.taraweeh
+                            ? 'bg-amber-500 text-white active:scale-95'
+                            : 'bg-amber-50 text-amber-300 active:scale-95'
+                    }`}
+                    >
+                    {!canEdit ? '🔒' : data.taraweeh ? '✓' : ''}
+                    </button>
               </div>
             )}
           </div>
@@ -237,15 +250,18 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
                   {t[item as keyof typeof t]}
                 </span>
                 <button
-                  onClick={() => updateField(item as keyof DayProgress, !data[item as keyof DayProgress])}
-                  className={`w-10 h-10 rounded-xl transition-all active:scale-95 ${
-                    data[item as keyof DayProgress]
-                      ? 'bg-sky-600 text-white'
-                      : 'bg-slate-100 text-slate-400'
-                  }`}
-                >
-                  {data[item as keyof DayProgress] ? '✓' : ''}
-                </button>
+                    onClick={() => canEdit && updateField(item as keyof DayProgress, !data[item as keyof DayProgress])}
+                    disabled={!canEdit}
+                    className={`w-10 h-10 rounded-xl transition-all ${
+                        !canEdit
+                        ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
+                        : data[item as keyof DayProgress]
+                            ? 'bg-sky-600 text-white active:scale-95'
+                            : 'bg-slate-100 text-slate-400 active:scale-95'
+                    }`}
+                    >
+                    {!canEdit ? '🔒' : data[item as keyof DayProgress] ? '✓' : ''}
+                    </button>
               </div>
             ))}
           </div>

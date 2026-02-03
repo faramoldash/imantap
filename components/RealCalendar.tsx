@@ -12,6 +12,7 @@ interface RealCalendarProps {
   realTodayDay: number;
   onDaySelect: (day: number) => void;
   onPreparationDaySelect: (day: number) => void;
+  onBasicDateSelect: (date: Date) => void;
   trackerKeys: string[];
   preparationTrackerKeys: string[];
 }
@@ -27,6 +28,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   realTodayDay,
   onDaySelect,
   onPreparationDaySelect,
+  onBasicDateSelect,
   trackerKeys,
   preparationTrackerKeys
 }) => {
@@ -225,11 +227,14 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               key={idx}
               onClick={() => {
                 if (ramadanDay && !isLocked) {
-                  onDaySelect(ramadanDay);
-                } else if (prepDay && !isLocked) {
-                  onPreparationDaySelect(prepDay);
+                    onDaySelect(ramadanDay);
+                } else if (prepDay) {
+                    onPreparationDaySelect(prepDay);
+                } else if (!isRamadan && !isPrep) {
+                    // ✅ КЛИК НА ОБЫЧНЫЙ ДЕНЬ
+                    onBasicDateSelect(date);
                 }
-              }}
+                }}
               className={`
                 aspect-square rounded-xl flex flex-col items-center justify-center text-center
                 transition-all relative overflow-hidden

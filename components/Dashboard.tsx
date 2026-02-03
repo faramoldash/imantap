@@ -14,6 +14,7 @@ interface DashboardProps {
   language: Language;
   updateProgress: (day: number, updates: Partial<DayProgress>) => void;
   onDaySelect: (day: number) => void;
+  onBasicDateSelect: (date: Date) => void;
   xp: number;
   userData?: UserData;
   setUserData?: (data: UserData) => void;
@@ -32,11 +33,12 @@ const Dashboard: React.FC<DashboardProps> = ({
   updateProgress, 
   language,
   onDaySelect,
+  onPreparationDaySelect,
+  onBasicDateSelect,
   xp,
   userData,
   setUserData,
   setView,
-  onPreparationDaySelect,
 }) => {
   const t = TRANSLATIONS[language];
   const [activeCategory, setActiveCategory] = useState<CharityCategory>('charitySadaqah');
@@ -338,6 +340,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         realTodayDay={realTodayDay}
         onDaySelect={onDaySelect}
         onPreparationDaySelect={onPreparationDaySelect}
+        onBasicDateSelect={onBasicDateSelect}
         trackerKeys={TRACKER_KEYS}
         preparationTrackerKeys={PREPARATION_TRACKER_KEYS}
       />
