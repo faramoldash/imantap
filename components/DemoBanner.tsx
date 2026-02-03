@@ -5,9 +5,10 @@ import { getTelegramWebApp } from '../src/utils/telegram';
 interface DemoBannerProps {
   demoExpires: string;
   language: Language;
+  userId?: string;
 }
 
-const DemoBanner: React.FC<DemoBannerProps> = ({ demoExpires, language }) => {
+const DemoBanner: React.FC<DemoBannerProps> = ({ demoExpires, language, userId }) => {
   const [timeLeft, setTimeLeft] = useState('');
 
   useEffect(() => {
@@ -41,9 +42,7 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ demoExpires, language }) => {
     if (!tg) return;
 
     try {
-      // Получаем ID пользователя
-      const userId = tg.initDataUnsafe?.user?.id;
-      
+      // ✅ Используем userId из props (уже загружен из API)
       if (!userId) {
         tg.showAlert(
           language === 'kk' 
