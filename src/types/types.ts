@@ -37,6 +37,7 @@ export interface DayProgress {
 }
 
 export interface UserData {
+  userId?: number;
   name: string;
   username?: string; // Telegram username (e.g. @user)
   photoUrl?: string; // Telegram profile picture URL

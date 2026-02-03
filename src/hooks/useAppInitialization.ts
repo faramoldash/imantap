@@ -59,8 +59,19 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
         const savedData = localStorage.getItem(STORAGE_KEY);
         if (savedData) {
           try {
-            localData = JSON.parse(savedData);
-            console.log('📦 Локальные данные загружены');
+            const parsed = JSON.parse(savedData);
+            
+            // Проверяем что локальные данные принадлежат текущему пользователю
+            // Если сохранены данные другого пользователя - игнорируем их
+            const savedUserId = parsed.userId || null;
+            if (savedUserId && savedUserId !== userId) {
+              console.warn('⚠️ Локальные данные от другого пользователя - очищаем');
+              localStorage.removeItem(STORAGE_KEY);
+              localData = null;
+            } else {
+              localData = parsed;
+              console.log('📦 Локальные данные загружены');
+            }
           } catch (err) {
             console.error('❌ Ошибка парсинга localStorage:', err);
           }
@@ -86,6 +97,7 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
                 finalUserData = {
                   ...(localData || getDefaultUserData()),
                   ...serverData,
+                  userId: userId,
                   // Telegram данные всегда актуальные
                   name: telegramUser?.first_name 
                     ? `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim() 
