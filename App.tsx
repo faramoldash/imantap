@@ -121,6 +121,7 @@ const App: React.FC = () => {
 
   // --- Scroll Persistence Logic ---
   const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const handleViewChange = useCallback((newView: ViewType) => {
     const currentScroll = window.scrollY;
@@ -269,6 +270,31 @@ const App: React.FC = () => {
       debouncedSync();
     }
   }, [userData, isLoading, debouncedSync]);
+
+  useEffect(() => {
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        setIsKeyboardVisible(true);
+      }
+    };
+
+    const handleFocusOut = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        // Небольшая задержка чтобы анимация была плавной
+        setTimeout(() => setIsKeyboardVisible(false), 100);
+      }
+    };
+
+    window.addEventListener('focusin', handleFocusIn);
+    window.addEventListener('focusout', handleFocusOut);
+
+    return () => {
+      window.removeEventListener('focusin', handleFocusIn);
+      window.removeEventListener('focusout', handleFocusOut);
+    };
+  }, []);
 
   // Online/Offline listeners
   useEffect(() => {
@@ -698,7 +724,7 @@ const App: React.FC = () => {
         {renderView()}
       </main>
 
-      <Navigation currentView={currentView} setView={handleViewChange} language={userData.language} />
+      <Navigation currentView={currentView} setView={handleViewChange} language={userData.language} isKeyboardVisible={isKeyboardVisible} />
     </div>
   );
   };
