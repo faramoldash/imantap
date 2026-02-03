@@ -222,7 +222,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         </section>
       )}
 
-      {/* Level Summary */}
+      {/* ❌ УБИРАЕМ LEVEL SUMMARY - дублируется в Рейтинг/Кабинет
       <section onClick={() => {
         haptics.medium();
         setView('rewards');
@@ -242,8 +242,9 @@ const Dashboard: React.FC<DashboardProps> = ({
            </div>
         </div>
       </section>
+      */}
 
-      {/* ✅ STREAK CARD - НОВЫЙ БЛОК */}
+      {/* ✅ STREAK CARD */}
       <section className="bg-gradient-to-br from-orange-500 to-red-600 p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
         {/* Декоративный фон */}
         <div className="absolute top-0 right-0 p-8 opacity-20 text-9xl">🔥</div>
@@ -252,13 +253,13 @@ const Dashboard: React.FC<DashboardProps> = ({
           {/* Текущий стрик */}
           <div className="flex-1">
             <p className="text-[10px] font-black text-white/80 uppercase tracking-widest mb-1">
-              {language === 'kk' ? 'Қатарыңыз' : 'Серия'}
+              {language === 'kk' ? 'Қатарынан' : 'Подряд'}
             </p>
-            <div className="flex items-end space-x-2">
+            <div className="flex items-baseline space-x-2">
               <h3 className="text-5xl font-black text-white leading-none">
                 {userData?.currentStreak || 0}
               </h3>
-              <span className="text-xl font-black text-white/80 mb-1">
+              <span className="text-xl font-black text-white/80">
                 {language === 'kk' ? 'күн' : 'дней'}
               </span>
             </div>
@@ -288,10 +289,13 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="text-center">
               <p className="text-[8px] font-black text-white/70 uppercase tracking-wider">
-                {language === 'kk' ? 'Үздік' : 'Лучшая'}
+                {language === 'kk' ? 'Максимум' : 'Максимум'}
               </p>
-              <p className="text-sm font-black text-white">
-                {userData?.longestStreak || 0} {language === 'kk' ? 'күн' : 'дней'}
+              <p className="text-xs font-black text-white leading-tight">
+                {userData?.longestStreak || 0} күн
+              </p>
+              <p className="text-[7px] font-bold text-white/70">
+                {language === 'kk' ? 'қатарынан' : 'подряд'}
               </p>
             </div>
           </div>
