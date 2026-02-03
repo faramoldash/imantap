@@ -208,7 +208,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   ));
 
   return (
-    <div className="space-y-6 pb-24 relative">
+    <div className="space-y-6 pb-6 relative">
 
       {/* Real-time Countdown Card */}
       {!ramadanInfo.isStarted && (
@@ -466,19 +466,19 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* ✅ TODAY'S PROGRESS - НОВЫЙ БЛОК */}
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden mb-6">
+        {/* ✅ TODAY'S PROGRESS - ТЁМНАЯ ВЕРСИЯ */}
+        <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
           {/* Декор */}
-          <div className="absolute top-0 right-0 p-8 opacity-10 text-8xl">✅</div>
+          <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl">✅</div>
           
           <div className="relative z-10">
             {/* Заголовок */}
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-[11px] font-black uppercase tracking-widest text-white/90">
-                {t.language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс'}
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-400">
+                {language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс'}
               </h4>
-              <span className="text-xs font-black text-white/80">
-                {t.language === 'kk' ? `${selectedDay}-күн` : `День ${selectedDay}`}
+              <span className="text-xs font-black text-white/40">
+                {language === 'kk' ? `${selectedDay}-күн` : `День ${selectedDay}`}
               </span>
             </div>
             
@@ -488,8 +488,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <p className="text-5xl font-black leading-none">
                   {TRACKER_KEYS.filter(k => data[k as keyof DayProgress]).length}
                 </p>
-                <p className="text-sm font-bold text-white/80 mt-1">
-                  / {TRACKER_KEYS.length} {t.language === 'kk' ? 'тапсырма' : 'задач'}
+                <p className="text-sm font-bold text-white/60 mt-1">
+                  / {TRACKER_KEYS.length} {language === 'kk' ? 'тапсырма' : 'задач'}
                 </p>
               </div>
               
@@ -497,56 +497,38 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <p className="text-3xl font-black">
                   {currentDayProgress}%
                 </p>
-                <p className="text-[10px] font-black text-white/80 uppercase">
-                  {t.language === 'kk' ? 'орындалды' : 'выполнено'}
+                <p className="text-[10px] font-black text-white/60 uppercase">
+                  {language === 'kk' ? 'орындалды' : 'выполнено'}
                 </p>
               </div>
             </div>
             
             {/* Прогресс-бар */}
-            <div className="w-full h-4 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+            <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-white transition-all duration-1000 ease-out rounded-full shadow-lg"
+                className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 transition-all duration-1000 ease-out"
                 style={{ width: `${currentDayProgress}%` }}
               ></div>
             </div>
             
             {/* Мотивационное сообщение */}
             {currentDayProgress === 100 && (
-              <p className="text-xs font-black text-white mt-3 text-center">
-                🎉 {t.language === 'kk' ? 'Жарайсыз! Барлық тапсырма орындалды!' : 'Отлично! Все задачи выполнены!'}
+              <p className="text-xs font-black text-emerald-400 mt-3 text-center">
+                🎉 {language === 'kk' ? 'Жарайсыз! Барлық тапсырма орындалды!' : 'Отлично! Все задачи выполнены!'}
               </p>
             )}
             
             {currentDayProgress >= 50 && currentDayProgress < 100 && (
-              <p className="text-xs font-bold text-white/90 mt-3 text-center">
-                💪 {t.language === 'kk' ? 'Жақсы! Жалғастырыңыз!' : 'Хорошо! Продолжайте!'}
+              <p className="text-xs font-bold text-white/80 mt-3 text-center">
+                💪 {language === 'kk' ? 'Жақсы! Жалғастырыңыз!' : 'Хорошо! Продолжайте!'}
               </p>
             )}
             
             {currentDayProgress < 50 && currentDayProgress > 0 && (
-              <p className="text-xs font-bold text-white/90 mt-3 text-center">
-                🚀 {t.language === 'kk' ? 'Бастадыңыз! Қалғанын аяқтаңыз!' : 'Начали! Завершите остальное!'}
+              <p className="text-xs font-bold text-white/80 mt-3 text-center">
+                🚀 {language === 'kk' ? 'Бастадыңыз! Қалғанын аяқтаңыз!' : 'Начали! Завершите остальное!'}
               </p>
             )}
-          </div>
-        </div>
-
-        {/* Overall Progress Section */}
-        <div className="bg-slate-900 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden">
-          <div className="flex justify-between items-end mb-5">
-            <div>
-              <p className="text-[11px] font-black text-emerald-400 tracking-[0.25em] uppercase mb-1">{t.progressLabel}</p>
-              <h2 className="text-4xl font-black text-white">{currentDayProgress}%</h2>
-            </div>
-            <div className="text-right">
-              <p className="text-[11px] font-black text-white/40 uppercase tracking-tighter">
-                {TRACKER_KEYS.filter(k => data[k as keyof DayProgress]).length} / {TRACKER_KEYS.length} АМАЛ
-              </p>
-            </div>
-          </div>
-          <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 transition-all duration-1000 ease-out" style={{ width: `${currentDayProgress}%` }}></div>
           </div>
         </div>
       </div>
