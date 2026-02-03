@@ -54,10 +54,20 @@ export function initTelegramApp(): void {
   if (tg) {
     tg.ready();
     tg.expand();
+    
+    // ✅ Отключаем вертикальные свайпы
+    tg.isVerticalSwipesEnabled = false;
+    
+    // ✅ Фиксируем высоту viewport для iOS (навигация не двигается при клавиатуре)
+    if (tg.platform === 'ios' && tg.viewportStableHeight) {
+      document.documentElement.style.height = `${tg.viewportStableHeight}px`;
+    }
+    
     console.log('✅ Telegram WebApp инициализирован');
     console.log('📱 Platform:', tg.platform);
     console.log('🎨 Color scheme:', tg.colorScheme);
     console.log('👤 User ID:', tg.initDataUnsafe?.user?.id);
+    console.log('📏 Viewport height:', tg.viewportStableHeight);
   } else {
     console.warn('⚠️ Telegram WebApp недоступен');
   }

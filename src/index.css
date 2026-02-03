@@ -1,0 +1,21 @@
+/* Фикс навигации при открытии клавиатуры на iOS */
+body {
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Telegram WebApp специфичные стили */
+html {
+  overflow: hidden;
+  height: 100%;
+}

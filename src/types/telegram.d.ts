@@ -50,6 +50,7 @@ export interface TelegramWebApp {
   isExpanded: boolean;
   viewportHeight: number;
   viewportStableHeight: number;
+  isVerticalSwipesEnabled: boolean;
   headerColor: string;
   backgroundColor: string;
   isClosingConfirmationEnabled: boolean;

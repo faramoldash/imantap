@@ -665,7 +665,7 @@ const App: React.FC = () => {
 
   // --- RENDER MAIN APP ---
   return (
-    <div className="min-h-screen pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
+    <div className="h-full pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
       {/* Demo Banner */}
       {showDemoBanner && (
         <DemoBanner 
