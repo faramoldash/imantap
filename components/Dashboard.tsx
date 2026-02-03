@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { DayProgress, Language, UserData, ViewType } from '../src/types/types';
-import { TRANSLATIONS, TRACKER_KEYS, TOTAL_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE } from '../constants';
+import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, TOTAL_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE } from '../constants';
 import { haptics } from '../src/utils/haptics';
 import RealCalendar from './RealCalendar';
 
@@ -18,6 +18,7 @@ interface DashboardProps {
   userData?: UserData;
   setUserData?: (data: UserData) => void;
   setView: (view: ViewType) => void;
+  onPreparationDaySelect: (day: number) => void;
 }
 
 type CharityCategory = 'charitySadaqah' | 'charityZakat' | 'charityFitrana';
@@ -34,7 +35,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   xp,
   userData,
   setUserData,
-  setView
+  setView,
+  onPreparationDaySelect,
 }) => {
   const t = TRANSLATIONS[language];
   const [activeCategory, setActiveCategory] = useState<CharityCategory>('charitySadaqah');
@@ -328,11 +330,16 @@ const Dashboard: React.FC<DashboardProps> = ({
       <RealCalendar 
         language={language}
         ramadanStartDate={RAMADAN_START_DATE}
+        preparationStartDate={PREPARATION_START_DATE}
+        firstTaraweehDate={FIRST_TARAWEEH_DATE}
         allProgress={allProgress}
+        preparationProgress={userData.preparationProgress || {}}
         selectedDay={selectedDay}
         realTodayDay={realTodayDay}
         onDaySelect={onDaySelect}
+        onPreparationDaySelect={onPreparationDaySelect}
         trackerKeys={TRACKER_KEYS}
+        preparationTrackerKeys={PREPARATION_TRACKER_KEYS}
       />
 
       {/* Daily Trackers List */}

@@ -15,6 +15,7 @@ import ProfileView from './components/ProfileView';
 import Paywall from './components/Paywall';
 import PendingScreen from './components/PendingScreen';
 import DemoBanner from './components/DemoBanner';
+import PreparationTracker from './components/PreparationTracker';
 import { checkUserAccess, AccessData } from './src/utils/api';
 import { initTelegramApp, getTelegramUserId, getTelegramUser } from './src/utils/telegram';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
@@ -112,6 +113,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedDay, setSelectedDay] = useState<number>(ramadanInfo.currentDay);
   const [realTodayDay, setRealTodayDay] = useState<number>(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
+  const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
 
   // --- Scroll Persistence Logic ---
   const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
@@ -426,6 +428,63 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const updatePreparationProgress = useCallback((day: number, updates: Partial<DayProgress>) => {
+    setUserData(prev => {
+      const existing = prev.preparationProgress?.[day] || {
+        day,
+        fasting: false,
+        fajr: false,
+        morningDhikr: false,
+        quranRead: false,
+        salawat: false,
+        hadith: false,
+        duha: false,
+        charity: false,
+        charityAmount: 0,
+        dhuhr: false,
+        asr: false,
+        eveningDhikr: false,
+        maghrib: false,
+        isha: false,
+        taraweeh: false,
+        witr: false,
+        quranPages: 0,
+        date: new Date().toISOString(),
+      };
+
+      let xpDelta = 0;
+      Object.keys(updates).forEach((key) => {
+        const k = key as keyof DayProgress;
+        const newVal = updates[k];
+        const oldVal = existing[k];
+
+        if (newVal !== oldVal) {
+          if (typeof newVal === 'boolean' && XP_VALUES[k]) {
+            xpDelta += newVal ? XP_VALUES[k] : -XP_VALUES[k];
+          }
+        }
+      });
+
+      const nextPrepProgress = {
+        ...prev.preparationProgress,
+        [day]: { ...existing, ...updates }
+      };
+
+      let newState = {
+        ...prev,
+        xp: Math.max(0, prev.xp + xpDelta),
+        preparationProgress: nextPrepProgress
+      };
+
+      newState = updateStreak(newState);
+
+      const newBadges = checkBadges(newState);
+      if (newBadges) newState.unlockedBadges = newBadges;
+
+      return newState;
+    });
+  }, []);
+
   const handleUserDataUpdate = (newData: UserData) => {
     const newBadges = checkBadges(newData);
     if (newBadges) newData.unlockedBadges = newBadges;
@@ -433,10 +492,22 @@ const App: React.FC = () => {
   };
 
   const renderView = () => {
+    // ✅ ЕСЛИ ВЫБРАН ДЕНЬ ПОДГОТОВКИ - ПОКАЗЫВАЕМ PreparationTracker
+    if (selectedPreparationDay) {
+      return (
+        <PreparationTracker
+          day={selectedPreparationDay}
+          language={userData.language}
+          userData={userData}
+          onUpdate={updatePreparationProgress}
+          onBack={() => setSelectedPreparationDay(null)}
+        />
+      );
+    }
     const dayData = userData.progress[selectedDay] || INITIAL_DAY_PROGRESS(selectedDay);
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard day={selectedDay} realTodayDay={realTodayDay} ramadanInfo={ramadanInfo} data={dayData} allProgress={userData.progress} updateProgress={updateProgress} language={userData.language} onDaySelect={(d) => setSelectedDay(d)} xp={userData.xp} userData={userData} setUserData={handleUserDataUpdate} setView={handleViewChange} />;
+        return <Dashboard day={selectedDay} realTodayDay={realTodayDay} ramadanInfo={ramadanInfo} data={dayData} allProgress={userData.progress} updateProgress={updateProgress} language={userData.language} onDaySelect={(d) => setSelectedDay(d)} onPreparationDaySelect={(d) => setSelectedPreparationDay(d)} xp={userData.xp} userData={userData} setUserData={handleUserDataUpdate} setView={handleViewChange} />;
       case 'calendar':
         return <Calendar progress={userData.progress} realTodayDay={realTodayDay} selectedDay={selectedDay} language={userData.language} onSelectDay={(d) => { setSelectedDay(d); handleViewChange('dashboard'); }} />;
       case 'quran':
