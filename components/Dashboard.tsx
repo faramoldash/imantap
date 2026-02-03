@@ -208,7 +208,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   ));
 
   return (
-    <div className="space-y-6 pb-6 relative">
+    <div className="space-y-6 pb-4 relative">
 
       {/* Real-time Countdown Card */}
       {!ramadanInfo.isStarted && (
@@ -514,19 +514,19 @@ const Dashboard: React.FC<DashboardProps> = ({
             {/* Мотивационное сообщение */}
             {currentDayProgress === 100 && (
               <p className="text-xs font-black text-emerald-400 mt-3 text-center">
-                🎉 {language === 'kk' ? 'Жарайсыз! Барлық тапсырма орындалды!' : 'Отлично! Все задачи выполнены!'}
+                🎉 {language === 'kk' ? 'Жарайсыз! Барлық амалдар орындалды!' : 'Отлично! Все задачи выполнены!'}
               </p>
             )}
             
             {currentDayProgress >= 50 && currentDayProgress < 100 && (
               <p className="text-xs font-bold text-white/80 mt-3 text-center">
-                💪 {language === 'kk' ? 'Жақсы! Жалғастырыңыз!' : 'Хорошо! Продолжайте!'}
+                💪 {language === 'kk' ? 'Жақсы нәтиже! Тоқтамаңыз!' : 'Хороший результат! Не останавливайтесь!'}
               </p>
             )}
             
             {currentDayProgress < 50 && currentDayProgress > 0 && (
               <p className="text-xs font-bold text-white/80 mt-3 text-center">
-                🚀 {language === 'kk' ? 'Бастадыңыз! Қалғанын аяқтаңыз!' : 'Начали! Завершите остальное!'}
+                🚀 {language === 'kk' ? 'Керемет бастама! Толық орындауға тырысыңыз!' : 'Отличное начало! Постарайтесь выполнить все!'}
               </p>
             )}
           </div>
