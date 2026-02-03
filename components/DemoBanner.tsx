@@ -36,17 +36,58 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ demoExpires, language }) => {
     return () => clearInterval(interval);
   }, [demoExpires, language]);
 
-  const handleUpgrade = () => {
+  const handleUpgrade = async () => {
     const tg = getTelegramWebApp();
-    if (tg) {
-      tg.showConfirm(
+    if (!tg) return;
+
+    try {
+      // Получаем ID пользователя
+      const userId = tg.initDataUnsafe?.user?.id;
+      
+      if (!userId) {
+        tg.showAlert(
+          language === 'kk' 
+            ? 'Қате: пайдаланушы анықталмады' 
+            : 'Ошибка: не удалось определить пользователя'
+        );
+        return;
+      }
+
+      // Уведомляем бот о желании купить
+      const botUrl = import.meta.env.VITE_BOT_URL || 'https://imantap-bot-production.up.railway.app';
+      
+      const response = await fetch(`${botUrl}/api/notify-purchase/${userId}`);
+      
+      if (response.ok) {
+        // Успешно отправили - показываем сообщение
+        tg.showAlert(
+          language === 'kk'
+            ? 'Төлем туралы ақпарат ботқа жіберілді ✅\n\nБотты ашып, төлем жасаңыз.'
+            : 'Информация отправлена в бот ✅\n\nОткройте бот и оплатите.',
+          () => {
+            tg.close();
+          }
+        );
+      } else {
+        // Ошибка API - показываем обычное сообщение
+        tg.showAlert(
+          language === 'kk' 
+            ? 'Толық нұсқаға өту үшін ботқа оралыңыз және төлем жасаңыз.' 
+            : 'Для получения полной версии вернитесь в бот и оплатите.',
+          () => {
+            tg.close();
+          }
+        );
+      }
+    } catch (error) {
+      console.error('Error notifying bot:', error);
+      // При ошибке сети - показываем обычное сообщение
+      tg.showAlert(
         language === 'kk' 
           ? 'Толық нұсқаға өту үшін ботқа оралыңыз және төлем жасаңыз.' 
           : 'Для получения полной версии вернитесь в бот и оплатите.',
-        (confirmed) => {
-          if (confirmed) {
-            tg.close();
-          }
+        () => {
+          tg.close();
         }
       );
     }
