@@ -151,8 +151,8 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
           const isTodayDate = isToday(date);
           const isRamadan = isRamadanDay(date);
           const ramadanDay = isRamadan ? getRamadanDayNumber(date) : null;
-          
-          const isLocked = ramadanDay ? ramadanDay > realTodayDay : false;
+          // Первый день всегда открыт, остальные блокируются
+          const isLocked = ramadanDay ? (ramadanDay > realTodayDay && ramadanDay !== 1) : false;
           const isSelected = ramadanDay === selectedDay;
           const progress = ramadanDay ? calculateProgress(ramadanDay) : 0;
           
