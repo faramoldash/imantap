@@ -511,8 +511,8 @@ const App: React.FC = () => {
   };
 
   const renderView = () => {
-    // ✅ Скроллим вверх при открытии любого трекера
-    React.useEffect(() => {
+    // ✅ Скролл вверх при открытии трекеров
+    useEffect(() => {
       if (selectedBasicDate || selectedPreparationDay) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -526,15 +526,12 @@ const App: React.FC = () => {
           language={userData.language}
           userData={userData}
           onUpdate={updateBasicProgress}
-          onBack={() => {
-            setSelectedBasicDate(null);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
+          onBack={() => setSelectedBasicDate(null)}
         />
       );
     }
     
-    // Если выбран день подготовки через календарь - показываем отдельный трекер
+    // Если выбран день подготовки через календарь
     if (selectedPreparationDay) {
       return (
         <PreparationTracker
@@ -542,10 +539,7 @@ const App: React.FC = () => {
           language={userData.language}
           userData={userData}
           onUpdate={updatePreparationProgress}
-          onBack={() => {
-            setSelectedPreparationDay(null);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
+          onBack={() => setSelectedPreparationDay(null)}
         />
       );
     }
