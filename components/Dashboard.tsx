@@ -332,7 +332,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <button 
                   onClick={() => {
                     haptics.selection();
-                    setView('dashboard');
+                    setView('names-99');
                   }}
                   className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-colors backdrop-blur-sm shadow-lg border border-white/20"
                 >
