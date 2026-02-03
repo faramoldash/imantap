@@ -310,6 +310,14 @@ const App: React.FC = () => {
     };
   }, [setSyncStatus]);
 
+  // ✅ Сбрасываем выбранные трекеры при переключении вкладок
+  useEffect(() => {
+    if (currentView !== 'dashboard') {
+      if (selectedBasicDate) setSelectedBasicDate(null);
+      if (selectedPreparationDay) setSelectedPreparationDay(null);
+    }
+  }, [currentView]);
+
   // Функция для повторной попытки синхронизации
   const retrySync = useCallback(() => {
     setSyncStatus('idle');
@@ -517,38 +525,38 @@ const App: React.FC = () => {
   };
 
   const renderView = () => {
-
-    // Если выбран базовый день через календарь
-    if (selectedBasicDate) {
-      return (
-        <BasicTracker
-          date={selectedBasicDate}
-          language={userData.language}
-          userData={userData}
-          onUpdate={updateBasicProgress}
-          onBack={() => setSelectedBasicDate(null)}
-        />
-      );
-    }
-    
-    // Если выбран день подготовки через календарь
-    if (selectedPreparationDay) {
-      return (
-        <PreparationTracker
-          day={selectedPreparationDay}
-          language={userData.language}
-          userData={userData}
-          onUpdate={updatePreparationProgress}
-          onBack={() => setSelectedPreparationDay(null)}
-        />
-      );
-    }
-    
     // Обрабатываем разные view
     const dayData = userData.progress[selectedDay] || INITIAL_DAY_PROGRESS(selectedDay);
     
     switch (currentView) {
       case 'dashboard':
+        // ✅ Если выбран базовый день - показываем в Dashboard
+        if (selectedBasicDate) {
+          return (
+            <BasicTracker
+              date={selectedBasicDate}
+              language={userData.language}
+              userData={userData}
+              onUpdate={updateBasicProgress}
+              onBack={() => setSelectedBasicDate(null)}
+            />
+          );
+        }
+        
+        // ✅ Если выбран день подготовки - показываем в Dashboard
+        if (selectedPreparationDay) {
+          return (
+            <PreparationTracker
+              day={selectedPreparationDay}
+              language={userData.language}
+              userData={userData}
+              onUpdate={updatePreparationProgress}
+              onBack={() => setSelectedPreparationDay(null)}
+            />
+          );
+        }
+        
+        // ✅ Обычный Dashboard
         return (
           <Dashboard 
             day={selectedDay} 

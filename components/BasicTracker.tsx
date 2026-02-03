@@ -158,6 +158,36 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
         </div>
       </div>
 
+      {/* Намазы секция */}
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
+          🕌 {t.prayers}
+        </h4>
+        <div className="grid grid-cols-3 gap-3">
+          <ItemButton id="fajr" icon="🌅" small />
+          <ItemButton id="duha" icon="☀️" small />
+          <ItemButton id="dhuhr" icon="🌞" small />
+          <ItemButton id="asr" icon="🌤️" small />
+          <ItemButton id="maghrib" icon="🌆" small />
+          <ItemButton id="isha" icon="🌙" small />
+        </div>
+      </div>
+
+      {/* Духовные практики секция */}
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
+          ✨ {t.spiritual}
+        </h4>
+        <div className="grid grid-cols-3 gap-3">
+          <ItemButton id="quranRead" icon="📖" small />
+          <ItemButton id="morningDhikr" icon="📿" small />
+          <ItemButton id="eveningDhikr" icon="🤲" small />
+          <ItemButton id="salawat" icon="☪️" small />
+          <ItemButton id="charity" icon="💝" small />
+          <ItemButton id="lessons" icon="🎓" small />
+        </div>
+      </div>
+
       {/* Прогресс-бар */}
       <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl">✅</div>
@@ -195,36 +225,6 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
               style={{ width: `${progressPercent}%` }}
             ></div>
           </div>
-        </div>
-      </div>
-
-      {/* Намазы секция */}
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-        <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
-          🕌 {t.prayers}
-        </h4>
-        <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="fajr" icon="🌅" small />
-          <ItemButton id="duha" icon="☀️" small />
-          <ItemButton id="dhuhr" icon="🌞" small />
-          <ItemButton id="asr" icon="🌤️" small />
-          <ItemButton id="maghrib" icon="🌆" small />
-          <ItemButton id="isha" icon="🌙" small />
-        </div>
-      </div>
-
-      {/* Духовные практики секция */}
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-        <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
-          ✨ {t.spiritual}
-        </h4>
-        <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="quranRead" icon="📖" small />
-          <ItemButton id="morningDhikr" icon="📿" small />
-          <ItemButton id="eveningDhikr" icon="🤲" small />
-          <ItemButton id="salawat" icon="☪️" small />
-          <ItemButton id="charity" icon="💝" small />
-          <ItemButton id="lessons" icon="🎓" small />
         </div>
       </div>
 
