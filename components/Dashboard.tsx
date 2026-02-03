@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { DayProgress, Language, UserData, ViewType } from '../src/types/types';
-import { TRANSLATIONS, TRACKER_KEYS, TOTAL_DAYS, NAMES_99, XP_VALUES } from '../constants';
+import { TRANSLATIONS, TRACKER_KEYS, TOTAL_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE } from '../constants';
 import { haptics } from '../src/utils/haptics';
+import RealCalendar from './RealCalendar';
 
 interface DashboardProps {
   day: number;
@@ -213,12 +214,33 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Real-time Countdown Card */}
       {!ramadanInfo.isStarted && (
         <section className="bg-gradient-to-br from-emerald-950 to-emerald-900 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden text-center text-white border border-emerald-800 animate-in fade-in">
-           <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12"><span className="text-8xl">🌙</span></div>
-           <div className="flex flex-col items-center justify-center relative z-10">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2">РАМАЗАНҒА ДЕЙІН</p>
-              <h3 className="text-8xl font-black leading-none drop-shadow-lg">{ramadanInfo.daysUntil}</h3>
-              <p className="text-sm font-black uppercase tracking-[0.2em] mt-2">КҮН ҚАЛДЫ</p>
-           </div>
+          {/* Декор */}
+          <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
+            <span className="text-8xl">🌙</span>
+          </div>
+          
+          <div className="flex flex-col items-center justify-center relative z-10">
+            {/* Дата начала */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-3 mb-4 border border-white/20">
+              <p className="text-sm font-black text-emerald-300">
+                19 {language === 'kk' ? 'ақпан' : 'февраля'}
+              </p>
+              <p className="text-[10px] font-bold text-white/80 mt-1">
+                {language === 'kk' ? 'Рамазанның 1-ші күні' : '1-й день Рамадана'}
+              </p>
+            </div>
+            
+            {/* Обратный отсчёт */}
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2">
+              {language === 'kk' ? 'РАМАЗАНҒА ДЕЙІН' : 'ДО РАМАДАНА'}
+            </p>
+            <h3 className="text-8xl font-black leading-none drop-shadow-lg">
+              {ramadanInfo.daysUntil}
+            </h3>
+            <p className="text-sm font-black uppercase tracking-[0.2em] mt-2">
+              {language === 'kk' ? 'КҮН ҚАЛДЫ' : 'ДНЕЙ ОСТАЛОСЬ'}
+            </p>
+          </div>
         </section>
       )}
 
@@ -302,31 +324,16 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </section>
 
-      {/* Online Calendar Strip */}
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-        <div className="flex justify-between items-center mb-5 px-1">
-           <h4 className="text-[10px] font-black text-slate-400 tracking-widest uppercase">{t.calendarTitle}</h4>
-           <div className="flex items-center space-x-2">
-              {ramadanInfo.isStarted && <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>}
-              <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase">
-                {ramadanInfo.isStarted ? `${t.dayLabel} ${realTodayDay}` : 'Күту режимі'}
-              </span>
-           </div>
-        </div>
-        <div className="grid grid-cols-7 gap-y-4 gap-x-2 justify-items-center overflow-x-auto pb-2 no-scrollbar">
-          {Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).map((d) => (
-            <ProgressCircle
-              key={d}
-              percentage={calculateProgress(d)}
-              isSelected={selectedDay === d}
-              isToday={d === realTodayDay}
-              dayNum={d}
-              maxAvailableDay={maxAvailableDay}
-              onDaySelect={onDaySelect}
-            />
-          ))}
-        </div>
-      </div>
+      {/* Real Calendar */}
+      <RealCalendar 
+        language={language}
+        ramadanStartDate={RAMADAN_START_DATE}
+        allProgress={allProgress}
+        selectedDay={selectedDay}
+        realTodayDay={realTodayDay}
+        onDaySelect={onDaySelect}
+        trackerKeys={TRACKER_KEYS}
+      />
 
       {/* Daily Trackers List */}
       <div className="space-y-6">
