@@ -22,6 +22,8 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
     backButton: 'Артқа',
     prayers: 'Намаздар',
     spiritual: 'Рухани амалдар',
+    progress: 'Бүгінгі прогресс',
+    completed: 'орындалды',
     fajr: 'Таң намазы',
     duha: 'Духа',
     dhuhr: 'Бесін',
@@ -33,12 +35,16 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
     quranRead: 'Құран оқу',
     salawat: 'Салауат',
     charity: 'Садақа',
+    lessons: 'Дәрістер',
     noXP: '📝 Әдеттегі күндер үшін XP есептелмейді',
+    backToHome: 'Басты бетке оралу',
   } : {
     title: 'Ежедневный трекер',
     backButton: 'Назад',
     prayers: 'Намазы',
     spiritual: 'Духовные практики',
+    progress: 'Сегодняшний прогресс',
+    completed: 'выполнено',
     fajr: 'Фаджр',
     duha: 'Духа',
     dhuhr: 'Зухр',
@@ -50,7 +56,9 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
     quranRead: 'Чтение Корана',
     salawat: 'Салават',
     charity: 'Садака',
+    lessons: 'Уроки',
     noXP: '📝 XP не начисляется для обычных дней',
+    backToHome: 'Вернуться на главную',
   };
 
   const dateStr = date.toISOString().split('T')[0];
@@ -63,6 +71,7 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
     salawat: false,
     duha: false,
     charity: false,
+    lessons: false,
     dhuhr: false,
     asr: false,
     eveningDhikr: false,
@@ -84,6 +93,11 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
       : ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
     return `${weekDays[date.getDay()]}, ${date.getDate()} ${monthNames[date.getMonth()]}`;
   }, [date, language]);
+
+  // Подсчёт прогресса
+  const trackerKeys: (keyof typeof data)[] = ['fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha', 'morningDhikr', 'eveningDhikr', 'quranRead', 'salawat', 'charity', 'lessons'];
+  const completedCount = trackerKeys.filter(key => data[key]).length;
+  const progressPercent = Math.round((completedCount / trackerKeys.length) * 100);
 
   // Компонент кнопки в стиле Dashboard
   const ItemButton = ({ id, icon, small = false }: { id: keyof DayProgress; icon: string; small?: boolean }) => (
@@ -144,6 +158,46 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
         </div>
       </div>
 
+      {/* Прогресс-бар */}
+      <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl">✅</div>
+        
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-400">
+              {t.progress}
+            </h4>
+          </div>
+          
+          <div className="flex items-end justify-between mb-3">
+            <div>
+              <p className="text-5xl font-black leading-none">
+                {completedCount}
+              </p>
+              <p className="text-sm font-bold text-white/60 mt-1">
+                / {trackerKeys.length}
+              </p>
+            </div>
+            
+            <div className="text-right">
+              <p className="text-3xl font-black">
+                {progressPercent}%
+              </p>
+              <p className="text-[10px] font-black text-white/60 uppercase">
+                {t.completed}
+              </p>
+            </div>
+          </div>
+          
+          <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 transition-all duration-1000 ease-out"
+              style={{ width: `${progressPercent}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
       {/* Намазы секция */}
       <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
         <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
@@ -170,7 +224,21 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
           <ItemButton id="eveningDhikr" icon="🤲" small />
           <ItemButton id="salawat" icon="☪️" small />
           <ItemButton id="charity" icon="💝" small />
+          <ItemButton id="lessons" icon="🎓" small />
         </div>
+      </div>
+
+      {/* Кнопка возврата на главную */}
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <button
+          onClick={() => {
+            haptics.medium();
+            onBack();
+          }}
+          className="w-full bg-gradient-to-br from-emerald-600 to-emerald-700 text-white py-4 rounded-2xl font-black text-base shadow-lg active:scale-95 transition-all"
+        >
+          🏠 {t.backToHome}
+        </button>
       </div>
     </div>
   );
