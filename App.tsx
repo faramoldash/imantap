@@ -445,7 +445,8 @@ const App: React.FC = () => {
       {showDemoBanner && (
         <DemoBanner 
           demoExpires={accessData.demoExpires!} 
-          language={userData.language} 
+          language={userData.language}
+          userId={userData?.userId}
         />
       )}
       
