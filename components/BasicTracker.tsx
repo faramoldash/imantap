@@ -21,58 +21,36 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
     title: 'Күнделік трекер',
     backButton: 'Артқа',
     prayers: 'Намаздар',
-    fajr: 'Таң намазы',
-    fajrDesc: 'Таң алдында оқылады',
-    duha: 'Духа намазы',
-    duhaDesc: 'Күн шыққаннан кейін',
-    dhuhr: 'Бесін намазы',
-    dhuhrDesc: 'Түскі намаз',
-    asr: 'Екінті намазы',
-    asrDesc: 'Түстен кейін',
-    maghrib: 'Ақшам намазы',
-    maghribDesc: 'Күн батқанда',
-    isha: 'Құптан намазы',
-    ishaDesc: 'Кешкі намаз',
     spiritual: 'Рухани амалдар',
+    fajr: 'Таң намазы',
+    duha: 'Духа',
+    dhuhr: 'Бесін',
+    asr: 'Екінті',
+    maghrib: 'Ақшам',
+    isha: 'Құптан',
     morningDhikr: 'Таңғы зікір',
-    morningDhikrDesc: 'Таң намазынан кейін',
     eveningDhikr: 'Кешкі зікір',
-    eveningDhikrDesc: 'Ақшам намазынан кейін',
     quranRead: 'Құран оқу',
-    quranReadDesc: 'Күнделікті оқу',
     salawat: 'Салауат',
-    salawatDesc: 'Пайғамбарға дұға',
     charity: 'Садақа',
-    charityDesc: 'Жақсылық жасау',
-    noXP: 'Әдеттегі күндер үшін XP есептелмейді',
+    noXP: '📝 Әдеттегі күндер үшін XP есептелмейді',
   } : {
     title: 'Ежедневный трекер',
     backButton: 'Назад',
     prayers: 'Намазы',
-    fajr: 'Фаджр',
-    fajrDesc: 'Утренний намаз',
-    duha: 'Духа',
-    duhaDesc: 'После восхода солнца',
-    dhuhr: 'Зухр',
-    dhuhrDesc: 'Полуденный намаз',
-    asr: 'Аср',
-    asrDesc: 'Послеполуденный',
-    maghrib: 'Магриб',
-    maghribDesc: 'После заката',
-    isha: 'Иша',
-    ishaDesc: 'Ночной намаз',
     spiritual: 'Духовные практики',
+    fajr: 'Фаджр',
+    duha: 'Духа',
+    dhuhr: 'Зухр',
+    asr: 'Аср',
+    maghrib: 'Магриб',
+    isha: 'Иша',
     morningDhikr: 'Утренний зикр',
-    morningDhikrDesc: 'После фаджра',
     eveningDhikr: 'Вечерний зикр',
-    eveningDhikrDesc: 'После магриба',
     quranRead: 'Чтение Корана',
-    quranReadDesc: 'Ежедневное чтение',
     salawat: 'Салават',
-    salawatDesc: 'Благословение Пророку',
     charity: 'Садака',
-    charityDesc: 'Творить добро',
-    noXP: 'XP не начисляется для обычных дней',
+    noXP: '📝 XP не начисляется для обычных дней',
   };
 
   const dateStr = date.toISOString().split('T')[0];
@@ -107,127 +85,92 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
     return `${weekDays[date.getDay()]}, ${date.getDate()} ${monthNames[date.getMonth()]}`;
   }, [date, language]);
 
-  const prayersData = [
-    { key: 'fajr', icon: '🌅', color: 'from-orange-500 to-pink-500' },
-    { key: 'duha', icon: '☀️', color: 'from-yellow-400 to-orange-400' },
-    { key: 'dhuhr', icon: '🌞', color: 'from-amber-400 to-yellow-500' },
-    { key: 'asr', icon: '🌤️', color: 'from-orange-400 to-amber-500' },
-    { key: 'maghrib', icon: '🌆', color: 'from-purple-500 to-pink-500' },
-    { key: 'isha', icon: '🌙', color: 'from-indigo-600 to-purple-600' },
-  ];
-
-  const spiritualData = [
-    { key: 'morningDhikr', icon: '📿', color: 'from-emerald-500 to-teal-500' },
-    { key: 'eveningDhikr', icon: '🤲', color: 'from-blue-500 to-indigo-500' },
-    { key: 'quranRead', icon: '📖', color: 'from-green-600 to-emerald-600' },
-    { key: 'salawat', icon: '☪️', color: 'from-cyan-500 to-blue-500' },
-    { key: 'charity', icon: '💝', color: 'from-pink-500 to-rose-500' },
-  ];
+  // Компонент кнопки в стиле Dashboard
+  const ItemButton = ({ id, icon, small = false }: { id: keyof DayProgress; icon: string; small?: boolean }) => (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        updateField(id, !data[id as keyof typeof data]);
+      }}
+      className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative active:scale-95 ${
+        small ? 'h-20' : 'h-24'
+      } ${
+        data[id as keyof typeof data]
+          ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner'
+          : 'bg-white border-slate-100 text-slate-600 shadow-sm'
+      }`}
+    >
+      {icon}
+      <span className="text-[11px] font-bold text-center leading-tight">
+        {t[id as keyof typeof t]}
+      </span>
+      {data[id as keyof typeof data] && (
+        <span className="absolute top-1 right-1 text-xs">✓</span>
+      )}
+    </button>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pb-24">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-slate-600 to-slate-700 text-white p-6 rounded-b-[3rem] shadow-xl mb-6 relative overflow-hidden">
+    <div className="space-y-6 pb-24">
+      {/* Header карточка с датой */}
+      <div className="bg-gradient-to-br from-slate-600 to-slate-700 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10">
           <span className="text-9xl">📅</span>
         </div>
         
-        <button 
-          onClick={onBack}
-          className="mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-bold hover:bg-white/30 transition-colors active:scale-95 relative z-10"
-        >
-          ← {t.backButton}
-        </button>
-        
-        <div className="text-center relative z-10">
-          <p className="text-xs font-black uppercase tracking-widest opacity-90 mb-2">
-            {t.title}
-          </p>
-          <h1 className="text-2xl font-black mb-3">
-            {dateString}
-          </h1>
-          <div className="inline-block bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 border border-white/20">
-            <p className="text-xs font-bold opacity-90">
-              {t.noXP}
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <button 
+              onClick={onBack}
+              className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold hover:bg-white/30 transition-colors active:scale-95"
+            >
+              ← {t.backButton}
+            </button>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest opacity-90 mb-2">
+              {t.title}
             </p>
+            <h1 className="text-2xl font-black mb-3">
+              {dateString}
+            </h1>
+            <div className="inline-block bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20">
+              <p className="text-xs font-bold opacity-90">
+                {t.noXP}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="px-6 space-y-4">
-        {/* Намазы */}
-        <section className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center">
-            <span className="mr-2">🕌</span>
-            {t.prayers}
-          </h3>
-          <div className="space-y-3">
-            {prayersData.map(({ key, icon, color }) => (
-              <div key={key} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-xl shadow-sm`}>
-                    {icon}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-slate-800">
-                      {t[key as keyof typeof t]}
-                    </h4>
-                    <p className="text-[10px] text-slate-500 font-bold">
-                      {t[`${key}Desc` as keyof typeof t]}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => updateField(key as keyof DayProgress, !data[key as keyof typeof data])}
-                  className={`w-12 h-12 rounded-2xl transition-all flex items-center justify-center text-lg font-black ${
-                    data[key as keyof typeof data]
-                      ? `bg-gradient-to-br ${color} text-white shadow-lg active:scale-95`
-                      : 'bg-slate-50 text-slate-300 active:scale-95'
-                  }`}
-                >
-                  {data[key as keyof typeof data] ? '✓' : ''}
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+      {/* Намазы секция */}
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
+          🕌 {t.prayers}
+        </h4>
+        <div className="grid grid-cols-3 gap-3">
+          <ItemButton id="fajr" icon="🌅" small />
+          <ItemButton id="duha" icon="☀️" small />
+          <ItemButton id="dhuhr" icon="🌞" small />
+          <ItemButton id="asr" icon="🌤️" small />
+          <ItemButton id="maghrib" icon="🌆" small />
+          <ItemButton id="isha" icon="🌙" small />
+        </div>
+      </div>
 
-        {/* Духовные практики */}
-        <section className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center">
-            <span className="mr-2">✨</span>
-            {t.spiritual}
-          </h3>
-          <div className="space-y-3">
-            {spiritualData.map(({ key, icon, color }) => (
-              <div key={key} className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-xl shadow-sm`}>
-                    {icon}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-black text-slate-800">
-                      {t[key as keyof typeof t]}
-                    </h4>
-                    <p className="text-[10px] text-slate-500 font-bold">
-                      {t[`${key}Desc` as keyof typeof t]}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => updateField(key as keyof DayProgress, !data[key as keyof typeof data])}
-                  className={`w-12 h-12 rounded-2xl transition-all flex items-center justify-center text-lg font-black ${
-                    data[key as keyof typeof data]
-                      ? `bg-gradient-to-br ${color} text-white shadow-lg active:scale-95`
-                      : 'bg-slate-50 text-slate-300 active:scale-95'
-                  }`}
-                >
-                  {data[key as keyof typeof data] ? '✓' : ''}
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
+      {/* Духовные практики секция */}
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
+          ✨ {t.spiritual}
+        </h4>
+        <div className="grid grid-cols-3 gap-3">
+          <ItemButton id="quranRead" icon="📖" small />
+          <ItemButton id="morningDhikr" icon="📿" small />
+          <ItemButton id="eveningDhikr" icon="🤲" small />
+          <ItemButton id="salawat" icon="☪️" small />
+          <ItemButton id="charity" icon="💝" small />
+        </div>
       </div>
     </div>
   );
