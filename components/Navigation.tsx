@@ -21,32 +21,35 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, language 
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-2 py-2 z-50 safe-area-inset-bottom shadow-lg">
-      <div className="flex items-center justify-around">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-1 py-1 z-50 safe-area-inset-bottom shadow-lg">
+      <div className="flex items-center justify-around max-w-md mx-auto">
         {items.map((item) => (
           <button
             key={item.id}
             onClick={() => {
               haptics.selection();
               setView(item.id);
-              // ✅ Скроллим вверх при нажатии на любую вкладку
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className={`relative flex flex-col items-center justify-center space-y-1 py-2 px-3 rounded-2xl transition-all flex-shrink-0 min-w-[64px] active:scale-95 ${
+            className={`relative flex flex-col items-center justify-center py-1.5 px-2 rounded-lg transition-all flex-1 active:scale-95 ${
               currentView === item.id 
                 ? 'text-emerald-600' 
-                : 'text-slate-400'
+                : 'text-slate-500'
             }`}
           >
-            <span className="text-2xl">{item.icon}</span>
-            <span className="text-[9px] font-black uppercase tracking-tight">
-              {item.label}
+            {/* Иконка */}
+            <span className={`text-xl leading-none mb-0.5 ${
+              currentView === item.id ? 'transform scale-110' : ''
+            }`}>
+              {item.icon}
             </span>
             
-            {/* Индикатор активной вкладки */}
-            {currentView === item.id && (
-              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-emerald-600 rounded-full"></div>
-            )}
+            {/* Текст */}
+            <span className={`text-[9px] font-bold tracking-tight leading-none ${
+              currentView === item.id ? 'text-emerald-600' : 'text-slate-400'
+            }`}>
+              {item.label}
+            </span>
           </button>
         ))}
       </div>
