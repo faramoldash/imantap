@@ -511,9 +511,7 @@ const App: React.FC = () => {
   };
 
   const renderView = () => {
-    // ✅ УМНАЯ ЛОГИКА: определяем какой трекер показывать по умолчанию
-    
-    // 1. Если выбран базовый день
+    // Если выбран базовый день через календарь - показываем отдельный трекер
     if (selectedBasicDate) {
       return (
         <BasicTracker
@@ -526,7 +524,7 @@ const App: React.FC = () => {
       );
     }
     
-    // 2. Если выбран день подготовки
+    // Если выбран день подготовки через календарь - показываем отдельный трекер
     if (selectedPreparationDay) {
       return (
         <PreparationTracker
@@ -539,27 +537,11 @@ const App: React.FC = () => {
       );
     }
     
-    // 3. Главный экран - определяем что показать
-    if (currentView === 'dashboard') {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const ramadanStart = new Date(RAMADAN_START_DATE);
-      ramadanStart.setHours(0, 0, 0, 0);
-      
-      const ramadanEnd = new Date(ramadanStart);
-      ramadanEnd.setDate(ramadanEnd.getDate() + 29);
-      
-      const prepStart = new Date(PREPARATION_START_DATE);
-      prepStart.setHours(0, 0, 0, 0);
-      
-      // Проверяем какой период сейчас
-      const isRamadanPeriod = today >= ramadanStart && today <= ramadanEnd;
-      const isPrepPeriod = today >= prepStart && today < ramadanStart;
-      
-      // Если Рамадан - показываем Dashboard
-      if (isRamadanPeriod) {
-        const dayData = userData.progress[selectedDay] || INITIAL_DAY_PROGRESS(selectedDay);
+    // Обрабатываем разные view
+    const dayData = userData.progress[selectedDay] || INITIAL_DAY_PROGRESS(selectedDay);
+    
+    switch (currentView) {
+      case 'dashboard':
         return (
           <Dashboard 
             day={selectedDay} 
@@ -578,52 +560,25 @@ const App: React.FC = () => {
             setView={handleViewChange} 
           />
         );
-      }
-      
-      // Если период подготовки - показываем трекер подготовки
-      if (isPrepPeriod) {
-        const diffTime = today.getTime() - prepStart.getTime();
-        const prepDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
         
-        return (
-          <PreparationTracker
-            day={prepDay}
-            language={userData.language}
-            userData={userData}
-            onUpdate={updatePreparationProgress}
-            onBack={() => handleViewChange('dashboard')}
-          />
-        );
-      }
-      
-      // Обычный день - показываем базовый трекер
-      return (
-        <BasicTracker
-          date={today}
-          language={userData.language}
-          userData={userData}
-          onUpdate={updateBasicProgress}
-          onBack={() => handleViewChange('dashboard')}
-        />
-      );
-    }
-    
-    // 4. Остальные view
-    const dayData = userData.progress[selectedDay] || INITIAL_DAY_PROGRESS(selectedDay);
-    
-    switch (currentView) {
       case 'calendar':
         return <Calendar progress={userData.progress} realTodayDay={realTodayDay} selectedDay={selectedDay} language={userData.language} onSelectDay={(d) => { setSelectedDay(d); handleViewChange('dashboard'); }} />;
+        
       case 'quran':
         return <QuranTracker userData={userData} setUserData={handleUserDataUpdate} language={userData.language} />;
+        
       case 'tasks':
         return <TasksList language={userData.language} userData={userData} setUserData={handleUserDataUpdate} />;
+        
       case 'profile':
         return <ProfileView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} />;
+        
       case 'names-99':
         return <NamesMemorizer language={userData.language} userData={userData} setUserData={handleUserDataUpdate} />;
+        
       case 'rewards':
         return <RewardsView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} />;
+        
       default:
         return null;
     }
