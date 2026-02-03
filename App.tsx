@@ -17,6 +17,7 @@ import PendingScreen from './components/PendingScreen';
 import DemoBanner from './components/DemoBanner';
 import PreparationTracker from './components/PreparationTracker';
 import BasicTracker from './components/BasicTracker';
+import { PREPARATION_START_DATE, PREPARATION_DAYS } from './constants';
 import { checkUserAccess, AccessData } from './src/utils/api';
 import { initTelegramApp, getTelegramUserId, getTelegramUser } from './src/utils/telegram';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
@@ -510,7 +511,9 @@ const App: React.FC = () => {
   };
 
   const renderView = () => {
-    // ✅ БАЗОВЫЙ ТРЕКЕР
+    // ✅ УМНАЯ ЛОГИКА: определяем какой трекер показывать по умолчанию
+    
+    // 1. Если выбран базовый день
     if (selectedBasicDate) {
       return (
         <BasicTracker
@@ -522,7 +525,8 @@ const App: React.FC = () => {
         />
       );
     }
-    // ✅ ЕСЛИ ВЫБРАН ДЕНЬ ПОДГОТОВКИ - ПОКАЗЫВАЕМ PreparationTracker
+    
+    // 2. Если выбран день подготовки
     if (selectedPreparationDay) {
       return (
         <PreparationTracker
@@ -534,10 +538,80 @@ const App: React.FC = () => {
         />
       );
     }
+    
+    // 3. Главный экран - определяем что показать
+    if (currentView === 'dashboard') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const ramadanStart = new Date(RAMADAN_START_DATE);
+      ramadanStart.setHours(0, 0, 0, 0);
+      
+      const ramadanEnd = new Date(ramadanStart);
+      ramadanEnd.setDate(ramadanEnd.getDate() + 29);
+      
+      const prepStart = new Date(PREPARATION_START_DATE);
+      prepStart.setHours(0, 0, 0, 0);
+      
+      // Проверяем какой период сейчас
+      const isRamadanPeriod = today >= ramadanStart && today <= ramadanEnd;
+      const isPrepPeriod = today >= prepStart && today < ramadanStart;
+      
+      // Если Рамадан - показываем Dashboard
+      if (isRamadanPeriod) {
+        const dayData = userData.progress[selectedDay] || INITIAL_DAY_PROGRESS(selectedDay);
+        return (
+          <Dashboard 
+            day={selectedDay} 
+            realTodayDay={realTodayDay} 
+            ramadanInfo={ramadanInfo} 
+            data={dayData} 
+            allProgress={userData.progress} 
+            updateProgress={updateProgress} 
+            language={userData.language} 
+            onDaySelect={(d) => setSelectedDay(d)} 
+            onPreparationDaySelect={(d) => setSelectedPreparationDay(d)} 
+            onBasicDateSelect={(date) => setSelectedBasicDate(date)} 
+            xp={userData.xp} 
+            userData={userData} 
+            setUserData={handleUserDataUpdate} 
+            setView={handleViewChange} 
+          />
+        );
+      }
+      
+      // Если период подготовки - показываем трекер подготовки
+      if (isPrepPeriod) {
+        const diffTime = today.getTime() - prepStart.getTime();
+        const prepDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        
+        return (
+          <PreparationTracker
+            day={prepDay}
+            language={userData.language}
+            userData={userData}
+            onUpdate={updatePreparationProgress}
+            onBack={() => handleViewChange('dashboard')}
+          />
+        );
+      }
+      
+      // Обычный день - показываем базовый трекер
+      return (
+        <BasicTracker
+          date={today}
+          language={userData.language}
+          userData={userData}
+          onUpdate={updateBasicProgress}
+          onBack={() => handleViewChange('dashboard')}
+        />
+      );
+    }
+    
+    // 4. Остальные view
     const dayData = userData.progress[selectedDay] || INITIAL_DAY_PROGRESS(selectedDay);
+    
     switch (currentView) {
-      case 'dashboard':
-        return <Dashboard day={selectedDay} realTodayDay={realTodayDay} ramadanInfo={ramadanInfo} data={dayData} allProgress={userData.progress} updateProgress={updateProgress} language={userData.language} onDaySelect={(d) => setSelectedDay(d)} onPreparationDaySelect={(d) => setSelectedPreparationDay(d)} onBasicDateSelect={(date) => setSelectedBasicDate(date)} xp={userData.xp} userData={userData} setUserData={handleUserDataUpdate} setView={handleViewChange} />;
       case 'calendar':
         return <Calendar progress={userData.progress} realTodayDay={realTodayDay} selectedDay={selectedDay} language={userData.language} onSelectDay={(d) => { setSelectedDay(d); handleViewChange('dashboard'); }} />;
       case 'quran':
