@@ -62,6 +62,9 @@ const App: React.FC = () => {
       referralCount: 0,
       unlockedBadges: [],
       hasRedeemedReferral: false,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastActiveDate: ''
     };
   }, []);
 
@@ -341,17 +344,62 @@ const App: React.FC = () => {
     return null;
   };
 
+  // --- STREAK LOGIC ---
+  const updateStreak = (data: UserData): UserData => {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const lastActive = data.lastActiveDate || '';
+    
+    // Если уже обновляли сегодня - не трогаем
+    if (lastActive === today) {
+      return data;
+    }
+    
+    const lastActiveDate = lastActive ? new Date(lastActive) : null;
+    const todayDate = new Date(today);
+    
+    let newStreak = data.currentStreak || 0;
+    
+    if (!lastActiveDate) {
+      // Первая активность
+      newStreak = 1;
+    } else {
+      // Вычисляем разницу в днях
+      const diffTime = todayDate.getTime() - lastActiveDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) {
+        // Следующий день подряд - увеличиваем стрик
+        newStreak = (data.currentStreak || 0) + 1;
+      } else if (diffDays > 1) {
+        // Пропустили день(дни) - стрик сбросился
+        newStreak = 1;
+      }
+      // Если diffDays === 0, это сегодняшний день (уже обработано выше)
+    }
+    
+    const newLongest = Math.max(newStreak, data.longestStreak || 0);
+    
+    return {
+      ...data,
+      currentStreak: newStreak,
+      longestStreak: newLongest,
+      lastActiveDate: today
+    };
+  };
+
   const updateProgress = useCallback((day: number, updates: Partial<DayProgress>) => {
     setUserData(prev => {
       const existing = prev.progress[day] || INITIAL_DAY_PROGRESS(day);
       let xpDelta = 0;
+
       Object.keys(updates).forEach((key) => {
         const k = key as keyof DayProgress;
         const newVal = updates[k];
         const oldVal = existing[k];
+
         if (newVal !== oldVal) {
           if (typeof newVal === 'boolean' && XP_VALUES[k]) {
-             xpDelta += newVal ? XP_VALUES[k] : -XP_VALUES[k];
+            xpDelta += newVal ? XP_VALUES[k] : -XP_VALUES[k];
           }
         }
       });
@@ -361,13 +409,18 @@ const App: React.FC = () => {
         [day]: { ...existing, ...updates }
       };
 
-      const newState = {
+      let newState = {
         ...prev,
         xp: Math.max(0, prev.xp + xpDelta),
         progress: nextProgress
       };
+
+      // ✅ ОБНОВЛЯЕМ СТРИК при каждом изменении прогресса
+      newState = updateStreak(newState);
+
       const newBadges = checkBadges(newState);
       if (newBadges) newState.unlockedBadges = newBadges;
+
       return newState;
     });
   }, []);

@@ -59,6 +59,9 @@ export interface UserData {
   myPromoCode?: string; // The user's unique generated code
   hasRedeemedReferral: boolean; // Has the user entered a friend's code?
   unlockedBadges: string[];
+  currentStreak: number;      // Текущая серия дней подряд
+  longestStreak: number;      // Лучшая серия за всё время
+  lastActiveDate: string;     // Дата последней активности (для отслеживания перерывов в серии)
 }
 
 export type ViewType = 'dashboard' | 'calendar' | 'quran' | 'tasks' | 'profile' | 'names-99' | 'rewards';

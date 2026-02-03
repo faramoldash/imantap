@@ -243,6 +243,61 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </section>
 
+      {/* ✅ STREAK CARD - НОВЫЙ БЛОК */}
+      <section className="bg-gradient-to-br from-orange-500 to-red-600 p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+        {/* Декоративный фон */}
+        <div className="absolute top-0 right-0 p-8 opacity-20 text-9xl">🔥</div>
+        
+        <div className="relative z-10 flex items-center justify-between">
+          {/* Текущий стрик */}
+          <div className="flex-1">
+            <p className="text-[10px] font-black text-white/80 uppercase tracking-widest mb-1">
+              {language === 'kk' ? 'Қатарыңыз' : 'Серия'}
+            </p>
+            <div className="flex items-end space-x-2">
+              <h3 className="text-5xl font-black text-white leading-none">
+                {userData?.currentStreak || 0}
+              </h3>
+              <span className="text-xl font-black text-white/80 mb-1">
+                {language === 'kk' ? 'күн' : 'дней'}
+              </span>
+            </div>
+            
+            {/* Мотивационное сообщение */}
+            {(userData?.currentStreak || 0) > 0 && (
+              <p className="text-xs font-bold text-white/90 mt-2">
+                {language === 'kk' 
+                  ? '🔥 Жалғастырыңыз! МашаАллаһ!' 
+                  : '🔥 Продолжайте! МашаАллаһ!'}
+              </p>
+            )}
+            
+            {(userData?.currentStreak || 0) === 0 && (
+              <p className="text-xs font-bold text-white/90 mt-2">
+                {language === 'kk' 
+                  ? 'Бүгін белгілеп қатарды бастаңыз! 💪' 
+                  : 'Начните серию сегодня! 💪'}
+              </p>
+            )}
+          </div>
+          
+          {/* Огонёк и лучший стрик */}
+          <div className="flex flex-col items-center">
+            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-5xl mb-2 backdrop-blur-sm">
+              🔥
+            </div>
+            <div className="text-center">
+              <p className="text-[8px] font-black text-white/70 uppercase tracking-wider">
+                {language === 'kk' ? 'Үздік' : 'Лучшая'}
+              </p>
+              <p className="text-sm font-black text-white">
+                {userData?.longestStreak || 0} {language === 'kk' ? 'күн' : 'дней'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Online Calendar Strip */}
       <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
         <div className="flex justify-between items-center mb-5 px-1">
@@ -404,6 +459,72 @@ const Dashboard: React.FC<DashboardProps> = ({
               className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-sm font-black text-slate-800 placeholder:text-slate-300 focus:ring-2 ring-emerald-500 transition-all outline-none"
             />
             <div className="absolute right-5 top-1/2 -translate-y-1/2 text-emerald-600 font-black text-xs">₸</div>
+          </div>
+        </div>
+
+        {/* ✅ TODAY'S PROGRESS - НОВЫЙ БЛОК */}
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden mb-6">
+          {/* Декор */}
+          <div className="absolute top-0 right-0 p-8 opacity-10 text-8xl">✅</div>
+          
+          <div className="relative z-10">
+            {/* Заголовок */}
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-white/90">
+                {t.language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс'}
+              </h4>
+              <span className="text-xs font-black text-white/80">
+                {t.language === 'kk' ? `${selectedDay}-күн` : `День ${selectedDay}`}
+              </span>
+            </div>
+            
+            {/* Счётчик задач */}
+            <div className="flex items-end justify-between mb-3">
+              <div>
+                <p className="text-5xl font-black leading-none">
+                  {TRACKER_KEYS.filter(k => data[k as keyof DayProgress]).length}
+                </p>
+                <p className="text-sm font-bold text-white/80 mt-1">
+                  / {TRACKER_KEYS.length} {t.language === 'kk' ? 'тапсырма' : 'задач'}
+                </p>
+              </div>
+              
+              <div className="text-right">
+                <p className="text-3xl font-black">
+                  {currentDayProgress}%
+                </p>
+                <p className="text-[10px] font-black text-white/80 uppercase">
+                  {t.language === 'kk' ? 'орындалды' : 'выполнено'}
+                </p>
+              </div>
+            </div>
+            
+            {/* Прогресс-бар */}
+            <div className="w-full h-4 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
+              <div 
+                className="h-full bg-white transition-all duration-1000 ease-out rounded-full shadow-lg"
+                style={{ width: `${currentDayProgress}%` }}
+              ></div>
+            </div>
+            
+            {/* Мотивационное сообщение */}
+            {currentDayProgress === 100 && (
+              <p className="text-xs font-black text-white mt-3 text-center">
+                🎉 {t.language === 'kk' ? 'Жарайсыз! Барлық тапсырма орындалды!' : 'Отлично! Все задачи выполнены!'}
+              </p>
+            )}
+            
+            {currentDayProgress >= 50 && currentDayProgress < 100 && (
+              <p className="text-xs font-bold text-white/90 mt-3 text-center">
+                💪 {t.language === 'kk' ? 'Жақсы! Жалғастырыңыз!' : 'Хорошо! Продолжайте!'}
+              </p>
+            )}
+            
+            {currentDayProgress < 50 && currentDayProgress > 0 && (
+              <p className="text-xs font-bold text-white/90 mt-3 text-center">
+                🚀 {t.language === 'kk' ? 'Бастадыңыз! Қалғанын аяқтаңыз!' : 'Начали! Завершите остальное!'}
+              </p>
+            )}
           </div>
         </div>
 
