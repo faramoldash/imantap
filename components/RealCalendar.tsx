@@ -4,21 +4,31 @@ import { Language, DayProgress } from '../src/types/types';
 interface RealCalendarProps {
   language: Language;
   ramadanStartDate: string;
+  preparationStartDate: string;
+  firstTaraweehDate: string;
   allProgress: Record<number, DayProgress>;
+  preparationProgress: Record<number, DayProgress>;
   selectedDay: number;
   realTodayDay: number;
   onDaySelect: (day: number) => void;
+  onPreparationDaySelect: (day: number) => void;
   trackerKeys: string[];
+  preparationTrackerKeys: string[];
 }
 
 const RealCalendar: React.FC<RealCalendarProps> = ({ 
   language, 
   ramadanStartDate,
+  preparationStartDate,
+  firstTaraweehDate,
   allProgress,
+  preparationProgress,
   selectedDay,
   realTodayDay,
   onDaySelect,
-  trackerKeys
+  onPreparationDaySelect,
+  trackerKeys,
+  preparationTrackerKeys
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
@@ -27,9 +37,8 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
     ru: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
   };
   
-  // ✅ ИСПРАВЛЕНЫ ДНИ НЕДЕЛИ
   const weekDays = {
-    kk: ['Дс', 'Сс', 'Ср', 'Бс', 'Жм', 'Сб', 'Жк'], // Дүйсенбі, Сейсенбі, Сәрсенбі, Бейсенбі, Жұма, Сенбі, Жексенбі
+    kk: ['Дс', 'Сс', 'Ср', 'Бс', 'Жм', 'Сб', 'Жк'],
     ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
   };
 
@@ -66,6 +75,12 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   const ramadanEnd = new Date(ramadanStart);
   ramadanEnd.setDate(ramadanEnd.getDate() + 29);
   
+  const prepStart = new Date(preparationStartDate);
+  prepStart.setHours(0, 0, 0, 0);
+  
+  const firstTaraweeh = new Date(firstTaraweehDate);
+  firstTaraweeh.setHours(0, 0, 0, 0);
+  
   const isToday = (date: Date | null) => {
     if (!date) return false;
     return date.getTime() === today.getTime();
@@ -76,17 +91,34 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
     return date >= ramadanStart && date <= ramadanEnd;
   };
   
+  const isPreparationDay = (date: Date | null) => {
+    if (!date) return false;
+    return date >= prepStart && date < ramadanStart;
+  };
+  
+  const isFirstTaraweehDay = (date: Date | null) => {
+    if (!date) return false;
+    return date.getTime() === firstTaraweeh.getTime();
+  };
+  
   const getRamadanDayNumber = (date: Date) => {
     const diffTime = date.getTime() - ramadanStart.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     return diffDays + 1;
   };
   
-  const calculateProgress = (dayNum: number) => {
-    const dayData = allProgress[dayNum];
+  const getPreparationDayNumber = (date: Date) => {
+    const diffTime = date.getTime() - prepStart.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays + 1;
+  };
+  
+  const calculateProgress = (dayNum: number, isPrep: boolean = false) => {
+    const dayData = isPrep ? preparationProgress[dayNum] : allProgress[dayNum];
     if (!dayData) return 0;
-    const completed = trackerKeys.filter(key => dayData[key as keyof DayProgress]).length;
-    return Math.round((completed / trackerKeys.length) * 100);
+    const keys = isPrep ? preparationTrackerKeys : trackerKeys;
+    const completed = keys.filter(key => dayData[key as keyof DayProgress]).length;
+    return Math.round((completed / keys.length) * 100);
   };
   
   const goToPrevMonth = () => {
@@ -150,11 +182,43 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
           
           const isTodayDate = isToday(date);
           const isRamadan = isRamadanDay(date);
+          const isPrep = isPreparationDay(date);
+          const isTaraweeh = isFirstTaraweehDay(date);
+          
           const ramadanDay = isRamadan ? getRamadanDayNumber(date) : null;
-          // Первый день всегда открыт, остальные блокируются
-          const isLocked = ramadanDay ? (ramadanDay > realTodayDay && ramadanDay !== 1) : false;
-          const isSelected = ramadanDay === selectedDay;
-          const progress = ramadanDay ? calculateProgress(ramadanDay) : 0;
+          const prepDay = isPrep ? getPreparationDayNumber(date) : null;
+          
+          // Логика блокировки
+          const isLocked = ramadanDay ? (ramadanDay > realTodayDay && ramadanDay !== 1) : 
+                           prepDay ? (date > today) : false;
+          
+          const isSelected = false; // TODO: добавить логику выбора
+          const progress = ramadanDay ? calculateProgress(ramadanDay, false) : 
+                          prepDay ? calculateProgress(prepDay, true) : 0;
+          
+          // Цвета
+          let bgColor = 'rgb(248 250 252)'; // обычный день
+          let textColor = 'text-slate-600';
+          
+          if (isTodayDate) {
+            bgColor = 'rgb(16 185 129)'; // зелёный
+            textColor = 'text-white';
+          } else if (isTaraweeh) {
+            bgColor = 'rgb(251 191 36)'; // золотой - первый таравих
+            textColor = 'text-white';
+          } else if (isRamadan && !isLocked) {
+            bgColor = progress > 0 ? '' : 'rgb(240 253 244)'; // светло-зелёный
+            textColor = 'text-emerald-700';
+          } else if (isRamadan && isLocked) {
+            bgColor = 'rgb(241 245 249)';
+            textColor = 'text-slate-400';
+          } else if (isPrep && !isLocked) {
+            bgColor = progress > 0 ? '' : 'rgb(224 242 254)'; // голубой
+            textColor = 'text-sky-700';
+          } else if (isPrep && isLocked) {
+            bgColor = 'rgb(241 245 249)';
+            textColor = 'text-slate-400';
+          }
           
           return (
             <div
@@ -162,48 +226,45 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               onClick={() => {
                 if (ramadanDay && !isLocked) {
                   onDaySelect(ramadanDay);
+                } else if (prepDay && !isLocked) {
+                  onPreparationDaySelect(prepDay);
                 }
               }}
               className={`
                 aspect-square rounded-xl flex flex-col items-center justify-center text-center
                 transition-all relative overflow-hidden
-                ${ramadanDay && !isLocked ? 'cursor-pointer active:scale-95' : ''}
+                ${(ramadanDay || prepDay) && !isLocked ? 'cursor-pointer active:scale-95' : ''}
                 ${isLocked ? 'cursor-not-allowed' : ''}
                 ${isSelected ? 'ring-2 ring-emerald-600 scale-105 z-10' : ''}
               `}
               style={{
-                background: ramadanDay && !isLocked && progress > 0
-                  ? `conic-gradient(rgb(16 185 129) ${progress * 3.6}deg, rgb(240 253 244) ${progress * 3.6}deg)`
-                  : isTodayDate
-                    ? 'rgb(16 185 129)'
-                    : isRamadan && !isLocked
-                      ? 'rgb(240 253 244)'
-                      : isRamadan && isLocked
-                        ? 'rgb(241 245 249)'
-                        : 'rgb(248 250 252)'
+                background: (ramadanDay || prepDay) && !isLocked && progress > 0
+                  ? isTaraweeh
+                    ? `conic-gradient(rgb(251 191 36) ${progress * 3.6}deg, rgb(254 243 199) ${progress * 3.6}deg)`
+                    : isRamadan
+                      ? `conic-gradient(rgb(16 185 129) ${progress * 3.6}deg, rgb(240 253 244) ${progress * 3.6}deg)`
+                      : `conic-gradient(rgb(14 165 233) ${progress * 3.6}deg, rgb(224 242 254) ${progress * 3.6}deg)`
+                  : bgColor
               }}
             >
               {/* Внутренний белый круг для радиального прогресса */}
-              {ramadanDay && !isLocked && progress > 0 && progress < 100 && (
+              {(ramadanDay || prepDay) && !isLocked && progress > 0 && progress < 100 && (
                 <div className="absolute inset-1 rounded-lg bg-white flex items-center justify-center">
                   <div className="flex flex-col items-center">
-                    <span className="text-sm font-bold text-slate-700">{date.getDate()}</span>
-                    <span className="text-[8px] font-black text-emerald-600 mt-0.5">
-                      {ramadanDay}
+                    <span className={`text-sm font-bold ${textColor}`}>{date.getDate()}</span>
+                    <span className={`text-[8px] font-black mt-0.5 ${
+                      isTaraweeh ? 'text-amber-500' : isRamadan ? 'text-emerald-600' : 'text-sky-600'
+                    }`}>
+                      {isTaraweeh ? '⭐' : ramadanDay || (prepDay && '📝')}
                     </span>
                   </div>
                 </div>
               )}
               
               {/* Контент для дней без прогресса или с полным прогрессом */}
-              {(!ramadanDay || isLocked || progress === 0 || progress === 100) && (
+              {((!ramadanDay && !prepDay) || isLocked || progress === 0 || progress === 100) && (
                 <>
-                  <span className={`text-sm font-bold ${
-                    isTodayDate ? 'text-white' : 
-                    isRamadan && !isLocked ? 'text-emerald-700' :
-                    isRamadan && isLocked ? 'text-slate-400' :
-                    'text-slate-600'
-                  }`}>
+                  <span className={`text-sm font-bold ${textColor}`}>
                     {date.getDate()}
                   </span>
                   
@@ -216,6 +277,16 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
                       {isLocked ? '🔒' : ramadanDay}
                     </span>
                   )}
+                  
+                  {prepDay && (
+                    <span className={`text-[8px] font-black mt-0.5 ${
+                      isTaraweeh ? 'text-white' :
+                      isLocked ? 'text-slate-400' :
+                      'text-sky-600'
+                    }`}>
+                      {isLocked ? '🔒' : isTaraweeh ? '⭐' : '📝'}
+                    </span>
+                  )}
                 </>
               )}
               
@@ -225,8 +296,10 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               )}
               
               {/* Галочка для завершённых дней */}
-              {ramadanDay && !isLocked && progress === 100 && (
-                <div className="absolute top-0.5 right-0.5 text-white text-[10px] bg-emerald-600 rounded-full w-4 h-4 flex items-center justify-center">
+              {(ramadanDay || prepDay) && !isLocked && progress === 100 && (
+                <div className={`absolute top-0.5 right-0.5 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center ${
+                  isTaraweeh ? 'bg-amber-500' : isRamadan ? 'bg-emerald-600' : 'bg-sky-600'
+                }`}>
                   ✓
                 </div>
               )}
@@ -236,18 +309,22 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
       </div>
       
       {/* Legend */}
-      <div className="flex items-center justify-center space-x-3 mt-5 text-[9px] font-bold">
+      <div className="grid grid-cols-2 gap-2 mt-5 text-[9px] font-bold">
         <div className="flex items-center space-x-1.5">
           <div className="w-3 h-3 bg-emerald-600 rounded"></div>
           <span className="text-slate-600">{language === 'kk' ? 'Бүгін' : 'Сегодня'}</span>
         </div>
         <div className="flex items-center space-x-1.5">
-          <div className="w-3 h-3 bg-emerald-50 border border-emerald-200 rounded"></div>
-          <span className="text-slate-600">{language === 'kk' ? 'Ашық' : 'Открыто'}</span>
+          <div className="w-3 h-3 bg-sky-100 border border-sky-300 rounded"></div>
+          <span className="text-slate-600">{language === 'kk' ? 'Дайындық' : 'Подготовка'}</span>
         </div>
         <div className="flex items-center space-x-1.5">
-          <div className="w-3 h-3 bg-slate-100 border border-slate-200 rounded flex items-center justify-center text-[6px]">🔒</div>
-          <span className="text-slate-600">{language === 'kk' ? 'Жабық' : 'Закрыто'}</span>
+          <div className="w-3 h-3 bg-emerald-50 border border-emerald-200 rounded"></div>
+          <span className="text-slate-600">{language === 'kk' ? 'Рамазан' : 'Рамадан'}</span>
+        </div>
+        <div className="flex items-center space-x-1.5">
+          <div className="w-3 h-3 bg-amber-400 rounded flex items-center justify-center text-[6px]">⭐</div>
+          <span className="text-slate-600">{language === 'kk' ? '1-ші таравих' : '1-й таравих'}</span>
         </div>
       </div>
     </div>

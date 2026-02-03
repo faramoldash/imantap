@@ -44,6 +44,7 @@ export interface UserData {
   startDate: string; // Target start date (e.g. Ramadan start)
   registrationDate?: string; // Actual date user joined app
   progress: Record<number, DayProgress>;
+  preparationProgress: Record<number, DayProgress>;
   memorizedNames: number[]; 
   completedJuzs: number[];
   quranKhatams: number; // Number of times Quran was completed

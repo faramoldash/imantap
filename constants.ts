@@ -3,8 +3,27 @@ import { DayProgress, Language } from './src/types/types';
 
 export const TOTAL_DAYS = 30;
 
+// ✅ НОВЫЕ КОНСТАНТЫ
+export const PREPARATION_START_DATE = '2026-02-12T00:00:00.000Z'; // 12 февраля - начало подготовки
+export const PREPARATION_DAYS = 7; // 12-18 февраля
+export const FIRST_TARAWEEH_DATE = '2026-02-18T00:00:00.000Z'; // 18 февраля - первый таравих
+
 // Ramadan 2026 start date
 export const RAMADAN_START_DATE = '2026-02-19T00:00:00.000Z';
+
+// Ключи трекера для дней подготовки (без оразы и специфичных для Рамадана)
+export const PREPARATION_TRACKER_KEYS = [
+  'fajr',
+  'morningDhikr',
+  'quranRead',
+  'salawat',
+  'duha',
+  'dhuhr',
+  'asr',
+  'eveningDhikr',
+  'maghrib',
+  'isha',
+] as const;
 
 export const INITIAL_DAY_PROGRESS = (day: number): DayProgress => ({
   day,

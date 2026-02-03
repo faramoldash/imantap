@@ -48,6 +48,7 @@ const App: React.FC = () => {
       startDate: RAMADAN_START_DATE,
       registrationDate: new Date().toISOString(),
       progress: {},
+      preparationProgress: {},
       memorizedNames: [],
       completedJuzs: [],
       quranKhatams: 0,
