@@ -147,6 +147,12 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [calculateRamadanStatus]);
 
+  useEffect(() => {
+    if (selectedBasicDate || selectedPreparationDay) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [selectedBasicDate, selectedPreparationDay]);
+
   // Save to localStorage AND sync to server whenever userData changes
   // Debounce hook
   const useDebounce = (callback: Function, delay: number) => {
@@ -511,12 +517,6 @@ const App: React.FC = () => {
   };
 
   const renderView = () => {
-    // ✅ Скролл вверх при открытии трекеров
-    useEffect(() => {
-      if (selectedBasicDate || selectedPreparationDay) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    }, [selectedBasicDate, selectedPreparationDay]);
 
     // Если выбран базовый день через календарь
     if (selectedBasicDate) {
