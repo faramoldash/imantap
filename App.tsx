@@ -26,7 +26,7 @@ interface BackendUserData {
   username?: string;
 }
 
-const STORAGE_KEY = 'ramadan_tracker_data_v3';
+const STORAGE_KEY = 'ramadan_tracker_data_v4';
 
 const App: React.FC = () => {
   // Инициализация Telegram WebApp
