@@ -3,12 +3,12 @@ import { Language, DayProgress } from '../src/types/types';
 
 interface RealCalendarProps {
   language: Language;
-  ramadanStartDate: string; // ISO string '2026-02-19'
-  allProgress: Record<number, DayProgress>; // Прогресс по дням
-  selectedDay: number; // Выбранный день
-  realTodayDay: number; // Реальный текущий день Рамадана (0 если не начался)
-  onDaySelect: (day: number) => void; // Выбор дня
-  trackerKeys: string[]; // Ключи трекера для подсчета прогресса
+  ramadanStartDate: string;
+  allProgress: Record<number, DayProgress>;
+  selectedDay: number;
+  realTodayDay: number;
+  onDaySelect: (day: number) => void;
+  trackerKeys: string[];
 }
 
 const RealCalendar: React.FC<RealCalendarProps> = ({ 
@@ -27,12 +27,12 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
     ru: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
   };
   
+  // ✅ ИСПРАВЛЕНЫ ДНИ НЕДЕЛИ
   const weekDays = {
-    kk: ['Дс', 'Дс', 'Ср', 'Бс', 'Жм', 'Сб', 'Жк'],
+    kk: ['Дс', 'Сс', 'Ср', 'Бс', 'Жм', 'Сб', 'Жк'], // Дүйсенбі, Сейсенбі, Сәрсенбі, Бейсенбі, Жұма, Сенбі, Жексенбі
     ru: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
   };
 
-  // Вычисляем дни месяца
   const calendarDays = useMemo(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
@@ -82,7 +82,6 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
     return diffDays + 1;
   };
   
-  // Подсчёт прогресса для дня
   const calculateProgress = (dayNum: number) => {
     const dayData = allProgress[dayNum];
     if (!dayData) return 0;
@@ -153,7 +152,6 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
           const isRamadan = isRamadanDay(date);
           const ramadanDay = isRamadan ? getRamadanDayNumber(date) : null;
           
-          // Логика блокировки
           const isLocked = ramadanDay ? ramadanDay > realTodayDay : false;
           const isSelected = ramadanDay === selectedDay;
           const progress = ramadanDay ? calculateProgress(ramadanDay) : 0;
@@ -170,41 +168,55 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
                 aspect-square rounded-xl flex flex-col items-center justify-center text-center
                 transition-all relative overflow-hidden
                 ${ramadanDay && !isLocked ? 'cursor-pointer active:scale-95' : ''}
-                ${isLocked ? 'cursor-not-allowed opacity-40' : ''}
-                ${isSelected 
-                  ? 'ring-2 ring-emerald-600 scale-105 z-10' 
-                  : ''
-                }
-                ${isTodayDate 
-                  ? 'bg-emerald-600 text-white shadow-lg font-black' 
-                  : isRamadan && !isLocked
-                    ? 'bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold hover:bg-emerald-100'
-                    : isRamadan && isLocked
-                      ? 'bg-slate-100 border border-slate-200 text-slate-400'
-                      : 'bg-slate-50 text-slate-600'
-                }
+                ${isLocked ? 'cursor-not-allowed' : ''}
+                ${isSelected ? 'ring-2 ring-emerald-600 scale-105 z-10' : ''}
               `}
+              style={{
+                background: ramadanDay && !isLocked && progress > 0
+                  ? `conic-gradient(rgb(16 185 129) ${progress * 3.6}deg, rgb(240 253 244) ${progress * 3.6}deg)`
+                  : isTodayDate
+                    ? 'rgb(16 185 129)'
+                    : isRamadan && !isLocked
+                      ? 'rgb(240 253 244)'
+                      : isRamadan && isLocked
+                        ? 'rgb(241 245 249)'
+                        : 'rgb(248 250 252)'
+              }}
             >
-              {/* Прогресс-бар для дней Рамадана */}
-              {ramadanDay && !isLocked && progress > 0 && (
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-200">
-                  <div 
-                    className="h-full bg-emerald-500 transition-all"
-                    style={{ width: `${progress}%` }}
-                  ></div>
+              {/* Внутренний белый круг для радиального прогресса */}
+              {ramadanDay && !isLocked && progress > 0 && progress < 100 && (
+                <div className="absolute inset-1 rounded-lg bg-white flex items-center justify-center">
+                  <div className="flex flex-col items-center">
+                    <span className="text-sm font-bold text-slate-700">{date.getDate()}</span>
+                    <span className="text-[8px] font-black text-emerald-600 mt-0.5">
+                      {ramadanDay}
+                    </span>
+                  </div>
                 </div>
               )}
               
-              {/* Номер дня */}
-              <span className="text-sm font-bold">{date.getDate()}</span>
-              
-              {/* Номер дня Рамадана */}
-              {ramadanDay && (
-                <span className={`text-[8px] font-black mt-0.5 ${
-                  isTodayDate ? 'text-white' : 'text-emerald-600'
-                }`}>
-                  {isLocked ? '🔒' : `${ramadanDay}`}
-                </span>
+              {/* Контент для дней без прогресса или с полным прогрессом */}
+              {(!ramadanDay || isLocked || progress === 0 || progress === 100) && (
+                <>
+                  <span className={`text-sm font-bold ${
+                    isTodayDate ? 'text-white' : 
+                    isRamadan && !isLocked ? 'text-emerald-700' :
+                    isRamadan && isLocked ? 'text-slate-400' :
+                    'text-slate-600'
+                  }`}>
+                    {date.getDate()}
+                  </span>
+                  
+                  {ramadanDay && (
+                    <span className={`text-[8px] font-black mt-0.5 ${
+                      isTodayDate ? 'text-white' : 
+                      isLocked ? 'text-slate-400' :
+                      'text-emerald-600'
+                    }`}>
+                      {isLocked ? '🔒' : ramadanDay}
+                    </span>
+                  )}
+                </>
               )}
               
               {/* Индикатор сегодня */}
@@ -214,7 +226,9 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               
               {/* Галочка для завершённых дней */}
               {ramadanDay && !isLocked && progress === 100 && (
-                <div className="absolute top-0.5 right-0.5 text-[10px]">✓</div>
+                <div className="absolute top-0.5 right-0.5 text-white text-[10px] bg-emerald-600 rounded-full w-4 h-4 flex items-center justify-center">
+                  ✓
+                </div>
               )}
             </div>
           );
