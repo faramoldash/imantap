@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { UserData, ViewType, DayProgress, Language, CustomTask } from './src/types/types';
 import { TOTAL_DAYS, INITIAL_DAY_PROGRESS, TRANSLATIONS, XP_VALUES, RAMADAN_START_DATE, DEFAULT_GOALS, BADGES } from './constants';
 import Dashboard from './components/Dashboard';
@@ -17,9 +16,7 @@ import PendingScreen from './components/PendingScreen';
 import DemoBanner from './components/DemoBanner';
 import PreparationTracker from './components/PreparationTracker';
 import BasicTracker from './components/BasicTracker';
-import { PREPARATION_START_DATE, PREPARATION_DAYS } from './constants';
-import { checkUserAccess, AccessData } from './src/utils/api';
-import { initTelegramApp, getTelegramUserId, getTelegramUser, getTelegramWebApp } from './src/utils/telegram';
+import { initTelegramApp, getTelegramUserId, getTelegramWebApp } from './src/utils/telegram';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
 
 interface BackendUserData {
@@ -627,45 +624,49 @@ const App: React.FC = () => {
   }, []);
 
   const updateBasicProgress = useCallback((dateStr: string, updates: Partial<DayProgress>) => {
-    setUserData(prev => {
-      const existing = prev.basicProgress?.[dateStr] || {
-        day: 0,
-        fasting: false,
-        fajr: false,
-        morningDhikr: false,
-        quranRead: false,
-        salawat: false,
-        hadith: false,
-        duha: false,
-        charity: false,
-        charityAmount: 0,
-        dhuhr: false,
-        asr: false,
-        eveningDhikr: false,
-        maghrib: false,
-        isha: false,
-        taraweeh: false,
-        witr: false,
-        quranPages: 0,
-        date: dateStr,
-      };
+  setUserData(prev => {
+    const existing = prev.basicProgress?.[dateStr] || {
+      day: 0,
+      fasting: false,
+      fajr: false,
+      morningDhikr: false,
+      quranRead: false,
+      salawat: false,
+      hadith: false,
+      duha: false,
+      charity: false,
+      charityAmount: 0,
+      dhuhr: false,
+      asr: false,
+      eveningDhikr: false,
+      maghrib: false,
+      isha: false,
+      taraweeh: false,
+      witr: false,
+      quranPages: 0,
+      date: dateStr,
+    };
 
-      // ❌ УБРАЛИ ПОДСЧЁТ XP - обычные дни НЕ дают опыт!
+    // ✅ Обновляем basicProgress
+    const nextBasicProgress = {
+      ...prev.basicProgress,
+      [dateStr]: { ...existing, ...updates }
+    };
 
-      // ✅ Обновляем ТОЛЬКО basicProgress
-      const nextBasicProgress = {
-        ...prev.basicProgress,
-        [dateStr]: { ...existing, ...updates }
-      };
+    // ✅ ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ - создаём ПОЛНОСТЬЮ новый объект
+    const newState = {
+      ...prev,
+      basicProgress: nextBasicProgress,
+      // Добавляем timestamp для гарантии что объект изменился
+      _lastUpdate: Date.now()
+    };
 
-      // ✅ Возвращаем состояние БЕЗ изменения XP
-      return {
-        ...prev,
-        basicProgress: nextBasicProgress,
-        lastActiveDate: new Date().toISOString().split('T')[0]
-      };
-    });
-  }, []);
+    // ✅ Немедленно сохраняем в localStorage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+
+    return newState;
+  });
+}, []);
 
   const handleUserDataUpdate = (newData: UserData) => {
     const newBadges = checkBadges(newData);
