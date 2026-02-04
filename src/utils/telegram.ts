@@ -55,13 +55,13 @@ export function initTelegramApp(): void {
     tg.ready();
     tg.expand();
     
-    // ✅ Отключаем вертикальные свайпы
-    tg.isVerticalSwipesEnabled = false;
-    
-    // ✅ Фиксируем высоту viewport для iOS (навигация не двигается при клавиатуре)
-    if (tg.platform === 'ios' && tg.viewportStableHeight) {
-      document.documentElement.style.height = `${tg.viewportStableHeight}px`;
+    // ✅ Отключаем изменение viewport при клавиатуре
+    if (tg.isVerticalSwipesEnabled !== undefined) {
+      tg.isVerticalSwipesEnabled = false;
     }
+    
+    // ✅ Включаем подтверждение закрытия
+    tg.enableClosingConfirmation();
     
     console.log('✅ Telegram WebApp инициализирован');
     console.log('📱 Platform:', tg.platform);
