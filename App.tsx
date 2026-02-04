@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { UserData, ViewType, DayProgress, Language, CustomTask } from './src/types/types';
 import { TOTAL_DAYS, INITIAL_DAY_PROGRESS, TRANSLATIONS, XP_VALUES, RAMADAN_START_DATE, DEFAULT_GOALS, BADGES } from './constants';
 import Dashboard from './components/Dashboard';
@@ -117,53 +117,44 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // SCROLL LOGIC - НЕМЕДЛЕННЫЙ сброс для новых вкладок
+  // SCROLL LOGIC - принудительный сброс с key
   const [visitedViews, setVisitedViews] = useState<Set<string>>(new Set(['dashboard']));
   const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
+  const [renderKey, setRenderKey] = useState(0); // ← НОВОЕ: ключ для перерисовки
 
-  // Сохраняем позицию при скролле
+  // Сохраняем позицию при уходе с вкладки
   useEffect(() => {
-    const savePosition = () => {
+    return () => {
       setScrollPositions(prev => ({
         ...prev,
         [currentView]: window.scrollY
       }));
     };
-
-    window.addEventListener('scroll', savePosition);
-    
-    return () => {
-      savePosition();
-      window.removeEventListener('scroll', savePosition);
-    };
   }, [currentView]);
 
-  // Восстанавливаем позицию при смене вкладки
-  useEffect(() => {
-    // ✅ Если открыли трекер - скролл вверх
+  // Восстанавливаем позицию ДО отрисовки
+  useLayoutEffect(() => {
+    // Трекеры
     if (selectedBasicDate || selectedPreparationDay) {
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      window.scrollTo(0, 0);
       return;
     }
 
     const wasVisited = visitedViews.has(currentView);
     
     if (!wasVisited) {
-      // ✅ НОВАЯ ВКЛАДКА - НЕМЕДЛЕННО наверх БЕЗ задержки!
-      window.scrollTo({ top: 0, behavior: 'auto' });
-      console.log('🆕 Первое открытие', currentView, '→ вверх (0)');
-      
-      // Отмечаем как посещенную
+      // ✅ Новая вкладка - вверх + перерисовка
+      window.scrollTo(0, 0);
       setVisitedViews(prev => new Set(prev).add(currentView));
+      setRenderKey(prev => prev + 1); // ← Принудительная перерисовка
+      console.log('🆕', currentView, '→ 0');
     } else {
-      // ✅ УЖЕ ОТКРЫВАЛАСЬ - восстанавливаем позицию с задержкой
-      const savedPosition = scrollPositions[currentView] || 0;
-      setTimeout(() => {
-        window.scrollTo({ top: savedPosition, behavior: 'smooth' });
-        console.log('📍 Восстановлена позиция', currentView, '→', savedPosition);
-      }, 50);
+      // ✅ Восстанавливаем сохраненную позицию
+      const pos = scrollPositions[currentView] || 0;
+      window.scrollTo(0, pos);
+      console.log('📍', currentView, '→', pos);
     }
-  }, [currentView, selectedBasicDate, selectedPreparationDay]);
+  }, [currentView, selectedBasicDate, selectedPreparationDay, visitedViews, scrollPositions]);
 
   const t = TRANSLATIONS[userData.language];
 
@@ -866,7 +857,7 @@ const App: React.FC = () => {
         )}
       </header>
 
-      <main className="px-6 -mt-8 relative z-20">
+      <main key={renderKey} className="px-6 -mt-8 relative z-20">
         {renderView()}
       </main>
 
