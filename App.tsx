@@ -19,26 +19,6 @@ import BasicTracker from './components/BasicTracker';
 import { initTelegramApp, getTelegramUserId, getTelegramWebApp } from './src/utils/telegram';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
 
-// === ДИАГНОСТИКА СКРОЛЛА ===
-if (typeof window !== 'undefined') {
-  const logScroll = () => {
-    console.log('📊 SCROLL CHECK:', {
-      'window.scrollY': window.scrollY,
-      'window.pageYOffset': window.pageYOffset,
-      'document.documentElement.scrollTop': document.documentElement.scrollTop,
-      'document.body.scrollTop': document.body.scrollTop,
-      'root.scrollTop': document.getElementById('root')?.scrollTop || 0
-    });
-  };
-  
-  window.addEventListener('scroll', logScroll);
-  
-  // Проверяем каждые 2 секунды
-  setInterval(logScroll, 2000);
-}
-// === КОНЕЦ ДИАГНОСТИКИ ===
-
-
 interface BackendUserData {
   userId: string;
   promoCode: string;
@@ -137,12 +117,29 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // СКРОЛЛ - работаем с document.body!
+  // SCROLL LOGIC - с сохранением позиций
+  const scrollMemory = useRef<Record<string, number>>({});
+
+  // Сохраняем позицию при уходе
   useEffect(() => {
-    // Сбрасываем body.scrollTop
-    document.body.scrollTop = 0;
+    return () => {
+      scrollMemory.current[currentView] = document.body.scrollTop;
+    };
+  }, [currentView]);
+
+  // Восстанавливаем при заходе
+  useEffect(() => {
+    // Трекеры - всегда наверх
+    if (selectedBasicDate || selectedPreparationDay) {
+      document.body.scrollTop = 0;
+      return;
+    }
+
+    // Восстанавливаем сохраненную позицию
+    const savedPos = scrollMemory.current[currentView] ?? 0;
+    document.body.scrollTop = savedPos;
     
-    console.log('✅ Сброшен скролл для:', currentView);
+    console.log('📍', currentView, '→', savedPos);
   }, [currentView, selectedBasicDate, selectedPreparationDay]);
 
   const t = TRANSLATIONS[userData.language];
@@ -819,14 +816,6 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* DEBUG */}
-      <div className="fixed top-0 left-0 bg-black/80 text-white p-2 text-[10px] z-[9999] font-mono">
-        <div>win: {window.scrollY}</div>
-        <div>doc: {document.documentElement.scrollTop}</div>
-        <div>body: {document.body.scrollTop}</div>
-        <div>view: {currentView}</div>
-      </div>
 
       <header className={`px-6 pb-12 text-center bg-gradient-to-b from-emerald-900 to-emerald-800 rounded-b-[3rem] shadow-xl relative overflow-hidden ${showDemoBanner ? 'pt-4' : 'pt-16'}`}>
         <div className="absolute top-0 right-0 p-10 opacity-10">
