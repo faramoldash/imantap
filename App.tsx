@@ -143,40 +143,43 @@ const App: React.FC = () => {
   });
 
   const handleViewChange = useCallback((newView: ViewType) => {
-    // Сохраняем позицию текущей вкладки
-    const currentScroll = window.scrollY;
-    const newPositions = {
-      ...scrollPositions,
-      [currentView]: currentScroll
-    };
+    // 1. Сохраняем текущую позицию ПЕРЕД переключением
+    setScrollPositions(prev => {
+      const currentScroll = window.scrollY;
+      const updated = {
+        ...prev,
+        [currentView]: currentScroll
+      };
+      localStorage.setItem('imantap_scroll_positions', JSON.stringify(updated));
+      return updated;
+    });
     
-    setScrollPositions(newPositions);
-    
-    // Сохраняем в localStorage
-    localStorage.setItem('imantap_scroll_positions', JSON.stringify(newPositions));
-    
-    // Переключаем вкладку
+    // 2. Переключаем вкладку
     setCurrentView(newView);
     
-    // Отмечаем что вкладка была посещена
+    // 3. Отмечаем что вкладка посещена
     setVisitedViews(prev => {
       const newSet = new Set([...prev, newView]);
-      // Сохраняем в localStorage
       localStorage.setItem('imantap_visited_views', JSON.stringify([...newSet]));
       return newSet;
     });
-  }, [currentView, scrollPositions]);
+  }, [currentView]);
 
   useLayoutEffect(() => {
-    // Если вкладка посещена впервые - скроллим вверх
-    if (!visitedViews.has(currentView)) {
+    // Проверяем: первый раз открываем вкладку?
+    const isFirstVisit = !visitedViews.has(currentView);
+    
+    if (isFirstVisit) {
+      // Первое открытие - скролл вверх
+      console.log('🆕 Первое открытие:', currentView);
       window.scrollTo({ top: 0, behavior: 'auto' });
     } else {
-      // Иначе восстанавливаем сохранённую позицию
+      // Повторное открытие - восстанавливаем позицию
       const savedPosition = scrollPositions[currentView] || 0;
+      console.log('🔄 Восстановление позиции:', currentView, savedPosition);
       window.scrollTo({ top: savedPosition, behavior: 'auto' });
     }
-  }, [currentView, scrollPositions, visitedViews]);
+  }, [currentView]); // ✅ ТОЛЬКО currentView! Убрали scrollPositions и visitedViews
 
   const t = TRANSLATIONS[userData.language];
 
