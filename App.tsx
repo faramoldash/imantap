@@ -117,17 +117,6 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // SCROLL LOGIC - МАКСИМАЛЬНО ПРОСТОЙ
-  useEffect(() => {
-    // Принудительный сброс при смене вкладки или трекера
-    const scrollableElement = document.scrollingElement || document.documentElement || document.body;
-    
-    scrollableElement.scrollTop = 0;
-    window.scrollTo(0, 0);
-    
-    console.log('🔄 Скролл сброшен:', currentView);
-  }, [currentView, selectedBasicDate, selectedPreparationDay]);
-
   const t = TRANSLATIONS[userData.language];
 
   useEffect(() => {
@@ -832,7 +821,10 @@ const App: React.FC = () => {
         )}
       </header>
 
-      <main className="px-6 -mt-8 relative z-20">
+      <main 
+        key={`${currentView}-${selectedBasicDate?.toISOString() || ''}-${selectedPreparationDay || ''}`}
+        className="px-6 -mt-8 relative z-20"
+      >
         {renderView()}
       </main>
 
