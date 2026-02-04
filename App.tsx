@@ -117,25 +117,53 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // ПРОСТЕЙШИЙ SCROLL - без сложностей
-  const scrollPosRef = useRef<Record<string, number>>({});
+  // SCROLL LOGIC - НЕМЕДЛЕННЫЙ сброс для новых вкладок
+  const [visitedViews, setVisitedViews] = useState<Set<string>>(new Set(['dashboard']));
+  const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
 
+  // Сохраняем позицию при скролле
   useEffect(() => {
-    // Сохраняем старую позицию
+    const savePosition = () => {
+      setScrollPositions(prev => ({
+        ...prev,
+        [currentView]: window.scrollY
+      }));
+    };
+
+    window.addEventListener('scroll', savePosition);
+    
     return () => {
-      scrollPosRef.current[currentView] = window.scrollY;
+      savePosition();
+      window.removeEventListener('scroll', savePosition);
     };
   }, [currentView]);
 
+  // Восстанавливаем позицию при смене вкладки
   useEffect(() => {
-    // Восстанавливаем или ставим вверх
-    const savedPos = scrollPosRef.current[currentView];
-    const position = savedPos !== undefined ? savedPos : 0;
+    // ✅ Если открыли трекер - скролл вверх
+    if (selectedBasicDate || selectedPreparationDay) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      return;
+    }
+
+    const wasVisited = visitedViews.has(currentView);
     
-    setTimeout(() => {
-      window.scrollTo({ top: position, behavior: 'auto' });
-    }, 10);
-  }, [currentView]);
+    if (!wasVisited) {
+      // ✅ НОВАЯ ВКЛАДКА - НЕМЕДЛЕННО наверх БЕЗ задержки!
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      console.log('🆕 Первое открытие', currentView, '→ вверх (0)');
+      
+      // Отмечаем как посещенную
+      setVisitedViews(prev => new Set(prev).add(currentView));
+    } else {
+      // ✅ УЖЕ ОТКРЫВАЛАСЬ - восстанавливаем позицию с задержкой
+      const savedPosition = scrollPositions[currentView] || 0;
+      setTimeout(() => {
+        window.scrollTo({ top: savedPosition, behavior: 'smooth' });
+        console.log('📍 Восстановлена позиция', currentView, '→', savedPosition);
+      }, 50);
+    }
+  }, [currentView, selectedBasicDate, selectedPreparationDay]);
 
   const t = TRANSLATIONS[userData.language];
 
