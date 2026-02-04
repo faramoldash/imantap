@@ -121,11 +121,12 @@ const App: React.FC = () => {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   // --- Scroll Persistence Logic ---
-  const scrollPositionsRef = useRef<Record<ViewType, number>>({});
+  const scrollPositionsRef = useRef<Record<string, number>>({});
   const visitedViewsRef = useRef<Set<ViewType>>(new Set(['dashboard']));
+  const hasInitializedScrollRef = useRef(false);
 
-  // Инициализация из localStorage при первом рендере
-  useEffect(() => {
+  // Инициализация из localStorage ОДИН РАЗ
+  if (!hasInitializedScrollRef.current) {
     const savedPositions = localStorage.getItem('imantap_scroll_positions');
     if (savedPositions) {
       try {
@@ -144,42 +145,33 @@ const App: React.FC = () => {
         visitedViewsRef.current = new Set(['dashboard']);
       }
     }
-  }, []); // Только при монтировании
+    
+    hasInitializedScrollRef.current = true;
+  }
 
   const handleViewChange = useCallback((newView: ViewType) => {
-    console.log('📍 Переключение:', currentView, '→', newView);
-    
-    // 1. МГНОВЕННО сохраняем позицию СТАРОЙ вкладки
+    // Сохраняем позицию текущей вкладки
     const currentScroll = window.scrollY;
-    scrollPositionsRef.current = {
-      ...scrollPositionsRef.current,
-      [currentView]: currentScroll
-    };
-    
-    console.log('💾 Сохранена позиция', currentView, '=', currentScroll);
-    
-    // 2. Сохраняем в localStorage
+    scrollPositionsRef.current[currentView] = currentScroll;
     localStorage.setItem('imantap_scroll_positions', JSON.stringify(scrollPositionsRef.current));
     
-    // 3. Отмечаем новую вкладку как посещённую
-    visitedViewsRef.current = new Set([...visitedViewsRef.current, newView]);
-    localStorage.setItem('imantap_visited_views', JSON.stringify([...visitedViewsRef.current]));
-    
-    console.log('📝 Посещённые вкладки:', [...visitedViewsRef.current]);
-    
-    // 4. ТЕПЕРЬ переключаем
+    // Переключаем вкладку
     setCurrentView(newView);
   }, [currentView]);
 
   useLayoutEffect(() => {
+    // Проверяем: первый раз открываем эту вкладку?
     const isFirstVisit = !visitedViewsRef.current.has(currentView);
     
     if (isFirstVisit) {
-      console.log('🆕 Первое открытие:', currentView, '→ скролл вверх');
+      // Первое открытие - скролл вверх
       window.scrollTo({ top: 0, behavior: 'auto' });
+      // Отмечаем как посещённую ПОСЛЕ скролла
+      visitedViewsRef.current.add(currentView);
+      localStorage.setItem('imantap_visited_views', JSON.stringify([...visitedViewsRef.current]));
     } else {
+      // Повторное - восстанавливаем позицию
       const savedPosition = scrollPositionsRef.current[currentView] || 0;
-      console.log('🔄 Повторное открытие:', currentView, '→ позиция', savedPosition);
       window.scrollTo({ top: savedPosition, behavior: 'auto' });
     }
   }, [currentView]);
