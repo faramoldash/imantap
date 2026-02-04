@@ -21,7 +21,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, language 
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white/98 backdrop-blur-xl border-t border-slate-200 z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 will-change-transform">
       <div className="flex items-center justify-around max-w-md mx-auto pt-2 pb-6">
         {items.map((item) => (
           <button
@@ -33,19 +33,21 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, language 
             }}
             className={`
               flex flex-col items-center justify-center gap-1
-              py-2 px-4 rounded-full transition-all
+              py-2 px-4 rounded-full transition-colors duration-200
               ${currentView === item.id 
                 ? 'bg-slate-100' 
                 : 'bg-transparent'
               }
             `}
           >
-            <span className={`text-[28px] leading-none transition-opacity ${
-              currentView === item.id ? 'opacity-100' : 'opacity-50'
+            {/* Иконка */}
+            <span className={`text-[28px] leading-none ${
+              currentView === item.id ? '' : 'opacity-50'
             }`}>
               {item.icon}
             </span>
             
+            {/* Текст */}
             <span className={`text-[10px] font-semibold leading-none ${
               currentView === item.id ? 'text-emerald-600' : 'text-slate-400'
             }`}>
