@@ -120,11 +120,29 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // --- Scroll Persistence Logic - ПРОСТАЯ И РАБОЧАЯ ВЕРСИЯ ---
+  // ✅ SCROLL LOGIC - ПРОСТОЕ И РАБОЧЕЕ РЕШЕНИЕ
+  const scrollPositions = useRef<Record<string, number>>({});
+  const previousView = useRef<ViewType>('dashboard');
+
   const handleViewChange = useCallback((newView: ViewType) => {
+    // Сохраняем позицию ТЕКУЩЕЙ вкладки перед переключением
+    scrollPositions.current[previousView.current] = window.scrollY;
+    
+    // Переключаем вкладку
     setCurrentView(newView);
-    // Всегда скроллим вверх при переключении вкладки
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    previousView.current = newView;
+    
+    // Восстанавливаем позицию НОВОЙ вкладки
+    setTimeout(() => {
+      const savedPosition = scrollPositions.current[newView];
+      if (savedPosition !== undefined) {
+        // Вкладка уже открывалась - восстанавливаем позицию
+        window.scrollTo({ top: savedPosition, behavior: 'auto' });
+      } else {
+        // Первый раз открываем - скролл вверх
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      }
+    }, 50);
   }, []);
   // --- End Scroll Persistence Logic ---
 
