@@ -639,7 +639,7 @@ const App: React.FC = () => {
 
   // --- RENDER MAIN APP ---
   return (
-    <div className="h-full pb-56 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
+    <div className="h-full pb-80 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
       {/* Demo Banner */}
       {showDemoBanner && (
         <DemoBanner 
@@ -698,7 +698,11 @@ const App: React.FC = () => {
         {renderView()}
       </main>
 
-      <Navigation currentView={currentView} setView={handleViewChange} language={userData.language} />
+      <Navigation 
+        currentView={currentView} 
+        setView={handleViewChange} 
+        language={userData.language}
+      />
     </div>
   );
   };

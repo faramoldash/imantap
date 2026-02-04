@@ -471,11 +471,6 @@ const Dashboard: React.FC<DashboardProps> = ({
               inputMode="numeric"
               value={charityInput}
               onChange={handleCharityChange}
-              onFocus={(e) => {
-                 setTimeout(() => {
-                   e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                 }, 300);
-              }}
               placeholder={t.charityPlaceholder}
               className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-sm font-black text-slate-800 placeholder:text-slate-300 focus:ring-2 ring-emerald-500 transition-all outline-none"
             />
