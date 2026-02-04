@@ -117,56 +117,25 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // SCROLL LOGIC - первое открытие всегда сверху + учёт трекеров
-  const [visitedViews, setVisitedViews] = useState<Set<string>>(new Set(['dashboard']));
-  const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
+  // ПРОСТЕЙШИЙ SCROLL - без сложностей
+  const scrollPosRef = useRef<Record<string, number>>({});
 
-  // Сохраняем позицию при размонтировании компонента
   useEffect(() => {
-    const savePosition = () => {
-      setScrollPositions(prev => ({
-        ...prev,
-        [currentView]: window.scrollY
-      }));
-    };
-
-    window.addEventListener('scroll', savePosition);
-    
+    // Сохраняем старую позицию
     return () => {
-      savePosition();
-      window.removeEventListener('scroll', savePosition);
+      scrollPosRef.current[currentView] = window.scrollY;
     };
   }, [currentView]);
 
-  // Восстанавливаем позицию при смене вкладки ИЛИ открытии трекера
   useEffect(() => {
-    // ✅ Если открыли трекер - скролл вверх и выход
-    if (selectedBasicDate || selectedPreparationDay) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    const wasVisited = visitedViews.has(currentView);
+    // Восстанавливаем или ставим вверх
+    const savedPos = scrollPosRef.current[currentView];
+    const position = savedPos !== undefined ? savedPos : 0;
     
-    // Отмечаем вкладку как посещенную
-    if (!wasVisited) {
-      setVisitedViews(prev => new Set(prev).add(currentView));
-    }
-
-    // Небольшая задержка для DOM
     setTimeout(() => {
-      if (wasVisited) {
-        // Вкладка уже открывалась - восстанавливаем позицию
-        const savedPosition = scrollPositions[currentView] || 0;
-        window.scrollTo({ top: savedPosition, behavior: 'smooth' });
-        console.log('📍 Восстановлена позиция', currentView, '→', savedPosition);
-      } else {
-        // Первое открытие - ВСЕГДА наверх
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        console.log('🆕 Первое открытие', currentView, '→ вверх (0)');
-      }
-    }, 50);
-  }, [currentView, selectedBasicDate, selectedPreparationDay]);
+      window.scrollTo({ top: position, behavior: 'auto' });
+    }, 10);
+  }, [currentView]);
 
   const t = TRANSLATIONS[userData.language];
 
