@@ -120,61 +120,13 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // --- Scroll Persistence Logic ---
-  const scrollPositionsRef = useRef<Record<string, number>>({});
-  const visitedViewsRef = useRef<Set<ViewType>>(new Set(['dashboard']));
-  const hasInitializedScrollRef = useRef(false);
-
-  // Инициализация из localStorage ОДИН РАЗ
-  if (!hasInitializedScrollRef.current) {
-    const savedPositions = localStorage.getItem('imantap_scroll_positions');
-    if (savedPositions) {
-      try {
-        scrollPositionsRef.current = JSON.parse(savedPositions);
-      } catch (e) {
-        scrollPositionsRef.current = {};
-      }
-    }
-    
-    const savedViews = localStorage.getItem('imantap_visited_views');
-    if (savedViews) {
-      try {
-        const arr = JSON.parse(savedViews);
-        visitedViewsRef.current = new Set(arr);
-      } catch (e) {
-        visitedViewsRef.current = new Set(['dashboard']);
-      }
-    }
-    
-    hasInitializedScrollRef.current = true;
-  }
-
+  // --- Scroll Persistence Logic - ПРОСТАЯ И РАБОЧАЯ ВЕРСИЯ ---
   const handleViewChange = useCallback((newView: ViewType) => {
-    // Сохраняем позицию текущей вкладки
-    const currentScroll = window.scrollY;
-    scrollPositionsRef.current[currentView] = currentScroll;
-    localStorage.setItem('imantap_scroll_positions', JSON.stringify(scrollPositionsRef.current));
-    
-    // Переключаем вкладку
     setCurrentView(newView);
-  }, [currentView]);
-
-  useLayoutEffect(() => {
-    // Проверяем: первый раз открываем эту вкладку?
-    const isFirstVisit = !visitedViewsRef.current.has(currentView);
-    
-    if (isFirstVisit) {
-      // Первое открытие - скролл вверх
-      window.scrollTo({ top: 0, behavior: 'auto' });
-      // Отмечаем как посещённую ПОСЛЕ скролла
-      visitedViewsRef.current.add(currentView);
-      localStorage.setItem('imantap_visited_views', JSON.stringify([...visitedViewsRef.current]));
-    } else {
-      // Повторное - восстанавливаем позицию
-      const savedPosition = scrollPositionsRef.current[currentView] || 0;
-      window.scrollTo({ top: savedPosition, behavior: 'auto' });
-    }
-  }, [currentView]);
+    // Всегда скроллим вверх при переключении вкладки
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, []);
+  // --- End Scroll Persistence Logic ---
 
   const t = TRANSLATIONS[userData.language];
 
