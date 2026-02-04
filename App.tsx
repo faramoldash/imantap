@@ -650,11 +650,33 @@ const App: React.FC = () => {
   // --- RENDER LOADING STATE ---
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="text-4xl animate-pulse">🌙</div>
-          <div className="text-sm font-bold text-emerald-900">Жүктелуде...</div>
-          <div className="text-xs text-emerald-600">Деректерді синхрондау...</div>
+      <div className="min-h-screen bg-gradient-to-br from-emerald-900 to-emerald-800 flex items-center justify-center">
+        <div className="text-center">
+          {/* Анимированная луна */}
+          <div className="mb-8 relative">
+            <div className="w-24 h-24 mx-auto bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30 shadow-2xl">
+              <span className="text-5xl animate-pulse">🌙</span>
+            </div>
+            {/* Пульсирующее кольцо */}
+            <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-2 border-white/30 animate-ping"></div>
+          </div>
+          
+          {/* Название */}
+          <h1 className="text-3xl font-black text-white mb-2 tracking-tight">
+            ImanTap
+          </h1>
+          
+          {/* Простой текст */}
+          <p className="text-sm font-bold text-white/70">
+            {userData.language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}
+          </p>
+          
+          {/* Точки загрузки */}
+          <div className="flex justify-center space-x-2 mt-6">
+            <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+            <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+            <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          </div>
         </div>
       </div>
     );
