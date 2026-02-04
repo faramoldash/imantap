@@ -117,22 +117,42 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // SCROLL LOGIC
-  const scrollPositions = useRef<Record<string, number>>({});
+  // SCROLL LOGIC - с сохранением в localStorage
+  const [visitedViews, setVisitedViews] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('visitedViews');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  const [scrollPositions, setScrollPositions] = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem('scrollPositions');
+    return saved ? JSON.parse(saved) : {};
+  });
+
   const isFirstRender = useRef(true);
 
-  // Сохраняем позицию при размонтировании компонента
+  // Сохраняем текущую позицию при скролле
   useEffect(() => {
     const savePosition = () => {
-      scrollPositions.current[currentView] = window.scrollY;
+      setScrollPositions(prev => {
+        const updated = { ...prev, [currentView]: window.scrollY };
+        localStorage.setItem('scrollPositions', JSON.stringify(updated));
+        return updated;
+      });
     };
 
-    // Сохраняем позицию при скролле
-    window.addEventListener('scroll', savePosition);
+    // Дебаунс для оптимизации
+    let timeoutId: NodeJS.Timeout;
+    const handleScroll = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(savePosition, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
     
     return () => {
+      clearTimeout(timeoutId);
       savePosition(); // Сохраняем при размонтировании
-      window.removeEventListener('scroll', savePosition);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [currentView]);
 
@@ -143,21 +163,29 @@ const App: React.FC = () => {
       return;
     }
 
+    // Отмечаем что вкладка посещена
+    setVisitedViews(prev => {
+      const updated = new Set(prev).add(currentView);
+      localStorage.setItem('visitedViews', JSON.stringify([...updated]));
+      return updated;
+    });
+
     // Используем requestAnimationFrame для гарантии что DOM обновился
     requestAnimationFrame(() => {
-      const savedPosition = scrollPositions.current[currentView];
+      const savedPosition = scrollPositions[currentView];
+      const wasVisited = visitedViews.has(currentView);
       
-      if (savedPosition !== undefined && savedPosition !== null) {
+      if (wasVisited && savedPosition !== undefined) {
         // Вкладка уже открывалась - восстанавливаем позицию
-        window.scrollTo({ top: savedPosition, behavior: 'auto' });
+        window.scrollTo({ top: savedPosition, behavior: 'smooth' });
         console.log('📍 Восстановлена позиция', currentView, '→', savedPosition);
       } else {
         // Первый раз - скролл вверх
-        window.scrollTo({ top: 0, behavior: 'auto' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         console.log('🆕 Первое открытие', currentView, '→ вверх');
       }
     });
-  }, [currentView]);
+  }, [currentView, scrollPositions, visitedViews]);
 
   const t = TRANSLATIONS[userData.language];
 
