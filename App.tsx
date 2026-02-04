@@ -327,13 +327,71 @@ const App: React.FC = () => {
   // Save to localStorage AND sync to server whenever userData changes
   useEffect(() => {
     if (!isLoading) {
-      // Сохраняем в localStorage немедленно
+      // ✅ НЕМЕДЛЕННО сохраняем в localStorage
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
       
-      // Синхронизируем с задержкой
+      // ✅ Синхронизируем с сервером с задержкой (для оптимизации)
       debouncedSync();
     }
   }, [userData, isLoading, debouncedSync]);
+
+  // ✅ НОВЫЙ useEffect - сохраняем при закрытии приложения
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Немедленно синхронизируем перед закрытием
+      const userId = getTelegramUserId();
+      if (!userId) return;
+      
+      // Используем sendBeacon для надежной отправки при закрытии
+      const data = JSON.stringify({
+        name: userData.name,
+        photoUrl: userData.photoUrl,
+        startDate: userData.startDate,
+        registrationDate: userData.registrationDate,
+        progress: userData.progress,
+        preparationProgress: userData.preparationProgress,
+        basicProgress: userData.basicProgress,
+        memorizedNames: userData.memorizedNames,
+        completedJuzs: userData.completedJuzs,
+        quranKhatams: userData.quranKhatams,
+        completedTasks: userData.completedTasks,
+        deletedPredefinedTasks: userData.deletedPredefinedTasks,
+        customTasks: userData.customTasks,
+        quranGoal: userData.quranGoal,
+        dailyQuranGoal: userData.dailyQuranGoal,
+        dailyCharityGoal: userData.dailyCharityGoal,
+        language: userData.language,
+        xp: userData.xp,
+        hasRedeemedReferral: userData.hasRedeemedReferral,
+        unlockedBadges: userData.unlockedBadges,
+        currentStreak: userData.currentStreak,
+        longestStreak: userData.longestStreak,
+        lastActiveDate: userData.lastActiveDate
+      });
+      
+      const blob = new Blob([data], { type: 'application/json' });
+      navigator.sendBeacon(
+        `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`,
+        blob
+      );
+    };
+    
+    // Telegram WebApp закрытие
+    const tg = getTelegramWebApp();
+    if (tg) {
+      tg.onEvent('viewportChanged', handleBeforeUnload);
+    }
+    
+    // Обычное закрытие браузера
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (tg) {
+        tg.offEvent('viewportChanged', handleBeforeUnload);
+      }
+    };
+  }, [userData]);
 
   // Online/Offline listeners
   useEffect(() => {
