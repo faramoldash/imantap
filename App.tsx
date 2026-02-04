@@ -117,44 +117,36 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // SCROLL LOGIC - принудительный сброс с key
-  const [visitedViews, setVisitedViews] = useState<Set<string>>(new Set(['dashboard']));
-  const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
-  const [renderKey, setRenderKey] = useState(0); // ← НОВОЕ: ключ для перерисовки
+  // SCROLL LOGIC - финальная версия с полным контролем
+  const scrollMemory = useRef<Record<string, number>>({});
+  const lastView = useRef<ViewType>(currentView);
 
-  // Сохраняем позицию при уходе с вкладки
+  // При смене вкладки
   useEffect(() => {
-    return () => {
-      setScrollPositions(prev => ({
-        ...prev,
-        [currentView]: window.scrollY
-      }));
-    };
+    // Игнорируем первый рендер
+    if (lastView.current === currentView) return;
+
+    // Сохраняем позицию старой вкладки
+    scrollMemory.current[lastView.current] = window.scrollY;
+    console.log('💾 Сохранили', lastView.current, '→', window.scrollY);
+
+    // Обновляем текущую
+    lastView.current = currentView;
+
+    // Немедленно скроллим
+    const targetPos = scrollMemory.current[currentView] ?? 0;
+    window.scrollTo(0, targetPos);
+    console.log('📍 Открыли', currentView, '→', targetPos);
+
   }, [currentView]);
 
-  // Восстанавливаем позицию ДО отрисовки
-  useLayoutEffect(() => {
-    // Трекеры
+  // При открытии/закрытии трекеров
+  useEffect(() => {
     if (selectedBasicDate || selectedPreparationDay) {
       window.scrollTo(0, 0);
-      return;
+      console.log('🔵 Трекер → 0');
     }
-
-    const wasVisited = visitedViews.has(currentView);
-    
-    if (!wasVisited) {
-      // ✅ Новая вкладка - вверх + перерисовка
-      window.scrollTo(0, 0);
-      setVisitedViews(prev => new Set(prev).add(currentView));
-      setRenderKey(prev => prev + 1); // ← Принудительная перерисовка
-      console.log('🆕', currentView, '→ 0');
-    } else {
-      // ✅ Восстанавливаем сохраненную позицию
-      const pos = scrollPositions[currentView] || 0;
-      window.scrollTo(0, pos);
-      console.log('📍', currentView, '→', pos);
-    }
-  }, [currentView, selectedBasicDate, selectedPreparationDay, visitedViews, scrollPositions]);
+  }, [selectedBasicDate, selectedPreparationDay]);
 
   const t = TRANSLATIONS[userData.language];
 
@@ -857,7 +849,7 @@ const App: React.FC = () => {
         )}
       </header>
 
-      <main key={renderKey} className="px-6 -mt-8 relative z-20">
+      <main className="px-6 -mt-8 relative z-20">
         {renderView()}
       </main>
 
