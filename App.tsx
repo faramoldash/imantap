@@ -122,21 +122,44 @@ const App: React.FC = () => {
 
 
   // --- Scroll Persistence Logic ---
-  const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
+  const [scrollPositions, setScrollPositions] = useState<Record<string, number>>(() => {
+    // Восстанавливаем из localStorage при загрузке
+    const saved = localStorage.getItem('imantap_scroll_positions');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  const [visitedViews, setVisitedViews] = useState<Set<ViewType>>(new Set(['dashboard'])); // dashboard уже посещён
 
   const handleViewChange = useCallback((newView: ViewType) => {
+    // Сохраняем позицию текущей вкладки
     const currentScroll = window.scrollY;
-    setScrollPositions(prev => ({
-      ...prev,
+    const newPositions = {
+      ...scrollPositions,
       [currentView]: currentScroll
-    }));
+    };
+    
+    setScrollPositions(newPositions);
+    
+    // Сохраняем в localStorage
+    localStorage.setItem('imantap_scroll_positions', JSON.stringify(newPositions));
+    
+    // Переключаем вкладку
     setCurrentView(newView);
-  }, [currentView]);
+    
+    // Отмечаем что вкладка была посещена
+    setVisitedViews(prev => new Set([...prev, newView]));
+  }, [currentView, scrollPositions]);
 
   useLayoutEffect(() => {
-    const savedPosition = scrollPositions[currentView] || 0;
-    window.scrollTo({ top: savedPosition, behavior: 'auto' });
-  }, [currentView, scrollPositions]);
+    // Если вкладка посещена впервые - скроллим вверх
+    if (!visitedViews.has(currentView)) {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    } else {
+      // Иначе восстанавливаем сохранённую позицию
+      const savedPosition = scrollPositions[currentView] || 0;
+      window.scrollTo({ top: savedPosition, behavior: 'auto' });
+    }
+  }, [currentView, scrollPositions, visitedViews]);
 
   const t = TRANSLATIONS[userData.language];
 
@@ -148,6 +171,12 @@ const App: React.FC = () => {
     }, 60000);
     return () => clearInterval(interval);
   }, [calculateRamadanStatus]);
+
+  // Сброс visitedViews при первой загрузке (только dashboard посещён)
+  useEffect(() => {
+    // Этот useEffect сработает только один раз при монтировании
+    setVisitedViews(new Set(['dashboard']));
+  }, []); // Пустой массив зависимостей = один раз
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {
