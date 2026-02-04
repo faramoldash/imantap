@@ -19,7 +19,7 @@ import PreparationTracker from './components/PreparationTracker';
 import BasicTracker from './components/BasicTracker';
 import { PREPARATION_START_DATE, PREPARATION_DAYS } from './constants';
 import { checkUserAccess, AccessData } from './src/utils/api';
-import { initTelegramApp, getTelegramUserId, getTelegramUser } from './src/utils/telegram';
+import { initTelegramApp, getTelegramUserId, getTelegramUser, getTelegramWebApp } from './src/utils/telegram';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
 
 interface BackendUserData {
@@ -149,31 +149,39 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [calculateRamadanStatus]);
 
+  // ✅ Отслеживание клавиатуры через Telegram API
+  useEffect(() => {
+    const tg = getTelegramWebApp();
+    if (!tg) return;
+    
+    let lastHeight = tg.viewportHeight;
+    
+    const checkKeyboard = () => {
+      const currentHeight = tg.viewportHeight;
+      
+      // Если высота уменьшилась > 100px - клавиатура открыта
+      if (lastHeight - currentHeight > 100) {
+        setIsKeyboardOpen(true);
+      } 
+      // Если высота восстановилась - клавиатура закрыта
+      else if (currentHeight - lastHeight > 100) {
+        setIsKeyboardOpen(false);
+      }
+      
+      lastHeight = currentHeight;
+    };
+    
+    // Проверяем каждые 100ms
+    const interval = setInterval(checkKeyboard, 100);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (selectedBasicDate || selectedPreparationDay) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [selectedBasicDate, selectedPreparationDay]);
-
-  // Отслеживание клавиатуры
-  useEffect(() => {
-    const handleFocus = () => setIsKeyboardOpen(true);
-    const handleBlur = () => setIsKeyboardOpen(false);
-    
-    // Слушаем все input и textarea
-    const inputs = document.querySelectorAll('input, textarea');
-    inputs.forEach(input => {
-      input.addEventListener('focus', handleFocus);
-      input.addEventListener('blur', handleBlur);
-    });
-    
-    return () => {
-      inputs.forEach(input => {
-        input.removeEventListener('focus', handleFocus);
-        input.removeEventListener('blur', handleBlur);
-      });
-    };
-  }, []);
 
   // Save to localStorage AND sync to server whenever userData changes
   // Debounce hook
@@ -661,7 +669,7 @@ const App: React.FC = () => {
 
   // --- RENDER MAIN APP ---
   return (
-    <div className="h-full pb-22 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
+    <div className="h-full pb-32 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
       {/* Demo Banner */}
       {showDemoBanner && (
         <DemoBanner 
