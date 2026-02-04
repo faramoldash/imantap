@@ -137,6 +137,14 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
+  // СКРОЛЛ - работаем с document.body!
+  useEffect(() => {
+    // Сбрасываем body.scrollTop
+    document.body.scrollTop = 0;
+    
+    console.log('✅ Сброшен скролл для:', currentView);
+  }, [currentView, selectedBasicDate, selectedPreparationDay]);
+
   const t = TRANSLATIONS[userData.language];
 
   useEffect(() => {
