@@ -128,7 +128,19 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : {};
   });
 
-  const [visitedViews, setVisitedViews] = useState<Set<ViewType>>(new Set(['dashboard'])); // dashboard уже посещён
+  const [visitedViews, setVisitedViews] = useState<Set<ViewType>>(() => {
+    // Восстанавливаем из localStorage
+    const saved = localStorage.getItem('imantap_visited_views');
+    if (saved) {
+      try {
+        const arr = JSON.parse(saved);
+        return new Set(arr);
+      } catch {
+        return new Set(['dashboard']);
+      }
+    }
+    return new Set(['dashboard']);
+  });
 
   const handleViewChange = useCallback((newView: ViewType) => {
     // Сохраняем позицию текущей вкладки
@@ -147,7 +159,12 @@ const App: React.FC = () => {
     setCurrentView(newView);
     
     // Отмечаем что вкладка была посещена
-    setVisitedViews(prev => new Set([...prev, newView]));
+    setVisitedViews(prev => {
+      const newSet = new Set([...prev, newView]);
+      // Сохраняем в localStorage
+      localStorage.setItem('imantap_visited_views', JSON.stringify([...newSet]));
+      return newSet;
+    });
   }, [currentView, scrollPositions]);
 
   useLayoutEffect(() => {
@@ -171,12 +188,6 @@ const App: React.FC = () => {
     }, 60000);
     return () => clearInterval(interval);
   }, [calculateRamadanStatus]);
-
-  // Сброс visitedViews при первой загрузке (только dashboard посещён)
-  useEffect(() => {
-    // Этот useEffect сработает только один раз при монтировании
-    setVisitedViews(new Set(['dashboard']));
-  }, []); // Пустой массив зависимостей = один раз
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {
