@@ -7,9 +7,15 @@ interface NavigationProps {
   currentView: ViewType;
   setView: (view: ViewType) => void;
   language: Language;
+  isHidden?: boolean;
 }
 
-const Navigation: React.FC<NavigationProps> = ({ currentView, setView, language }) => {
+const Navigation: React.FC<NavigationProps> = ({ 
+  currentView, 
+  setView, 
+  language,
+  isHidden = false 
+}) => {
   const t = TRANSLATIONS[language];
   
   const items: { id: ViewType; icon: string; label: string }[] = [
@@ -21,7 +27,11 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, language 
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 will-change-transform">
+    <nav className={`
+      fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50
+      transition-transform duration-300 ease-in-out
+      ${isHidden ? 'translate-y-full' : 'translate-y-0'}
+    `}>
       <div className="flex items-center justify-around max-w-md mx-auto pt-2 pb-6">
         {items.map((item) => (
           <button
@@ -40,14 +50,12 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, language 
               }
             `}
           >
-            {/* Иконка */}
             <span className={`text-[28px] leading-none ${
               currentView === item.id ? '' : 'opacity-50'
             }`}>
               {item.icon}
             </span>
             
-            {/* Текст */}
             <span className={`text-[10px] font-semibold leading-none ${
               currentView === item.id ? 'text-emerald-600' : 'text-slate-400'
             }`}>

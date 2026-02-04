@@ -118,6 +118,8 @@ const App: React.FC = () => {
   const [realTodayDay, setRealTodayDay] = useState<number>(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
   const [selectedBasicDate, setSelectedBasicDate] = useState<Date | null>(null);
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
 
   // --- Scroll Persistence Logic ---
   const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
@@ -152,6 +154,26 @@ const App: React.FC = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [selectedBasicDate, selectedPreparationDay]);
+
+  // Отслеживание клавиатуры
+  useEffect(() => {
+    const handleFocus = () => setIsKeyboardOpen(true);
+    const handleBlur = () => setIsKeyboardOpen(false);
+    
+    // Слушаем все input и textarea
+    const inputs = document.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+      input.addEventListener('focus', handleFocus);
+      input.addEventListener('blur', handleBlur);
+    });
+    
+    return () => {
+      inputs.forEach(input => {
+        input.removeEventListener('focus', handleFocus);
+        input.removeEventListener('blur', handleBlur);
+      });
+    };
+  }, []);
 
   // Save to localStorage AND sync to server whenever userData changes
   // Debounce hook
@@ -639,7 +661,7 @@ const App: React.FC = () => {
 
   // --- RENDER MAIN APP ---
   return (
-    <div className="h-full pb-80 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
+    <div className="h-full pb-22 max-w-md mx-auto relative overflow-x-hidden bg-slate-50">
       {/* Demo Banner */}
       {showDemoBanner && (
         <DemoBanner 
@@ -702,6 +724,7 @@ const App: React.FC = () => {
         currentView={currentView} 
         setView={handleViewChange} 
         language={userData.language}
+        isHidden={isKeyboardOpen}
       />
     </div>
   );
