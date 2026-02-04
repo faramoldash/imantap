@@ -121,12 +121,11 @@ const App: React.FC = () => {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   // --- Scroll Persistence Logic ---
-  const scrollPositionsRef = useRef<Record<string, number>>({});
+  const scrollPositionsRef = useRef<Record<ViewType, number>>({});
   const visitedViewsRef = useRef<Set<ViewType>>(new Set(['dashboard']));
 
   // Инициализация из localStorage при первом рендере
   useEffect(() => {
-    // Восстанавливаем позиции скролла
     const savedPositions = localStorage.getItem('imantap_scroll_positions');
     if (savedPositions) {
       try {
@@ -136,7 +135,6 @@ const App: React.FC = () => {
       }
     }
     
-    // Восстанавливаем посещённые вкладки
     const savedViews = localStorage.getItem('imantap_visited_views');
     if (savedViews) {
       try {
