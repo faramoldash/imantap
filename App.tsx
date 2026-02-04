@@ -650,41 +650,20 @@ const App: React.FC = () => {
         date: dateStr,
       };
 
-      // ✅ Считаем XP как в других функциях
-      let xpDelta = 0;
-      Object.keys(updates).forEach((key) => {
-        const k = key as keyof DayProgress;
-        const newVal = updates[k];
-        const oldVal = existing[k];
+      // ❌ УБРАЛИ ПОДСЧЁТ XP - обычные дни НЕ дают опыт!
 
-        if (newVal !== oldVal) {
-          if (typeof newVal === 'boolean' && XP_VALUES[k]) {
-            xpDelta += newVal ? XP_VALUES[k] : -XP_VALUES[k];
-          }
-        }
-      });
-
-      // ✅ Обновляем basicProgress
+      // ✅ Обновляем ТОЛЬКО basicProgress
       const nextBasicProgress = {
         ...prev.basicProgress,
         [dateStr]: { ...existing, ...updates }
       };
 
-      // ✅ Создаём новое состояние с XP
-      let newState = {
+      // ✅ Возвращаем состояние БЕЗ изменения XP
+      return {
         ...prev,
-        xp: Math.max(0, prev.xp + xpDelta),
-        basicProgress: nextBasicProgress
+        basicProgress: nextBasicProgress,
+        lastActiveDate: new Date().toISOString().split('T')[0]
       };
-
-      // ✅ ОБНОВЛЯЕМ СТРИК
-      newState = updateStreak(newState);
-
-      // ✅ ПРОВЕРЯЕМ БЕЙДЖИ
-      const newBadges = checkBadges(newState);
-      if (newBadges) newState.unlockedBadges = newBadges;
-
-      return newState;
     });
   }, []);
 
