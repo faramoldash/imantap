@@ -117,35 +117,9 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // SCROLL LOGIC - ПРОСТОЙ И НАДЁЖНЫЙ
-  const scrollPositions = useRef<Record<ViewType, number>>({
-    dashboard: 0,
-    calendar: 0,
-    quran: 0,
-    tasks: 0,
-    profile: 0,
-    rewards: 0,
-    'names-99': 0
-  });
-
-  // Сохраняем позицию ПЕРЕД уходом с вкладки
+  // Всегда сбрасываем скролл при смене вкладки
   useLayoutEffect(() => {
-    return () => {
-      scrollPositions.current[currentView] = window.scrollY;
-    };
-  }, [currentView]);
-
-  // Восстанавливаем позицию ПРИ ЗАХОДЕ на вкладку
-  useLayoutEffect(() => {
-    // Если трекер открыт - всегда наверх
-    if (selectedBasicDate || selectedPreparationDay) {
-      window.scrollTo(0, 0);
-      return;
-    }
-
-    // Восстанавливаем сохраненную позицию
-    const savedPos = scrollPositions.current[currentView];
-    window.scrollTo(0, savedPos);
+    window.scrollTo(0, 0);
   }, [currentView, selectedBasicDate, selectedPreparationDay]);
 
   const t = TRANSLATIONS[userData.language];
