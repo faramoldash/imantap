@@ -20,8 +20,4 @@ if (webApp) {
 
 // Рендерим БЕЗ передачи telegramUser (получим внутри App)
 const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App telegramUser={null} />
-  </React.StrictMode>
-);
+root.render(<App telegramUser={null} />);

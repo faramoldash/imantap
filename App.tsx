@@ -117,9 +117,15 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // Всегда сбрасываем скролл при смене вкладки
-  useLayoutEffect(() => {
+  // SCROLL LOGIC - МАКСИМАЛЬНО ПРОСТОЙ
+  useEffect(() => {
+    // Принудительный сброс при смене вкладки или трекера
+    const scrollableElement = document.scrollingElement || document.documentElement || document.body;
+    
+    scrollableElement.scrollTop = 0;
     window.scrollTo(0, 0);
+    
+    console.log('🔄 Скролл сброшен:', currentView);
   }, [currentView, selectedBasicDate, selectedPreparationDay]);
 
   const t = TRANSLATIONS[userData.language];
