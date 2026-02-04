@@ -149,7 +149,7 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [calculateRamadanStatus]);
 
-  // ✅ Отслеживание клавиатуры через Telegram API
+  // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {
     const tg = getTelegramWebApp();
     if (!tg) return;
@@ -162,6 +162,17 @@ const App: React.FC = () => {
       // Если высота уменьшилась > 100px - клавиатура открыта
       if (lastHeight - currentHeight > 100) {
         setIsKeyboardOpen(true);
+        
+        // ✅ Автоматически скроллим к активному полю
+        setTimeout(() => {
+          const activeElement = document.activeElement as HTMLElement;
+          if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+            activeElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+          }
+        }, 300);
       } 
       // Если высота восстановилась - клавиатура закрыта
       else if (currentHeight - lastHeight > 100) {
