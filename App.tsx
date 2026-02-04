@@ -117,36 +117,36 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // SCROLL LOGIC - финальная версия с полным контролем
-  const scrollMemory = useRef<Record<string, number>>({});
-  const lastView = useRef<ViewType>(currentView);
+  // SCROLL LOGIC - ПРОСТОЙ И НАДЁЖНЫЙ
+  const scrollPositions = useRef<Record<ViewType, number>>({
+    dashboard: 0,
+    calendar: 0,
+    quran: 0,
+    tasks: 0,
+    profile: 0,
+    rewards: 0,
+    'names-99': 0
+  });
 
-  // При смене вкладки
-  useEffect(() => {
-    // Игнорируем первый рендер
-    if (lastView.current === currentView) return;
-
-    // Сохраняем позицию старой вкладки
-    scrollMemory.current[lastView.current] = window.scrollY;
-    console.log('💾 Сохранили', lastView.current, '→', window.scrollY);
-
-    // Обновляем текущую
-    lastView.current = currentView;
-
-    // Немедленно скроллим
-    const targetPos = scrollMemory.current[currentView] ?? 0;
-    window.scrollTo(0, targetPos);
-    console.log('📍 Открыли', currentView, '→', targetPos);
-
+  // Сохраняем позицию ПЕРЕД уходом с вкладки
+  useLayoutEffect(() => {
+    return () => {
+      scrollPositions.current[currentView] = window.scrollY;
+    };
   }, [currentView]);
 
-  // При открытии/закрытии трекеров
-  useEffect(() => {
+  // Восстанавливаем позицию ПРИ ЗАХОДЕ на вкладку
+  useLayoutEffect(() => {
+    // Если трекер открыт - всегда наверх
     if (selectedBasicDate || selectedPreparationDay) {
       window.scrollTo(0, 0);
-      console.log('🔵 Трекер → 0');
+      return;
     }
-  }, [selectedBasicDate, selectedPreparationDay]);
+
+    // Восстанавливаем сохраненную позицию
+    const savedPos = scrollPositions.current[currentView];
+    window.scrollTo(0, savedPos);
+  }, [currentView, selectedBasicDate, selectedPreparationDay]);
 
   const t = TRANSLATIONS[userData.language];
 
@@ -280,7 +280,10 @@ const App: React.FC = () => {
             language: userData.language,
             xp: userData.xp,
             hasRedeemedReferral: userData.hasRedeemedReferral,
-            unlockedBadges: userData.unlockedBadges
+            unlockedBadges: userData.unlockedBadges,
+            currentStreak: userData.currentStreak,
+            longestStreak: userData.longestStreak,
+            lastActiveDate: userData.lastActiveDate
           }),
         }
       );
