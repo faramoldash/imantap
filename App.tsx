@@ -626,18 +626,65 @@ const App: React.FC = () => {
     });
   }, []);
 
-  // ✅ И СРАЗУ ПОСЛЕ НЕЁ ДОБАВЬТЕ:
   const updateBasicProgress = useCallback((dateStr: string, updates: Partial<DayProgress>) => {
     setUserData(prev => {
-      const existing = prev.basicProgress?.[dateStr] || {};
-      
-      return {
-        ...prev,
-        basicProgress: {
-          ...prev.basicProgress,
-          [dateStr]: { ...existing, ...updates }
-        }
+      const existing = prev.basicProgress?.[dateStr] || {
+        day: 0,
+        fasting: false,
+        fajr: false,
+        morningDhikr: false,
+        quranRead: false,
+        salawat: false,
+        hadith: false,
+        duha: false,
+        charity: false,
+        charityAmount: 0,
+        dhuhr: false,
+        asr: false,
+        eveningDhikr: false,
+        maghrib: false,
+        isha: false,
+        taraweeh: false,
+        witr: false,
+        quranPages: 0,
+        date: dateStr,
       };
+
+      // ✅ Считаем XP как в других функциях
+      let xpDelta = 0;
+      Object.keys(updates).forEach((key) => {
+        const k = key as keyof DayProgress;
+        const newVal = updates[k];
+        const oldVal = existing[k];
+
+        if (newVal !== oldVal) {
+          if (typeof newVal === 'boolean' && XP_VALUES[k]) {
+            xpDelta += newVal ? XP_VALUES[k] : -XP_VALUES[k];
+          }
+        }
+      });
+
+      // ✅ Обновляем basicProgress
+      const nextBasicProgress = {
+        ...prev.basicProgress,
+        [dateStr]: { ...existing, ...updates }
+      };
+
+      // ✅ Создаём новое состояние с XP
+      let newState = {
+        ...prev,
+        xp: Math.max(0, prev.xp + xpDelta),
+        basicProgress: nextBasicProgress
+      };
+
+      // ✅ ОБНОВЛЯЕМ СТРИК
+      newState = updateStreak(newState);
+
+      // ✅ ПРОВЕРЯЕМ БЕЙДЖИ
+      const newBadges = checkBadges(newState);
+      if (newBadges) newState.unlockedBadges = newBadges;
+
+      return newState;
     });
   }, []);
 
