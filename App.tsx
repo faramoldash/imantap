@@ -120,31 +120,47 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // ✅ SCROLL LOGIC - ПРОСТОЕ И РАБОЧЕЕ РЕШЕНИЕ
+  // SCROLL LOGIC
   const scrollPositions = useRef<Record<string, number>>({});
-  const previousView = useRef<ViewType>('dashboard');
+  const isFirstRender = useRef(true);
 
-  const handleViewChange = useCallback((newView: ViewType) => {
-    // Сохраняем позицию ТЕКУЩЕЙ вкладки перед переключением
-    scrollPositions.current[previousView.current] = window.scrollY;
+  // Сохраняем позицию при размонтировании компонента
+  useEffect(() => {
+    const savePosition = () => {
+      scrollPositions.current[currentView] = window.scrollY;
+    };
+
+    // Сохраняем позицию при скролле
+    window.addEventListener('scroll', savePosition);
     
-    // Переключаем вкладку
-    setCurrentView(newView);
-    previousView.current = newView;
-    
-    // Восстанавливаем позицию НОВОЙ вкладки
-    setTimeout(() => {
-      const savedPosition = scrollPositions.current[newView];
-      if (savedPosition !== undefined) {
+    return () => {
+      savePosition(); // Сохраняем при размонтировании
+      window.removeEventListener('scroll', savePosition);
+    };
+  }, [currentView]);
+
+  // Восстанавливаем позицию при смене вкладки
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    // Используем requestAnimationFrame для гарантии что DOM обновился
+    requestAnimationFrame(() => {
+      const savedPosition = scrollPositions.current[currentView];
+      
+      if (savedPosition !== undefined && savedPosition !== null) {
         // Вкладка уже открывалась - восстанавливаем позицию
         window.scrollTo({ top: savedPosition, behavior: 'auto' });
+        console.log('📍 Восстановлена позиция', currentView, '→', savedPosition);
       } else {
-        // Первый раз открываем - скролл вверх
+        // Первый раз - скролл вверх
         window.scrollTo({ top: 0, behavior: 'auto' });
+        console.log('🆕 Первое открытие', currentView, '→ вверх');
       }
-    }, 50);
-  }, []);
-  // --- End Scroll Persistence Logic ---
+    });
+  }, [currentView]);
 
   const t = TRANSLATIONS[userData.language];
 
@@ -621,12 +637,12 @@ const App: React.FC = () => {
             xp={userData.xp} 
             userData={userData} 
             setUserData={handleUserDataUpdate} 
-            setView={handleViewChange} 
+            setView={setCurrentView} 
           />
         );
         
       case 'calendar':
-        return <Calendar progress={userData.progress} realTodayDay={realTodayDay} selectedDay={selectedDay} language={userData.language} onSelectDay={(d) => { setSelectedDay(d); handleViewChange('dashboard'); }} />;
+        return <Calendar progress={userData.progress} realTodayDay={realTodayDay} selectedDay={selectedDay} language={userData.language} onSelectDay={(d) => { setSelectedDay(d); setCurrentView('dashboard'); }} />;
         
       case 'quran':
         return <QuranTracker userData={userData} setUserData={handleUserDataUpdate} language={userData.language} />;
@@ -743,7 +759,7 @@ const App: React.FC = () => {
         
         <div className="flex justify-center mb-4 relative z-10">
           <div 
-            onClick={() => handleViewChange('rewards')}
+            onClick={() => setCurrentView('rewards')}
             className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 flex items-center space-x-2 cursor-pointer active:scale-95 transition-transform"
           >
             <span className="text-xl">🏆</span>
@@ -757,7 +773,7 @@ const App: React.FC = () => {
         
         {currentView !== 'dashboard' && (
           <button 
-            onClick={() => handleViewChange('dashboard')}
+            onClick={() => setCurrentView('dashboard')}
             className="absolute top-6 right-6 bg-white/10 backdrop-blur-lg p-3 rounded-2xl border border-white/10 active:scale-90 transition-transform shadow-lg z-30"
           >
             🏠
@@ -771,7 +787,7 @@ const App: React.FC = () => {
 
       <Navigation 
         currentView={currentView} 
-        setView={handleViewChange} 
+        setView={setCurrentView}
         language={userData.language}
         isHidden={isKeyboardOpen}
       />
