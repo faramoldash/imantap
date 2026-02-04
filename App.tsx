@@ -117,8 +117,8 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // SCROLL LOGIC - первое открытие всегда сверху
-  const [visitedViews, setVisitedViews] = useState<Set<string>>(new Set(['dashboard'])); // dashboard уже посещен по умолчанию
+  // SCROLL LOGIC - первое открытие всегда сверху + учёт трекеров
+  const [visitedViews, setVisitedViews] = useState<Set<string>>(new Set(['dashboard']));
   const [scrollPositions, setScrollPositions] = useState<Record<string, number>>({});
 
   // Сохраняем позицию при размонтировании компонента
@@ -133,13 +133,19 @@ const App: React.FC = () => {
     window.addEventListener('scroll', savePosition);
     
     return () => {
-      savePosition(); // Сохраняем при уходе с вкладки
+      savePosition();
       window.removeEventListener('scroll', savePosition);
     };
   }, [currentView]);
 
-  // Восстанавливаем позицию при смене вкладки
+  // Восстанавливаем позицию при смене вкладки ИЛИ открытии трекера
   useEffect(() => {
+    // ✅ Если открыли трекер - скролл вверх и выход
+    if (selectedBasicDate || selectedPreparationDay) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     const wasVisited = visitedViews.has(currentView);
     
     // Отмечаем вкладку как посещенную
@@ -147,7 +153,7 @@ const App: React.FC = () => {
       setVisitedViews(prev => new Set(prev).add(currentView));
     }
 
-    // Используем небольшую задержку чтобы DOM успел обновиться
+    // Небольшая задержка для DOM
     setTimeout(() => {
       if (wasVisited) {
         // Вкладка уже открывалась - восстанавливаем позицию
@@ -160,7 +166,7 @@ const App: React.FC = () => {
         console.log('🆕 Первое открытие', currentView, '→ вверх (0)');
       }
     }, 50);
-  }, [currentView]);
+  }, [currentView, selectedBasicDate, selectedPreparationDay]);
 
   const t = TRANSLATIONS[userData.language];
 
@@ -211,12 +217,6 @@ const App: React.FC = () => {
     
     return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    if (selectedBasicDate || selectedPreparationDay) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [selectedBasicDate, selectedPreparationDay]);
 
   // Save to localStorage AND sync to server whenever userData changes
   // Debounce hook
