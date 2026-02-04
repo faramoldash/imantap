@@ -39,7 +39,6 @@ const Navigation: React.FC<NavigationProps> = ({
             onClick={() => {
               haptics.selection();
               setView(item.id);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className={`
               flex flex-col items-center justify-center gap-1
