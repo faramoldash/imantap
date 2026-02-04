@@ -120,66 +120,71 @@ const App: React.FC = () => {
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-
   // --- Scroll Persistence Logic ---
-  const [scrollPositions, setScrollPositions] = useState<Record<string, number>>(() => {
-    // Восстанавливаем из localStorage при загрузке
-    const saved = localStorage.getItem('imantap_scroll_positions');
-    return saved ? JSON.parse(saved) : {};
-  });
+  const scrollPositionsRef = useRef<Record<string, number>>({});
+  const visitedViewsRef = useRef<Set<ViewType>>(new Set(['dashboard']));
 
-  const [visitedViews, setVisitedViews] = useState<Set<ViewType>>(() => {
-    // Восстанавливаем из localStorage
-    const saved = localStorage.getItem('imantap_visited_views');
-    if (saved) {
+  // Инициализация из localStorage при первом рендере
+  useEffect(() => {
+    // Восстанавливаем позиции скролла
+    const savedPositions = localStorage.getItem('imantap_scroll_positions');
+    if (savedPositions) {
       try {
-        const arr = JSON.parse(saved);
-        return new Set(arr);
-      } catch {
-        return new Set(['dashboard']);
+        scrollPositionsRef.current = JSON.parse(savedPositions);
+      } catch (e) {
+        scrollPositionsRef.current = {};
       }
     }
-    return new Set(['dashboard']);
-  });
+    
+    // Восстанавливаем посещённые вкладки
+    const savedViews = localStorage.getItem('imantap_visited_views');
+    if (savedViews) {
+      try {
+        const arr = JSON.parse(savedViews);
+        visitedViewsRef.current = new Set(arr);
+      } catch (e) {
+        visitedViewsRef.current = new Set(['dashboard']);
+      }
+    }
+  }, []); // Только при монтировании
 
   const handleViewChange = useCallback((newView: ViewType) => {
-    // 1. Сохраняем текущую позицию ПЕРЕД переключением
-    setScrollPositions(prev => {
-      const currentScroll = window.scrollY;
-      const updated = {
-        ...prev,
-        [currentView]: currentScroll
-      };
-      localStorage.setItem('imantap_scroll_positions', JSON.stringify(updated));
-      return updated;
-    });
+    console.log('📍 Переключение:', currentView, '→', newView);
     
-    // 2. Переключаем вкладку
+    // 1. МГНОВЕННО сохраняем позицию СТАРОЙ вкладки
+    const currentScroll = window.scrollY;
+    scrollPositionsRef.current = {
+      ...scrollPositionsRef.current,
+      [currentView]: currentScroll
+    };
+    
+    console.log('💾 Сохранена позиция', currentView, '=', currentScroll);
+    
+    // 2. Сохраняем в localStorage
+    localStorage.setItem('imantap_scroll_positions', JSON.stringify(scrollPositionsRef.current));
+    
+    // 3. Отмечаем новую вкладку как посещённую
+    visitedViewsRef.current = new Set([...visitedViewsRef.current, newView]);
+    localStorage.setItem('imantap_visited_views', JSON.stringify([...visitedViewsRef.current]));
+    
+    console.log('📝 Посещённые вкладки:', [...visitedViewsRef.current]);
+    
+    // 4. ТЕПЕРЬ переключаем
     setCurrentView(newView);
-    
-    // 3. Отмечаем что вкладка посещена
-    setVisitedViews(prev => {
-      const newSet = new Set([...prev, newView]);
-      localStorage.setItem('imantap_visited_views', JSON.stringify([...newSet]));
-      return newSet;
-    });
   }, [currentView]);
 
   useLayoutEffect(() => {
-    // Проверяем: первый раз открываем вкладку?
-    const isFirstVisit = !visitedViews.has(currentView);
+    const isFirstVisit = !visitedViewsRef.current.has(currentView);
     
     if (isFirstVisit) {
-      // Первое открытие - скролл вверх
-      console.log('🆕 Первое открытие:', currentView);
+      console.log('🆕 Первое открытие:', currentView, '→ скролл вверх');
       window.scrollTo({ top: 0, behavior: 'auto' });
     } else {
-      // Повторное открытие - восстанавливаем позицию
-      const savedPosition = scrollPositions[currentView] || 0;
-      console.log('🔄 Восстановление позиции:', currentView, savedPosition);
+      const savedPosition = scrollPositionsRef.current[currentView] || 0;
+      console.log('🔄 Повторное открытие:', currentView, '→ позиция', savedPosition);
       window.scrollTo({ top: savedPosition, behavior: 'auto' });
     }
-  }, [currentView]); // ✅ ТОЛЬКО currentView! Убрали scrollPositions и visitedViews
+  }, [currentView]);
 
   const t = TRANSLATIONS[userData.language];
 
