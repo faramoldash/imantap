@@ -624,49 +624,49 @@ const App: React.FC = () => {
   }, []);
 
   const updateBasicProgress = useCallback((dateStr: string, updates: Partial<DayProgress>) => {
-  setUserData(prev => {
-    const existing = prev.basicProgress?.[dateStr] || {
-      day: 0,
-      fasting: false,
-      fajr: false,
-      morningDhikr: false,
-      quranRead: false,
-      salawat: false,
-      hadith: false,
-      duha: false,
-      charity: false,
-      charityAmount: 0,
-      dhuhr: false,
-      asr: false,
-      eveningDhikr: false,
-      maghrib: false,
-      isha: false,
-      taraweeh: false,
-      witr: false,
-      quranPages: 0,
-      date: dateStr,
-    };
+    setUserData(prev => {
+      const existing = prev.basicProgress?.[dateStr] || {
+        day: 0,
+        fasting: false,
+        fajr: false,
+        morningDhikr: false,
+        quranRead: false,
+        salawat: false,
+        hadith: false,
+        duha: false,
+        charity: false,
+        charityAmount: 0,
+        dhuhr: false,
+        asr: false,
+        eveningDhikr: false,
+        maghrib: false,
+        isha: false,
+        taraweeh: false,
+        witr: false,
+        quranPages: 0,
+        date: dateStr,
+      };
 
-    // ✅ Обновляем basicProgress
-    const nextBasicProgress = {
-      ...prev.basicProgress,
-      [dateStr]: { ...existing, ...updates }
-    };
+      // ❌ НЕТ XP для базовых дней
 
-    // ✅ ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ - создаём ПОЛНОСТЬЮ новый объект
-    const newState = {
-      ...prev,
-      basicProgress: nextBasicProgress,
-      // Добавляем timestamp для гарантии что объект изменился
-      _lastUpdate: Date.now()
-    };
+      // ✅ Обновляем basicProgress
+      const nextBasicProgress = {
+        ...prev.basicProgress,
+        [dateStr]: { ...existing, ...updates }
+      };
 
-    // ✅ Немедленно сохраняем в localStorage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+      // ✅ Создаём новое состояние БЕЗ XP
+      let newState = {
+        ...prev,
+        basicProgress: nextBasicProgress
+      };
 
-    return newState;
-  });
-}, []);
+      // ✅ ОБНОВЛЯЕМ СТРИК - базовые дни тоже считаются активностью!
+      newState = updateStreak(newState);
+
+      return newState;
+    });
+  }, []);
 
   const handleUserDataUpdate = (newData: UserData) => {
     const newBadges = checkBadges(newData);
