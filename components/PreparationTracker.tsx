@@ -67,22 +67,32 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
   };
 
   // Вычисляем реальную дату этого дня подготовки
-  const prepStartDate = new Date(PREPARATION_START_DATE);
-  const currentDayDate = new Date(prepStartDate);
-  currentDayDate.setDate(prepStartDate.getDate() + (day - 1));
-  const dayOfWeek = currentDayDate.getDay(); // 0=вс, 1=пн, 4=чт
-  
-  const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
-  const isFirstTaraweehDay = currentDayDate.getTime() === firstTaraweehDate.getTime();
-  
-  // Ораза в понедельник (1) и четверг (4)
-  const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
-  
-  // ✅ ПРОВЕРКА: можно ли редактировать этот день
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const canEdit = currentDayDate <= today; // Можно редактировать только если дата наступила
-  const data = userData.preparationProgress?.[day] || {
+    const prepStartDate = new Date(PREPARATION_START_DATE);
+    const currentDayDate = new Date(prepStartDate);
+    currentDayDate.setDate(prepStartDate.getDate() + (day - 1));
+    const dayOfWeek = currentDayDate.getDay(); // 0=вс, 1=пн, 4=чт
+
+    const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
+    const isFirstTaraweehDay = currentDayDate.getTime() === firstTaraweehDate.getTime();
+
+    // Ораза в понедельник (1) и четверг (4)
+    const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
+
+    // ✅ ПРОВЕРКА: можно ли редактировать этот день
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const canEdit = currentDayDate <= today; // Можно редактировать только если дата наступила
+
+    // ✅ ПЕРЕМЕСТИЛИ СЮДА - Форматирование даты
+    const dateStr = useMemo(() => {
+    const monthNames = language === 'kk' 
+        ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
+        : ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    return `${currentDayDate.getDate()} ${monthNames[currentDayDate.getMonth()]}`;
+    }, [currentDayDate, language]);
+
+    // ✅ ТЕПЕРЬ dateStr объявлен и можно использовать
+    const data = userData.preparationProgress?.[day] || {
     day,
     fasting: false,
     fajr: false,
@@ -99,21 +109,15 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
     maghrib: false,
     isha: false,
     taraweeh: false,
-    date: currentDayDate.toISOString(),
-  };
+    witr: false,
+    quranPages: 0,
+    date: dateStr  // ✅ Теперь работает
+    };
 
-  const updateField = (field: keyof DayProgress, value: boolean | number) => {
-    haptics.light();
-    onUpdate(day, { [field]: value });
-  };
-
-  // Форматирование даты
-  const dateStr = useMemo(() => {
-    const monthNames = language === 'kk' 
-      ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
-      : ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-    return `${currentDayDate.getDate()} ${monthNames[currentDayDate.getMonth()]}`;
-  }, [currentDayDate, language]);
+const updateField = (field: keyof DayProgress, value: boolean | number) => {
+  haptics.light();
+  onUpdate(day, { [field]: value });
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sky-50 to-blue-50 pb-24">

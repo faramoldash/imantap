@@ -64,20 +64,24 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
   const dateStr = date.toISOString().split('T')[0];
   
   const data = userData.basicProgress?.[dateStr] || {
-    date: date.toISOString(),
+    day: 0,
+    date: dateStr,
     fajr: false,
     morningDhikr: false,
     quranRead: false,
     salawat: false,
     duha: false,
     charity: false,
-    lessons: false,
+    charityAmount: 0,
     dhuhr: false,
     asr: false,
     eveningDhikr: false,
     maghrib: false,
     isha: false,
-  };
+    taraweeh: false,
+    witr: false,
+    quranPages: 0
+    }
 
   const updateField = (field: keyof DayProgress, value: boolean) => {
     haptics.light();
