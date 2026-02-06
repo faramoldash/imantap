@@ -297,6 +297,7 @@ const App: React.FC = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: userData.name,
+            username: userData.username, 
             photoUrl: userData.photoUrl,
             registrationDate: userData.registrationDate,
             progress: userData.progress,
@@ -360,6 +361,7 @@ const App: React.FC = () => {
       // Используем sendBeacon для надежной отправки при закрытии
       const data = JSON.stringify({
         name: userData.name,
+        username: userData.username,
         photoUrl: userData.photoUrl,
         startDate: userData.startDate,
         registrationDate: userData.registrationDate,
