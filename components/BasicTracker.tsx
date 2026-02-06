@@ -25,7 +25,7 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
     progress: 'Бүгінгі прогресс',
     completed: 'орындалды',
     fajr: 'Таң намазы',
-    duha: 'Духа',
+    duha: 'Дұха',
     dhuhr: 'Бесін',
     asr: 'Екінті',
     maghrib: 'Ақшам',

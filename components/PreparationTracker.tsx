@@ -26,7 +26,7 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
     fastingDesc: 'Бүгін ораза ұстап жүрсіз бе?',
     prayers: 'Намаздар',
     fajr: 'Таң намазы',
-    duha: 'Духа намазы',
+    duha: 'Дұха намазы',
     dhuhr: 'Бесін намазы',
     asr: 'Екінті намазы',
     maghrib: 'Ақшам намазы',
