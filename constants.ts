@@ -9,7 +9,7 @@ export const PREPARATION_DAYS = 10; // 9-18 февраля (10 дней)
 export const FIRST_TARAWEEH_DATE = '2026-02-18T00:00:00.000Z'; // 18 февраля - первый день таравих намаза
 
 // Ramadan 2026 start date
-export const RAMADAN_START_DATE = '2026-02-19T00:00:00.000Z';
+export const RAMADAN_START_DATE = '2026-02-19';
 
 // Ключи трекера для дней подготовки (без оразы и специфичных для Рамадана)
 export const PREPARATION_TRACKER_KEYS = [

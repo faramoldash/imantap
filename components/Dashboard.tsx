@@ -41,6 +41,12 @@ const Dashboard: React.FC<DashboardProps> = ({
   setView,
 }) => {
   const t = TRANSLATIONS[language];
+  console.log('🏠 DASHBOARD RENDER:', {
+    isStarted: ramadanInfo.isStarted,
+    daysUntil: ramadanInfo.daysUntil,
+    currentDay: ramadanInfo.currentDay,
+    realTodayDay: realTodayDay
+  });
   const [activeCategory, setActiveCategory] = useState<CharityCategory>('charitySadaqah');
   const [charityInput, setCharityInput] = useState('');
 
