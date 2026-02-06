@@ -162,13 +162,12 @@ const App: React.FC = () => {
   const t = TRANSLATIONS[userData.language];
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const status = calculateRamadanStatus();
-      console.log('📅 RAMADAN INFO UPDATE:', status);
-      setRamadanInfo(status);
-      setRealTodayDay(status.isStarted ? status.currentDay : 0);
-    }, 60000);
-    return () => clearInterval(interval);
+    // ✅ Обновляем статус при изменении userData.startDate
+    const status = calculateRamadanStatus();
+    setRamadanInfo(status);
+    setRealTodayDay(status.isStarted ? status.currentDay : 0);
+    
+    // ✅ Интервал больше не нужен - обновление происходит при изменении userData
   }, [calculateRamadanStatus]);
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
