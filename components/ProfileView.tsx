@@ -1,7 +1,7 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { UserData, Language, DayProgress } from '../src/types/types';
 import { TRANSLATIONS, XP_VALUES, BADGES } from '../constants';
+
 
 interface ProfileViewProps {
   userData: UserData;
@@ -9,18 +9,21 @@ interface ProfileViewProps {
   setUserData: (data: UserData) => void;
 }
 
+
 const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserData }) => {
   const t = TRANSLATIONS[language];
   const level = Math.floor(userData.xp / 1000) + 1;
   const levelName = t[`level${Math.min(level, 5)}`];
+
 
   const [promoInput, setPromoInput] = useState('');
   const [promoError, setPromoError] = useState('');
   const [promoSuccess, setPromoSuccess] = useState('');
   const [isValidating, setIsValidating] = useState(false);
 
+
   // ===== СИНХРОНИЗАЦИЯ С БОТОМ =====
-  React.useEffect(() => {
+  useEffect(() => {
     const loadDataFromBot = async () => {
       try {
         // Получаем Telegram WebApp
@@ -34,9 +37,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         
         console.log('🔍 Загрузка данных для user ID:', telegramUserId);
         
-        // Запрос к боту
+        // ✅ ПРАВИЛЬНЫЙ эндпоинт
         const response = await fetch(
-          `https://imantap-bot-production.up.railway.app/api/user/${telegramUserId}`
+          `https://imantap-bot-production.up.railway.app/api/user/${telegramUserId}/bot-data`
         );
         
         if (!response.ok) {
@@ -46,17 +49,19 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         
         const result = await response.json();
         
-        if (result.success && result.data) {
-          console.log('✅ Получены данные с бота:', result.data);
+        // ✅ БЕЗ result.success - API возвращает данные напрямую
+        if (result && result.promoCode) {
+          console.log('✅ Получены данные с бота:', result);
           
-          // Обновляем userData с данными из бота
+          // ✅ Обновляем userData с userId
           setUserData({
             ...userData,
-            myPromoCode: result.data.promoCode,
-            referralCount: result.data.invitedCount
+            userId: telegramUserId,
+            myPromoCode: result.promoCode,
+            referralCount: result.invitedCount || 0
           });
           
-          console.log('✅ referralCount обновлён:', result.data.invitedCount);
+          console.log('✅ referralCount обновлён:', result.invitedCount);
         }
         
       } catch (error) {
@@ -65,7 +70,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     };
     
     loadDataFromBot();
-  }, []); // Пустой массив = выполнится 1 раз при монтировании
+  }, [setUserData]);
+
 
   // Calculate Statistics
   const stats = useMemo(() => {
@@ -82,51 +88,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       return acc + dailyPrayers;
     }, 0);
 
+
     return { totalFasts, totalQuran, totalCharity, totalPrayers };
   }, [userData.progress]);
 
-  // Загружаем счётчик приглашённых с бота
-  useEffect(() => {
-    const BOT_API_URL = "https://imantap-bot-production.up.railway.app";
-
-    const loadUserData = async () => {
-      try {
-        // Получаем Telegram user ID
-        const tg = (window as any).Telegram?.WebApp;
-        const telegramUser = tg?.initDataUnsafe?.user;
-        const userId = telegramUser?.id;
-
-        if (!userId) {
-          console.warn("⚠️ Telegram user ID not found, using fallback");
-          return;
-        }
-
-        console.log("🔍 Loading data for user:", userId);
-
-        // Запрашиваем данные пользователя с сервера
-        const res = await fetch(`${BOT_API_URL}/user/${userId}`);
-        
-        if (!res.ok) {
-          console.warn("⚠️ Failed to fetch user data, status:", res.status);
-          return;
-        }
-
-        const data = await res.json();
-        console.log("✅ Loaded user data:", data);
-
-        // Обновляем состояние
-        setUserData((prev) => ({
-          ...prev,
-          myPromoCode: data.promoCode,
-          referralCount: data.invitedCount ?? 0,
-        }));
-      } catch (err) {
-        console.error("❌ Error loading user data:", err);
-      }
-    };
-
-    loadUserData();
-  }, [setUserData]);
 
   const inviteFriend = () => {
       const code = userData.myPromoCode;
@@ -136,6 +101,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
           console.error('❌ Промокод не загружен из бота');
           return;
       }
+
 
       const botUsername = 'imantap_bot';
       const botLink = `https://t.me/${botUsername}`;
@@ -154,29 +120,38 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       }
   };
 
+
   const redeemPromoCode = async () => {
     setPromoError('');
     setPromoSuccess('');
 
+
     const input = promoInput.trim().toUpperCase();
 
+
     if (!input) return;
+
 
     if (userData.myPromoCode && input === userData.myPromoCode) {
         setPromoError(t.promoErrorSelf);
         return;
     }
 
+
     setIsValidating(true);
+
 
     // Simulate API verification delay
     await new Promise(resolve => setTimeout(resolve, 1500));
+
 
     // Mock database of valid codes (in a real app, this would be a server request)
     const MOCK_VALID_CODES = ['RAMADAN', 'BEREKE', 'QAZAQSTAN', 'ALMATY', 'ASTANA', 'UMMA', 'SUNNAH', 'TEST'];
     const isValid = MOCK_VALID_CODES.includes(input);
 
+
     setIsValidating(false);
+
 
     if (isValid) {
         const newXp = userData.xp + XP_VALUES.referral;
@@ -192,11 +167,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     }
   };
 
+
   const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setTimeout(() => {
       e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 300);
   };
+
 
   const StatCard = ({ icon, label, value, colorClass }: any) => (
     <div className="bg-white p-4 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col items-center justify-center space-y-2">
@@ -209,6 +186,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       </div>
     </div>
   );
+
 
   return (
     <div className="space-y-6 pb-24 pt-4 animate-in fade-in slide-in-from-right duration-500">
@@ -266,6 +244,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         </div>
       </div>
 
+
       {/* Statistics Grid */}
       <div>
         <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4 px-2">{t.statsTitle}</h3>
@@ -276,6 +255,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
            <StatCard icon="💎" label={t.statsCharity} value={stats.totalCharity.toLocaleString()} colorClass="bg-rose-50 text-rose-600" />
         </div>
       </div>
+
 
       {/* Referral System (Moved from Rewards) */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-8 rounded-[3rem] text-white shadow-xl relative overflow-hidden group">
@@ -293,11 +273,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
               </div>
            )}
 
+
            <div className="flex items-center space-x-2 mb-6">
               <span className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold">
                  {t.referralReward}
               </span>
            </div>
+
 
            <div className="flex items-center justify-between">
               <button 
@@ -313,6 +295,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
            </div>
         </div>
       </div>
+
 
       {/* Redeem Promo Code */}
       <div className={`p-8 rounded-[3rem] border transition-all ${userData.hasRedeemedReferral ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-100 shadow-sm'}`}>
@@ -354,8 +337,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         )}
       </div>
 
+
     </div>
   );
 };
+
 
 export default ProfileView;
