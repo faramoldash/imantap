@@ -46,25 +46,26 @@ export async function loadUserDataFromServer(): Promise<Partial<UserData> | null
 export async function syncUserDataToServer(userData: UserData): Promise<boolean> {
   try {
     const userId = getTelegramUserId();
-
+    
     if (!userId) {
-      console.log('⚠️ Telegram user ID не найден - синхронизация пропущена');
+      console.log('Telegram user ID не найден - пропускаем синхронизацию');
       return false;
     }
 
-    console.log('🔄 Синхронизация данных с сервером...');
+    console.log('Синхронизация данных...');
 
     const response = await fetch(`${BOT_API_URL}/api/user/${userId}/sync`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: userData.name,
+        username: userData.username,
         photoUrl: userData.photoUrl,
         startDate: userData.startDate,
         registrationDate: userData.registrationDate,
         progress: userData.progress,
+        preparationProgress: userData.preparationProgress,
+        basicProgress: userData.basicProgress,
         memorizedNames: userData.memorizedNames,
         completedJuzs: userData.completedJuzs,
         quranKhatams: userData.quranKhatams,
@@ -77,25 +78,27 @@ export async function syncUserDataToServer(userData: UserData): Promise<boolean>
         language: userData.language,
         xp: userData.xp,
         hasRedeemedReferral: userData.hasRedeemedReferral,
-        unlockedBadges: userData.unlockedBadges
+        unlockedBadges: userData.unlockedBadges,
+        currentStreak: userData.currentStreak,
+        longestStreak: userData.longestStreak,
+        lastActiveDate: userData.lastActiveDate
       }),
     });
 
     if (!response.ok) {
-      console.error('❌ Ошибка синхронизации:', response.status);
+      console.error('Ошибка синхронизации:', response.status);
       return false;
     }
 
     const result = await response.json();
-
     if (result.success) {
-      console.log('✅ Данные синхронизированы с сервером');
+      console.log('✅ Данные успешно синхронизированы');
       return true;
     }
-
+    
     return false;
   } catch (error) {
-    console.error('❌ Ошибка синхронизации:', error);
+    console.error('Ошибка синхронизации:', error);
     return false;
   }
 }
