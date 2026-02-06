@@ -301,6 +301,8 @@ const App: React.FC = () => {
             photoUrl: userData.photoUrl,
             registrationDate: userData.registrationDate,
             progress: userData.progress,
+            preparationProgress: userData.preparationProgress,
+            basicProgress: userData.basicProgress,
             memorizedNames: userData.memorizedNames,
             completedJuzs: userData.completedJuzs,
             quranKhatams: userData.quranKhatams,

@@ -39,7 +39,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         
         // ✅ ПРАВИЛЬНЫЙ эндпоинт
         const response = await fetch(
-          `https://imantap-bot-production.up.railway.app/api/user/${telegramUserId}/bot-data`
+          `https://imantap-bot-production.up.railway.app/api/user/${telegramUserId}/full`
         );
         
         if (!response.ok) {
