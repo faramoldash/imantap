@@ -510,7 +510,7 @@ const App: React.FC = () => {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const lastActive = data.lastActiveDate || '';
     
-    // Если уже обновляли сегодня - не трогаем
+    // ✅ Если уже обновляли сегодня - не трогаем
     if (lastActive === today) {
       return data;
     }
@@ -518,10 +518,10 @@ const App: React.FC = () => {
     const lastActiveDate = lastActive ? new Date(lastActive) : null;
     const todayDate = new Date(today);
     
-    let newStreak = data.currentStreak || 0;
+    let newStreak = 0;
     
     if (!lastActiveDate) {
-      // Первая активность
+      // ✅ Первая активность
       newStreak = 1;
     } else {
       // Вычисляем разницу в днях
@@ -529,16 +529,24 @@ const App: React.FC = () => {
       const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
       
       if (diffDays === 1) {
-        // Следующий день подряд - увеличиваем стрик
+        // ✅ Следующий день подряд - увеличиваем стрик
         newStreak = (data.currentStreak || 0) + 1;
       } else if (diffDays > 1) {
-        // Пропустили день(дни) - стрик сбросился
+        // ✅ Пропустили день(дни) - начинаем с 1
         newStreak = 1;
       }
       // Если diffDays === 0, это сегодняшний день (уже обработано выше)
     }
     
     const newLongest = Math.max(newStreak, data.longestStreak || 0);
+    
+    console.log('🔥 Стрик обновлен:', {
+      lastActive,
+      today,
+      oldStreak: data.currentStreak,
+      newStreak,
+      longestStreak: newLongest
+    });
     
     return {
       ...data,

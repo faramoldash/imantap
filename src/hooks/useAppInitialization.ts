@@ -4,10 +4,8 @@ import { UserData } from '../types/types';
 import { checkUserAccess, AccessData } from '../utils/api';
 import { getTelegramUserId, getTelegramUser } from '../utils/telegram';
 
-
 const STORAGE_KEY = 'ramadan_tracker_data_v4';
 const BOT_API_URL = 'https://imantap-bot-production.up.railway.app';
-
 
 interface InitializationState {
   isLoading: boolean;
@@ -16,7 +14,6 @@ interface InitializationState {
   userData: UserData | null;
   error: string | null;
 }
-
 
 export function useAppInitialization(getDefaultUserData: () => UserData) {
   const [state, setState] = useState<InitializationState>({
@@ -27,16 +24,13 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
     error: null
   });
 
-
   useEffect(() => {
     const initialize = async () => {
       // Задержка для инициализации Telegram
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-
       const userId = getTelegramUserId();
       const telegramUser = getTelegramUser();
-
 
       if (!userId) {
         console.error('❌ User ID не найден');
@@ -59,13 +53,11 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
         return;
       }
 
-
       try {
         // 1. Проверяем доступ
         console.log('📡 Проверка доступа для user:', userId);
         const access = await checkUserAccess(userId);
         console.log('✅ Доступ:', access);
-
 
         // 2. Загружаем локальные данные для быстрого старта
         let localData: UserData | null = null;
@@ -90,14 +82,11 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
           }
         }
 
-
         // 3. Если есть доступ (или демо), загружаем данные с сервера
         let finalUserData: UserData;
 
-
         // Проверяем: есть полный доступ ИЛИ активный демо-режим
         const hasDataAccess = access.hasAccess || access.paymentStatus === 'demo';
-
 
         if (hasDataAccess) {
           try {
@@ -108,7 +97,6 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
               if (result.success && result.data) {
                 const serverData = result.data;
                 console.log('✅ Данные загружены с сервера');
-
 
                 // Мерджим локальные и серверные данные
                 finalUserData = {
@@ -121,9 +109,12 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
                     : serverData.name || 'User',
                   username: telegramUser?.username ? `@${telegramUser.username}` : serverData.username,
                   photoUrl: telegramUser?.photo_url || serverData.photoUrl,
-                  language: 'kk' as const // Всегда казахский
+                  language: 'kk' as const, // Всегда казахский
+                  // ✅ Стрики берем с сервера (приоритет сервера!)
+                  currentStreak: serverData.currentStreak ?? (localData?.currentStreak || 0),
+                  longestStreak: serverData.longestStreak ?? (localData?.longestStreak || 0),
+                  lastActiveDate: serverData.lastActiveDate ?? (localData?.lastActiveDate || '')
                 };
-
 
                 // Сохраняем в localStorage
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(finalUserData));
@@ -133,7 +124,7 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
               }
             } else {
               finalUserData = localData || getDefaultUserData();
-              console.log('⚠️ Используем локальные данные (сервер недоступ��н)');
+              console.log('⚠️ Используем локальные данные (сервер недоступен)');
             }
           } catch (error) {
             console.error('❌ Ошибка загрузки с сервера:', error);
@@ -143,7 +134,6 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
           // Нет доступа - используем локальные или дефолтные данные
           finalUserData = localData || getDefaultUserData();
         }
-
 
         // ✅ КРИТИЧНО: Дедупликация setState
         setState(prev => {
@@ -167,7 +157,6 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
           return newState;
         });
 
-
       } catch (error: any) {
         console.error('❌ Ошибка инициализации:', error);
         setState(prev => {
@@ -189,10 +178,8 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
       }
     };
 
-
     initialize();
   }, []); // ✅ УБРАЛИ getDefaultUserData из зависимостей!
-
 
   return state;
 }
