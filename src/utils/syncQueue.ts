@@ -1,5 +1,5 @@
 interface QueueItem {
-  userId: number;
+  userId: string;  // ✅ Изменено на string
   data: any;
   timestamp: number;
 }
@@ -7,6 +7,8 @@ interface QueueItem {
 class SyncQueue {
   private queue: QueueItem[] = [];
   private readonly STORAGE_KEY = 'sync_queue_v1';
+  private readonly MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 дней
+  private readonly MAX_ITEMS = 100; // Максимум 100 элементов
 
   constructor() {
     this.loadQueue();
@@ -16,7 +18,20 @@ class SyncQueue {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
-        this.queue = JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        const now = Date.now();
+        
+        // ✅ Фильтруем старые элементы
+        this.queue = parsed.filter((item: QueueItem) => 
+          now - item.timestamp < this.MAX_AGE
+        );
+        
+        // ✅ Ограничиваем размер
+        if (this.queue.length > this.MAX_ITEMS) {
+          this.queue = this.queue.slice(-this.MAX_ITEMS);
+        }
+        
+        console.log(`📦 Loaded ${this.queue.length} items from sync queue`);
       }
     } catch (error) {
       console.error('Failed to load sync queue:', error);
@@ -33,11 +48,15 @@ class SyncQueue {
   }
 
   add(data: any) {
+    // ✅ Дедупликация - удаляем старые записи этого пользователя
+    this.queue = this.queue.filter(item => item.userId !== data.userId);
+    
     this.queue.push({
       userId: data.userId,
       data,
       timestamp: Date.now()
     });
+    
     this.saveQueue();
     console.log(`📦 Added to sync queue. Total items: ${this.queue.length}`);
   }

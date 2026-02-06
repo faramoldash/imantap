@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { UserData, ViewType, DayProgress, Language, CustomTask } from './src/types/types';
 import { TOTAL_DAYS, INITIAL_DAY_PROGRESS, TRANSLATIONS, XP_VALUES, RAMADAN_START_DATE, DEFAULT_GOALS, BADGES } from './constants';
 import Dashboard from './components/Dashboard';
@@ -74,24 +74,43 @@ const App: React.FC = () => {
   const { 
     isLoading, 
     hasAccess, 
-    accessData, 
+    accessData: rawAccessData,
     userData: initialUserData, 
     error 
   } = useAppInitialization(getDefaultUserData);
+
+  // ✅ ИСПРАВЛЕНИЕ: Мемоизация accessData
+  const accessData = useMemo(() => ({
+    hasAccess: rawAccessData?.hasAccess ?? false,
+    paymentStatus: rawAccessData?.paymentStatus,
+    demoExpires: rawAccessData?.demoExpires,
+    reason: rawAccessData?.reason,
+  }), [
+    rawAccessData?.hasAccess,
+    rawAccessData?.paymentStatus,
+    rawAccessData?.demoExpires,
+    rawAccessData?.reason
+  ]);
+
 
   const [userData, setUserData] = useState<UserData>(getDefaultUserData());
 
   // Обновляем userData когда загрузка завершена
   useEffect(() => {
     if (initialUserData) {
-      setUserData(initialUserData);
+      // ✅ ВАЖНО: startDate берем из констант, а НЕ с сервера!
+      const correctedData = {
+        ...initialUserData,
+        startDate: RAMADAN_START_DATE, // ✅ Принудительно используем константу
+      };
+      setUserData(correctedData);
     }
   }, [initialUserData]);
 
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [newBadge, setNewBadge] = useState<typeof BADGES[0] | null>(null);
 
-  const calculateRamadanStatus = () => {
+  const calculateRamadanStatus = useCallback(() => {
     const start = new Date(userData.startDate);
     const now = new Date();
     
@@ -117,14 +136,13 @@ const App: React.FC = () => {
     });
 
     return { isStarted, currentDay, daysUntil };
-  };
+  }, [userData.startDate, userData.progress]);
 
-  const [ramadanInfo, setRamadanInfo] = useState(() => {
+  const ramadanInfo = useMemo(() => {
     const result = calculateRamadanStatus();
-    console.log('📅 RAMADAN INFO AT START:', result);
-    console.log('📅 userData.startDate:', userData.startDate);
+    console.log('📅 RAMADAN INFO CALCULATED:', result);
     return result;
-  });
+  }, [calculateRamadanStatus]);
 
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedDay, setSelectedDay] = useState<number>(ramadanInfo.currentDay);
@@ -161,21 +179,18 @@ const App: React.FC = () => {
   const t = TRANSLATIONS[userData.language];
 
   useEffect(() => {
-    // ✅ Обновляем сразу при монтировании
-    const status = calculateRamadanStatus();
-    setRamadanInfo(status);
-    setRealTodayDay(status.isStarted ? status.currentDay : 0);
+    // ✅ Обновляем realTodayDay синхронно с ramadanInfo
+    setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
     
     // ✅ Обновляем каждые 60 секунд
     const interval = setInterval(() => {
       const newStatus = calculateRamadanStatus();
       console.log('📅 RAMADAN INFO UPDATE:', newStatus);
-      setRamadanInfo(newStatus);
       setRealTodayDay(newStatus.isStarted ? newStatus.currentDay : 0);
     }, 60000);
     
     return () => clearInterval(interval);
-  }, [userData.startDate]); // ✅ Зависимость только от startDate
+  }, [ramadanInfo, calculateRamadanStatus]);
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {
@@ -283,7 +298,6 @@ const App: React.FC = () => {
           body: JSON.stringify({
             name: userData.name,
             photoUrl: userData.photoUrl,
-            startDate: userData.startDate,
             registrationDate: userData.registrationDate,
             progress: userData.progress,
             memorizedNames: userData.memorizedNames,
