@@ -37,7 +37,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         
         console.log('🔍 Загрузка данных для user ID:', telegramUserId);
         
-        // ✅ ПРАВИЛЬНЫЙ эндпоинт
+        // ✅ ИСПРАВЛЕННЫЙ эндпоинт
         const response = await fetch(
           `https://imantap-bot-production.up.railway.app/api/user/${telegramUserId}/full`
         );
@@ -49,19 +49,31 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         
         const result = await response.json();
         
-        // ✅ БЕЗ result.success - API возвращает данные напрямую
-        if (result && result.promoCode) {
-          console.log('✅ Получены данные с бота:', result);
+        // ✅ Обрабатываем оба формата ответа
+        let promoCode = null;
+        let invitedCount = 0;
+        
+        if (result.success && result.data) {
+          promoCode = result.data.promoCode;
+          invitedCount = result.data.invitedCount || 0;
+        } else if (result.promoCode) {
+          promoCode = result.promoCode;
+          invitedCount = result.invitedCount || 0;
+        }
+        
+        if (promoCode) {
+          console.log('✅ Получены данные с бота:', { promoCode, invitedCount });
           
-          // ✅ Обновляем userData с userId
           setUserData({
             ...userData,
             userId: telegramUserId,
-            myPromoCode: result.promoCode,
-            referralCount: result.invitedCount || 0
+            myPromoCode: promoCode,
+            referralCount: invitedCount
           });
           
-          console.log('✅ referralCount обновлён:', result.invitedCount);
+          console.log('✅ referralCount обновлён:', invitedCount);
+        } else {
+          console.log('⚠️ promoCode не найден в ответе');
         }
         
       } catch (error) {
