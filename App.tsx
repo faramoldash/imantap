@@ -91,7 +91,7 @@ const App: React.FC = () => {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [newBadge, setNewBadge] = useState<typeof BADGES[0] | null>(null);
 
-  const calculateRamadanStatus = useCallback(() => {
+  const calculateRamadanStatus = () => {
     const start = new Date(userData.startDate);
     const now = new Date();
     
@@ -106,7 +106,6 @@ const App: React.FC = () => {
     
     const daysUntil = !isStarted ? Math.ceil((startDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
-    // 🔍 ДИАГНОСТИКА
     console.log('📅 RAMADAN STATUS:', {
       userData_startDate: userData.startDate,
       startDate: startDate.toISOString(),
@@ -118,7 +117,7 @@ const App: React.FC = () => {
     });
 
     return { isStarted, currentDay, daysUntil };
-  }, [userData.startDate]);
+  };
 
   const [ramadanInfo, setRamadanInfo] = useState(() => {
     const result = calculateRamadanStatus();
@@ -162,13 +161,21 @@ const App: React.FC = () => {
   const t = TRANSLATIONS[userData.language];
 
   useEffect(() => {
-    // ✅ Обновляем статус при изменении userData.startDate
+    // ✅ Обновляем сразу при монтировании
     const status = calculateRamadanStatus();
     setRamadanInfo(status);
     setRealTodayDay(status.isStarted ? status.currentDay : 0);
     
-    // ✅ Интервал больше не нужен - обновление происходит при изменении userData
-  }, [calculateRamadanStatus]);
+    // ✅ Обновляем каждые 60 секунд
+    const interval = setInterval(() => {
+      const newStatus = calculateRamadanStatus();
+      console.log('📅 RAMADAN INFO UPDATE:', newStatus);
+      setRamadanInfo(newStatus);
+      setRealTodayDay(newStatus.isStarted ? newStatus.currentDay : 0);
+    }, 60000);
+    
+    return () => clearInterval(interval);
+  }, [userData.startDate]); // ✅ Зависимость только от startDate
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {
