@@ -106,6 +106,17 @@ const App: React.FC = () => {
     
     const daysUntil = !isStarted ? Math.ceil((startDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
+    // 🔍 ДИАГНОСТИКА
+    console.log('📅 RAMADAN STATUS:', {
+      userData_startDate: userData.startDate,
+      startDate: startDate.toISOString(),
+      currentDate: currentDate.toISOString(),
+      diffDays,
+      isStarted,
+      currentDay,
+      daysUntil
+    });
+
     return { isStarted, currentDay, daysUntil };
   }, [userData.startDate]);
 
