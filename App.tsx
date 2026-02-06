@@ -120,7 +120,13 @@ const App: React.FC = () => {
     return { isStarted, currentDay, daysUntil };
   }, [userData.startDate]);
 
-  const [ramadanInfo, setRamadanInfo] = useState(calculateRamadanStatus());
+  const [ramadanInfo, setRamadanInfo] = useState(() => {
+    const result = calculateRamadanStatus();
+    console.log('📅 RAMADAN INFO AT START:', result);
+    console.log('📅 userData.startDate:', userData.startDate);
+    return result;
+  });
+
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [selectedDay, setSelectedDay] = useState<number>(ramadanInfo.currentDay);
   const [realTodayDay, setRealTodayDay] = useState<number>(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
@@ -158,6 +164,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       const status = calculateRamadanStatus();
+      console.log('📅 RAMADAN INFO UPDATE:', status);
       setRamadanInfo(status);
       setRealTodayDay(status.isStarted ? status.currentDay : 0);
     }, 60000);
