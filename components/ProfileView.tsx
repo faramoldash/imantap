@@ -35,9 +35,14 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
           return;
         }
         
+        // ✅ Проверяем - уже загружали данные для этого пользователя?
+        if (userData.userId === telegramUserId && userData.myPromoCode) {
+          console.log('✅ Данные уже загружены, пропускаем');
+          return;
+        }
+        
         console.log('🔍 Загрузка данных для user ID:', telegramUserId);
         
-        // ✅ ИСПРАВЛЕННЫЙ эндпоинт
         const response = await fetch(
           `https://imantap-bot-production.up.railway.app/api/user/${telegramUserId}/full`
         );
@@ -49,7 +54,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         
         const result = await response.json();
         
-        // ✅ Обрабатываем оба формата ответа
+        // Обрабатываем оба формата ответа
         let promoCode = null;
         let invitedCount = 0;
         
@@ -82,7 +87,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     };
     
     loadDataFromBot();
-  }, [setUserData]);
+  }, []);
 
 
   // Calculate Statistics
