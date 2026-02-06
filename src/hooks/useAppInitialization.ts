@@ -4,8 +4,10 @@ import { UserData } from '../types/types';
 import { checkUserAccess, AccessData } from '../utils/api';
 import { getTelegramUserId, getTelegramUser } from '../utils/telegram';
 
+
 const STORAGE_KEY = 'ramadan_tracker_data_v4';
 const BOT_API_URL = 'https://imantap-bot-production.up.railway.app';
+
 
 interface InitializationState {
   isLoading: boolean;
@@ -14,6 +16,7 @@ interface InitializationState {
   userData: UserData | null;
   error: string | null;
 }
+
 
 export function useAppInitialization(getDefaultUserData: () => UserData) {
   const [state, setState] = useState<InitializationState>({
@@ -24,35 +27,45 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
     error: null
   });
 
+
   useEffect(() => {
     const initialize = async () => {
       // Задержка для инициализации Telegram
       await new Promise(resolve => setTimeout(resolve, 1000));
 
+
       const userId = getTelegramUserId();
       const telegramUser = getTelegramUser();
 
+
       if (!userId) {
         console.error('❌ User ID не найден');
-        setState({
-          isLoading: false,
-          hasAccess: false,
-          accessData: {
+        setState(prev => {
+          const newState = {
+            isLoading: false,
             hasAccess: false,
-            paymentStatus: 'unpaid',
-            reason: 'no_user_id'
-          },
-          userData: null,
-          error: 'Telegram user not found'
+            accessData: {
+              hasAccess: false,
+              paymentStatus: 'unpaid' as const,
+              reason: 'no_user_id'
+            },
+            userData: null,
+            error: 'Telegram user not found'
+          };
+          // ✅ Дедупликация
+          if (JSON.stringify(prev) === JSON.stringify(newState)) return prev;
+          return newState;
         });
         return;
       }
+
 
       try {
         // 1. Проверяем доступ
         console.log('📡 Проверка доступа для user:', userId);
         const access = await checkUserAccess(userId);
         console.log('✅ Доступ:', access);
+
 
         // 2. Загружаем локальные данные для быстрого старта
         let localData: UserData | null = null;
@@ -77,11 +90,14 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
           }
         }
 
+
         // 3. Если есть доступ (или демо), загружаем данные с сервера
         let finalUserData: UserData;
 
+
         // Проверяем: есть полный доступ ИЛИ активный демо-режим
         const hasDataAccess = access.hasAccess || access.paymentStatus === 'demo';
+
 
         if (hasDataAccess) {
           try {
@@ -92,6 +108,7 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
               if (result.success && result.data) {
                 const serverData = result.data;
                 console.log('✅ Данные загружены с сервера');
+
 
                 // Мерджим локальные и серверные данные
                 finalUserData = {
@@ -107,6 +124,7 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
                   language: 'kk' as const // Всегда казахский
                 };
 
+
                 // Сохраняем в localStorage
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(finalUserData));
               } else {
@@ -115,7 +133,7 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
               }
             } else {
               finalUserData = localData || getDefaultUserData();
-              console.log('⚠️ Используем локальные данные (сервер недоступен)');
+              console.log('⚠️ Используем локальные данные (сервер недоступ��н)');
             }
           } catch (error) {
             console.error('❌ Ошибка загрузки с сервера:', error);
@@ -126,32 +144,55 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
           finalUserData = localData || getDefaultUserData();
         }
 
-        setState({
-          isLoading: false,
-          hasAccess: hasDataAccess,
-          accessData: access,
-          userData: finalUserData,
-          error: null
+
+        // ✅ КРИТИЧНО: Дедупликация setState
+        setState(prev => {
+          const newState = {
+            isLoading: false,
+            hasAccess: hasDataAccess,
+            accessData: access,
+            userData: finalUserData,
+            error: null
+          };
+          // Сравниваем по ключевым полям
+          if (
+            prev.isLoading === newState.isLoading &&
+            prev.hasAccess === newState.hasAccess &&
+            JSON.stringify(prev.accessData) === JSON.stringify(newState.accessData) &&
+            JSON.stringify(prev.userData) === JSON.stringify(newState.userData) &&
+            prev.error === newState.error
+          ) {
+            return prev; // Возвращаем старый объект → не триггерим рендер
+          }
+          return newState;
         });
+
 
       } catch (error: any) {
         console.error('❌ Ошибка инициализации:', error);
-        setState({
-          isLoading: false,
-          hasAccess: false,
-          accessData: {
+        setState(prev => {
+          const newState = {
+            isLoading: false,
             hasAccess: false,
-            paymentStatus: 'unpaid',
-            reason: 'init_error'
-          },
-          userData: null,
-          error: error.message
+            accessData: {
+              hasAccess: false,
+              paymentStatus: 'unpaid' as const,
+              reason: 'init_error'
+            },
+            userData: null,
+            error: error.message
+          };
+          // ✅ Дедупликация
+          if (JSON.stringify(prev) === JSON.stringify(newState)) return prev;
+          return newState;
         });
       }
     };
 
+
     initialize();
-  }, [getDefaultUserData]);
+  }, []); // ✅ УБРАЛИ getDefaultUserData из зависимостей!
+
 
   return state;
 }
