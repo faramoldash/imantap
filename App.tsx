@@ -361,49 +361,72 @@ const App: React.FC = () => {
     }
   }, [userData, isLoading, debouncedSync]);
 
-  // ✅ НОВЫЙ useEffect - сохраняем при закрытии приложения
+  // ✅ УЛУЧШЕННЫЙ useEffect - надежное сохранение при закрытии
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // Немедленно синхронизируем перед закрытием
       const userId = getTelegramUserId();
       if (!userId) return;
       
-      // Используем sendBeacon для надежной отправки при закрытии
+      // ✅ 1. Сохраняем в localStorage как fallback
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(userDataRef.current));
+        console.log('💾 Данные сохранены в localStorage перед закрытием');
+      } catch (error) {
+        console.error('❌ Ошибка сохранения в localStorage:', error);
+      }
+      
+      // ✅ 2. Пытаемся отправить на сервер
       const data = JSON.stringify({
-        name: userData.name,
-        username: userData.username,
-        photoUrl: userData.photoUrl,
-        startDate: userData.startDate,
-        registrationDate: userData.registrationDate,
-        progress: userData.progress,
-        preparationProgress: userData.preparationProgress,
-        basicProgress: userData.basicProgress,
-        memorizedNames: userData.memorizedNames,
-        completedJuzs: userData.completedJuzs,
-        quranKhatams: userData.quranKhatams,
-        completedTasks: userData.completedTasks,
-        deletedPredefinedTasks: userData.deletedPredefinedTasks,
-        customTasks: userData.customTasks,
-        quranGoal: userData.quranGoal,
-        dailyQuranGoal: userData.dailyQuranGoal,
-        dailyCharityGoal: userData.dailyCharityGoal,
-        language: userData.language,
-        xp: userData.xp,
-        hasRedeemedReferral: userData.hasRedeemedReferral,
-        unlockedBadges: userData.unlockedBadges,
-        currentStreak: userData.currentStreak,
-        longestStreak: userData.longestStreak,
-        lastActiveDate: userData.lastActiveDate
+        name: userDataRef.current.name,
+        username: userDataRef.current.username,
+        photoUrl: userDataRef.current.photoUrl,
+        registrationDate: userDataRef.current.registrationDate,
+        progress: userDataRef.current.progress,
+        preparationProgress: userDataRef.current.preparationProgress,
+        basicProgress: userDataRef.current.basicProgress,
+        memorizedNames: userDataRef.current.memorizedNames,
+        completedJuzs: userDataRef.current.completedJuzs,
+        quranKhatams: userDataRef.current.quranKhatams,
+        completedTasks: userDataRef.current.completedTasks,
+        deletedPredefinedTasks: userDataRef.current.deletedPredefinedTasks,
+        customTasks: userDataRef.current.customTasks,
+        quranGoal: userDataRef.current.quranGoal,
+        dailyQuranGoal: userDataRef.current.dailyQuranGoal,
+        dailyCharityGoal: userDataRef.current.dailyCharityGoal,
+        language: userDataRef.current.language,
+        xp: userDataRef.current.xp,
+        hasRedeemedReferral: userDataRef.current.hasRedeemedReferral,
+        unlockedBadges: userDataRef.current.unlockedBadges,
+        currentStreak: userDataRef.current.currentStreak,
+        longestStreak: userDataRef.current.longestStreak,
+        lastActiveDate: userDataRef.current.lastActiveDate
       });
       
-      const blob = new Blob([data], { type: 'application/json' });
-      navigator.sendBeacon(
-        `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`,
-        blob
-      );
+      // ✅ 3. Используем sendBeacon для надежной отправки
+      const url = `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`;
+      
+      if (navigator.sendBeacon) {
+        const blob = new Blob([data], { type: 'application/json' });
+        const sent = navigator.sendBeacon(url, blob);
+        console.log(sent ? '📡 Beacon отправлен успешно' : '⚠️ Beacon не отправлен');
+      } else {
+        // ✅ 4. Fallback для старых браузеров
+        try {
+          fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: data,
+            keepalive: true // Важно для отправки при закрытии
+          }).catch(() => {
+            console.log('⚠️ Fetch при закрытии не удался, данные в localStorage');
+          });
+        } catch (error) {
+          console.log('⚠️ Ошибка отправки, данные в localStorage');
+        }
+      }
     };
     
-    // Telegram WebApp закрытие
+    // Telegram WebApp события
     const tg = getTelegramWebApp();
     if (tg) {
       tg.onEvent('viewportChanged', handleBeforeUnload);
@@ -412,13 +435,46 @@ const App: React.FC = () => {
     // Обычное закрытие браузера
     window.addEventListener('beforeunload', handleBeforeUnload);
     
+    // Видимость страницы (свернули/закрыли)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleBeforeUnload();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (tg) {
         tg.offEvent('viewportChanged', handleBeforeUnload);
       }
     };
-  }, [userData]);
+  }, []); // ✅ Пустые зависимости, используем userDataRef.current
+
+  // ✅ НОВЫЙ - Автосохранение каждые 30 секунд
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      const userId = getTelegramUserId();
+      if (!userId || !navigator.onLine) return;
+      
+      console.log('💾 Автосохранение...');
+      
+      // Сохраняем в localStorage
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(userDataRef.current));
+      } catch (error) {
+        console.error('❌ Ошибка автосохранения в localStorage:', error);
+      }
+      
+      // Синхронизируем с сервером (без ожидания)
+      syncToServerFn().catch(() => {
+        console.log('⚠️ Автосохранение на сервер не удалось');
+      });
+    }, 30000); // Каждые 30 секунд
+    
+    return () => clearInterval(autoSaveInterval);
+  }, [syncToServerFn]);
 
   // Online/Offline listeners
   useEffect(() => {
