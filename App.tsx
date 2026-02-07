@@ -95,6 +95,14 @@ const App: React.FC = () => {
 
   const [userData, setUserData] = useState<UserData>(getDefaultUserData());
 
+  // ✅ Добавьте эту строку:
+  const userDataRef = useRef(userData);
+
+  // ✅ И добавьте useEffect для обновления ref:
+  useEffect(() => {
+    userDataRef.current = userData;
+  }, [userData]);
+
   // Обновляем userData когда загрузка завершена
   useEffect(() => {
     if (initialUserData) {
@@ -124,7 +132,7 @@ const App: React.FC = () => {
     const currentDay = isStarted ? Math.min(diffDays, TOTAL_DAYS) : 1;
     
     const daysUntil = !isStarted ? Math.ceil((startDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-
+    
     console.log('📅 RAMADAN STATUS:', {
       userData_startDate: userData.startDate,
       startDate: startDate.toISOString(),
@@ -134,9 +142,9 @@ const App: React.FC = () => {
       currentDay,
       daysUntil
     });
-
+    
     return { isStarted, currentDay, daysUntil };
-  }, [userData.startDate, userData.progress]);
+  }, [userData.startDate]);
 
   const ramadanInfo = useMemo(() => {
     const result = calculateRamadanStatus();
@@ -250,43 +258,43 @@ const App: React.FC = () => {
   // Функция синхронизации с сервером
   const syncToServerFn = useCallback(async () => {
     const userId = getTelegramUserId();
-
     if (!userId) {
       setSyncStatus('offline');
       return false;
     }
-
-    // Проверяем онлайн статус
+    
+    // ✅ Читаем userData напрямую через ref
+    const currentUserData = userDataRef.current;
+    
     if (!navigator.onLine) {
       setSyncStatus('offline');
       console.log('📴 Offline - adding to queue');
       
-      // Добавляем в очередь
       syncQueue.add({
         userId,
-        name: userData.name,
-        photoUrl: userData.photoUrl,
-        startDate: userData.startDate,
-        registrationDate: userData.registrationDate,
-        progress: userData.progress,
-        memorizedNames: userData.memorizedNames,
-        completedJuzs: userData.completedJuzs,
-        quranKhatams: userData.quranKhatams,
-        completedTasks: userData.completedTasks,
-        deletedPredefinedTasks: userData.deletedPredefinedTasks,
-        customTasks: userData.customTasks,
-        quranGoal: userData.quranGoal,
-        dailyQuranGoal: userData.dailyQuranGoal,
-        dailyCharityGoal: userData.dailyCharityGoal,
-        language: userData.language,
-        xp: userData.xp,
-        hasRedeemedReferral: userData.hasRedeemedReferral,
-        unlockedBadges: userData.unlockedBadges
+        name: currentUserData.name,
+        photoUrl: currentUserData.photoUrl,
+        startDate: currentUserData.startDate,
+        registrationDate: currentUserData.registrationDate,
+        progress: currentUserData.progress,
+        memorizedNames: currentUserData.memorizedNames,
+        completedJuzs: currentUserData.completedJuzs,
+        quranKhatams: currentUserData.quranKhatams,
+        completedTasks: currentUserData.completedTasks,
+        deletedPredefinedTasks: currentUserData.deletedPredefinedTasks,
+        customTasks: currentUserData.customTasks,
+        quranGoal: currentUserData.quranGoal,
+        dailyQuranGoal: currentUserData.dailyQuranGoal,
+        dailyCharityGoal: currentUserData.dailyCharityGoal,
+        language: currentUserData.language,
+        xp: currentUserData.xp,
+        hasRedeemedReferral: currentUserData.hasRedeemedReferral,
+        unlockedBadges: currentUserData.unlockedBadges
       });
       
       return false;
     }
-
+    
     try {
       setSyncStatus('syncing');
       
@@ -296,33 +304,33 @@ const App: React.FC = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: userData.name,
-            username: userData.username, 
-            photoUrl: userData.photoUrl,
-            registrationDate: userData.registrationDate,
-            progress: userData.progress,
-            preparationProgress: userData.preparationProgress,
-            basicProgress: userData.basicProgress,
-            memorizedNames: userData.memorizedNames,
-            completedJuzs: userData.completedJuzs,
-            quranKhatams: userData.quranKhatams,
-            completedTasks: userData.completedTasks,
-            deletedPredefinedTasks: userData.deletedPredefinedTasks,
-            customTasks: userData.customTasks,
-            quranGoal: userData.quranGoal,
-            dailyQuranGoal: userData.dailyQuranGoal,
-            dailyCharityGoal: userData.dailyCharityGoal,
-            language: userData.language,
-            xp: userData.xp,
-            hasRedeemedReferral: userData.hasRedeemedReferral,
-            unlockedBadges: userData.unlockedBadges,
-            currentStreak: userData.currentStreak,
-            longestStreak: userData.longestStreak,
-            lastActiveDate: userData.lastActiveDate
+            name: currentUserData.name,
+            username: currentUserData.username, 
+            photoUrl: currentUserData.photoUrl,
+            registrationDate: currentUserData.registrationDate,
+            progress: currentUserData.progress,
+            preparationProgress: currentUserData.preparationProgress,
+            basicProgress: currentUserData.basicProgress,
+            memorizedNames: currentUserData.memorizedNames,
+            completedJuzs: currentUserData.completedJuzs,
+            quranKhatams: currentUserData.quranKhatams,
+            completedTasks: currentUserData.completedTasks,
+            deletedPredefinedTasks: currentUserData.deletedPredefinedTasks,
+            customTasks: currentUserData.customTasks,
+            quranGoal: currentUserData.quranGoal,
+            dailyQuranGoal: currentUserData.dailyQuranGoal,
+            dailyCharityGoal: currentUserData.dailyCharityGoal,
+            language: currentUserData.language,
+            xp: currentUserData.xp,
+            hasRedeemedReferral: currentUserData.hasRedeemedReferral,
+            unlockedBadges: currentUserData.unlockedBadges,
+            currentStreak: currentUserData.currentStreak,
+            longestStreak: currentUserData.longestStreak,
+            lastActiveDate: currentUserData.lastActiveDate
           }),
         }
       );
-
+      
       if (response.ok) {
         console.log('✅ Synced to server');
         setSyncStatus('success');
@@ -337,7 +345,7 @@ const App: React.FC = () => {
       setSyncStatus('error');
       return false;
     }
-  }, [userData, setSyncStatus]);
+  }, [setSyncStatus]);
 
   // Debounced sync (5 секунд вместо немедленной синхронизации)
   const debouncedSync = useDebounce(syncToServerFn, 5000);
