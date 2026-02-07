@@ -787,13 +787,6 @@ const App: React.FC = () => {
     }
   };
 
-  // 🔍 КРИТИЧЕСКАЯ ОТЛАДКА
-  console.log('=== RENDER CHECK ===');
-  console.log('hasAccess:', hasAccess);
-  console.log('accessData:', accessData);
-  console.log('paymentStatus:', accessData?.paymentStatus);
-  console.log('====================');
-
   // --- RENDER LOADING STATE ---
   if (isLoading) {
     return (
