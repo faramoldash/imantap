@@ -4,7 +4,7 @@ import { DayProgress, Language } from './src/types/types';
 export const TOTAL_DAYS = 30;
 
 // подготовка начинается с 9 февраля (10 дней)
-export const PREPARATION_START_DATE = '2026-02-05T00:00:00.000Z'; // 9 февраля
+export const PREPARATION_START_DATE = '2026-02-09T00:00:00.000Z'; // 9 февраля
 export const PREPARATION_DAYS = 10; // 9-18 февраля (10 дней)
 export const FIRST_TARAWEEH_DATE = '2026-02-18T00:00:00.000Z'; // 18 февраля - первый день таравих намаза
 
