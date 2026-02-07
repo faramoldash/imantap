@@ -64,3 +64,27 @@ export async function getReferralStats(promoCode) {
     return null;
   }
 }
+
+/**
+ * Получить глобальный лидерборд
+ */
+export async function getGlobalLeaderboard(limit = 10) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/leaderboard/global?limit=${limit}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Failed to fetch leaderboard');
+    }
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error);
+    return null;
+  }
+}
