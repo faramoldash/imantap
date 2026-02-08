@@ -68,14 +68,9 @@ export async function getReferralStats(promoCode) {
 /**
  * Получить глобальный лидерборд с фильтрами и пагинацией
  */
-export async function getGlobalLeaderboard(options = {}) {
+export async function getGlobalLeaderboard(options) {
   try {
-    const { 
-      limit = 20, 
-      offset = 0, 
-      country = null, 
-      city = null 
-    } = options;
+    const { limit = 20, offset = 0, country = null, city = null } = options;
     
     const params = new URLSearchParams({
       limit: limit.toString(),
@@ -95,8 +90,9 @@ export async function getGlobalLeaderboard(options = {}) {
     
     if (data.success) {
       return {
-        leaderboard: data.data,
-        pagination: data.pagination
+        data: data.data || [],           // ✅ ИСПРАВЛЕНО
+        total: data.total || 0,           // ✅ ДОБАВЛЕНО
+        hasMore: data.hasMore ?? false    // ✅ ИСПРАВЛЕНО
       };
     } else {
       throw new Error(data.error || 'Failed to fetch leaderboard');
