@@ -66,8 +66,8 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
           city: filterType === 'city' ? selectedCity : null
         });
 
-        if (result) {
-          const withMe = result.leaderboard.map((user: any) => ({
+        if (result && result.data) {  // ✅ ПРОВЕРЯЕМ result.data
+          const withMe = result.data.map((user: any) => ({  // ✅ result.data вместо result.leaderboard
             ...user,
             isMe: user.userId === userData.userId
           }));
@@ -78,7 +78,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
             setLeaderboard(prev => [...prev, ...withMe]);
           }
 
-          setHasMore(result.pagination.hasMore);
+          setHasMore(result.hasMore ?? false);  // ✅ result.hasMore вместо result.pagination.hasMore
           setOffset(currentOffset + 20);
         }
       }
