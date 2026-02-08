@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { UserData, Language } from '../src/types/types';
-import { TRANSLATIONS, BADGES } from '../constants';
+import { TRANSLATIONS } from '../constants';
 import { getGlobalLeaderboard, getFriendsLeaderboard, getCountries, getCities } from '../src/services/api';
 
 interface RewardsViewProps {
@@ -30,7 +30,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
   const [isPulling, setIsPulling] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   
-  const containerRef = useRef<HTMLDivElement>(null);
+  const leaderboardRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef<number>(0);
   const autoRefreshInterval = useRef<NodeJS.Timeout | null>(null);
 
@@ -133,15 +133,15 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
     };
   }, [loadLeaderboard]);
 
-  // Pull-to-refresh
+  // Pull-to-refresh для карточки лидерборда
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (containerRef.current && containerRef.current.scrollTop === 0) {
+    if (leaderboardRef.current && leaderboardRef.current.scrollTop === 0) {
       touchStartY.current = e.touches[0].clientY;
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartY.current && containerRef.current && containerRef.current.scrollTop === 0) {
+    if (touchStartY.current && leaderboardRef.current && leaderboardRef.current.scrollTop === 0) {
       const currentY = e.touches[0].clientY;
       const distance = currentY - touchStartY.current;
       
@@ -162,7 +162,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
     touchStartY.current = 0;
   };
 
-  // Infinite scroll
+  // Infinite scroll только для карточки лидерборда
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
     if (element.scrollHeight - element.scrollTop <= element.clientHeight + 50 && hasMore && !isLoadingMore && filterType !== 'friends') {
@@ -181,26 +181,8 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
   };
 
   return (
-    <div 
-      ref={containerRef}
-      className="space-y-8 pb-24 pt-4 h-screen overflow-y-auto"
-      onScroll={handleScroll}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Pull to refresh indicator */}
-      {isPulling && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4" style={{ transform: `translateY(${Math.min(pullDistance - 40, 40)}px)` }}>
-          <div className="bg-white rounded-full p-3 shadow-lg">
-            <svg className={`w-6 h-6 text-emerald-600 ${pullDistance > 80 ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          </div>
-        </div>
-      )}
-
-      {/* Spiritual Status */}
+    <div className="space-y-6 pb-24 pt-4">
+      {/* Карточка уровня - НЕ скроллится */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
           <span className="text-9xl">🏆</span>
@@ -222,41 +204,25 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
         </div>
       </div>
 
-      {/* Badges Section */}
-      <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 px-2">{t.rewardsBadges}</h3>
-        <div className="grid grid-cols-3 gap-4">
-          {BADGES.map((badge, idx) => {
-            const isUnlocked = userData.unlockedBadges.includes(badge.id);
-            return (
-              <div 
-                key={badge.id} 
-                className="flex flex-col items-center group animate-in fade-in slide-in-from-bottom-4"
-                style={{ animationDelay: `${idx * 50}ms`, animationDuration: '500ms' }}
-              >
-                <div className={`w-16 h-16 rounded-3xl flex items-center justify-center text-3xl transition-all duration-500 ${
-                  isUnlocked ? 'bg-amber-50 shadow-lg shadow-amber-100 grayscale-0 scale-100' : 'bg-slate-50 grayscale scale-90 opacity-40'
-                }`}>
-                  {badge.icon}
-                </div>
-                <p className={`text-[9px] font-black text-center mt-3 uppercase tracking-tighter leading-tight ${
-                  isUnlocked ? 'text-slate-800' : 'text-slate-300'
-                }`}>
-                  {language === 'kk' ? badge.name_kk : badge.name_ru}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      {/* Карточка лидерборда - ТОЛЬКО ОНА скроллится */}
+      <div className="bg-white rounded-[3rem] shadow-sm border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+        {/* Pull to refresh indicator */}
+        {isPulling && (
+          <div className="absolute top-0 left-0 right-0 z-50 flex justify-center pt-2" style={{ transform: `translateY(${Math.min(pullDistance - 40, 40)}px)` }}>
+            <div className="bg-white rounded-full p-2 shadow-lg">
+              <svg className={`w-5 h-5 text-emerald-600 ${pullDistance > 80 ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </div>
+          </div>
+        )}
 
-      {/* Leaderboard Section */}
-      <div className="bg-white rounded-[3rem] shadow-sm border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-1000">
-        <div className="p-8 pb-4">
+        {/* Заголовок и фильтры - фиксированные */}
+        <div className="p-6 pb-4 sticky top-0 bg-white z-10 border-b border-slate-50">
           <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">{t.rewardsLeaderboard}</h3>
           
           {/* Фильтры */}
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-4">
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
             <button
               onClick={() => handleFilterChange('global')}
               className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
@@ -293,7 +259,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
 
           {/* Селекторы для страны и города */}
           {(filterType === 'country' || filterType === 'city') && (
-            <div className="space-y-2 mb-4">
+            <div className="space-y-2 mt-3">
               <select
                 value={selectedCountry || ''}
                 onChange={(e) => setSelectedCountry(e.target.value || null)}
@@ -321,8 +287,15 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
           )}
         </div>
 
-        {/* Список лидерборда */}
-        <div className="divide-y divide-slate-50">
+        {/* Список лидерборда - СКРОЛЛИТСЯ */}
+        <div 
+          ref={leaderboardRef}
+          className="divide-y divide-slate-50 max-h-[60vh] overflow-y-auto"
+          onScroll={handleScroll}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {isLoading ? (
             <div className="px-8 py-12 text-center">
               <div className="inline-block w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
@@ -338,7 +311,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
               {leaderboard.map((user, idx) => (
                 <div 
                   key={user.userId || idx} 
-                  className={`flex items-center justify-between px-8 py-4 transition-all duration-300 animate-in fade-in slide-in-from-right-4 ${
+                  className={`flex items-center justify-between px-6 py-4 transition-all duration-300 animate-in fade-in slide-in-from-right-4 ${
                     user.isMe ? 'bg-emerald-50' : 'bg-white hover:bg-slate-50'
                   }`}
                   style={{ animationDelay: `${idx * 30}ms`, animationDuration: '400ms' }}
