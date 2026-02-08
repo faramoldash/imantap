@@ -525,6 +525,9 @@ export const BADGES = [
   { id: 'khatam_master', icon: '🕋', name_ru: 'Хафиз', name_kk: 'Құран Хатым' },
   { id: 'goal_achiever', icon: '🎯', name_ru: 'Целеустремленный', name_kk: 'Мақсатшыл' },
   { id: 'community_builder', icon: '🤝', name_ru: 'Лидер общины', name_kk: 'Жамағат лидері' },
+  { id: 'social_butterfly', icon: '👥', name_ru: 'Друг народа', name_kk: 'Халық досы', description_ru: 'Пригласил 10+ друзей', description_kk: '10+ досты шақырды', requirement: 'referrals_10' },
+  { id: 'friends_leader', icon: '🏅', name_ru: 'Лидер друзей', name_kk: 'Достар көшбасшысы', description_ru: '1 место среди друзей', description_kk: 'Достар арасында 1 орын', requirement: 'friends_rank_1' },
+  { id: 'legend', icon: '🌟', name_ru: 'Легенда', name_kk: 'Аңыз', description_ru: 'Набрал 10000+ XP', description_kk: '10000+ XP жинады', requirement: 'xp_10000' }
 ];
 
 export const USEFUL_MATERIALS = [
