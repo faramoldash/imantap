@@ -886,7 +886,7 @@ const App: React.FC = () => {
 
   // --- RENDER PAYWALL ---
   // Demo пользователи НЕ должны видеть Paywall!
-  if (!accessData.hasAccess) {
+  if (!isLoading && accessData && !accessData.hasAccess) {
     console.log('PAYWALL: нет доступа');
     return <Paywall language={userData.language} />;
   }
