@@ -241,23 +241,28 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
            </div>
         </div>
         
-        {/* User Badges Strip */}
-        <div className="mt-6 pt-4 border-t border-slate-50 overflow-x-auto no-scrollbar">
-           <div className="flex space-x-2">
-             {Array.isArray(userData.unlockedBadges) && userData.unlockedBadges.length > 0 ? (
-               userData.unlockedBadges.map(badgeId => {
-                 const badge = BADGES.find(b => b.id === badgeId);
-                 if(!badge) return null;
-                 return (
-                   <div key={badgeId} className="flex-shrink-0 bg-slate-50 p-2 rounded-2xl border border-slate-100" title={language === 'kk' ? badge.name_kk : badge.name_ru}>
-                     <span className="text-xl grayscale-0">{badge.icon}</span>
-                   </div>
-                 )
-               })
-             ) : (
-               <p className="text-[10px] text-slate-400 italic w-full text-center py-1">Әзірге жетістіктер жоқ...</p>
-             )}
-           </div>
+        {/* User Badges Strip - РАСШИРЕННАЯ ВЕРСИЯ */}
+        <div className="mt-6 pt-4 border-t border-slate-50">
+          <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 px-2">{language === 'kk' ? 'Жетістіктеріңіз' : 'Ваши достижения'}</h4>
+          <div className="grid grid-cols-4 gap-3">
+            {BADGES.map(badge => {
+              const isUnlocked = userData.unlockedBadges.includes(badge.id);
+              return (
+                <div key={badge.id} className="flex flex-col items-center group">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-all duration-500 ${
+                    isUnlocked ? 'bg-amber-50 shadow-lg shadow-amber-100 grayscale-0 scale-100' : 'bg-slate-50 grayscale scale-90 opacity-40'
+                  }`}>
+                    {badge.icon}
+                  </div>
+                  <p className={`text-[8px] font-black text-center mt-2 uppercase tracking-tighter leading-tight ${
+                    isUnlocked ? 'text-slate-800' : 'text-slate-300'
+                  }`}>
+                    {language === 'kk' ? badge.name_kk : badge.name_ru}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
