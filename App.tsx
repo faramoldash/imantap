@@ -879,15 +879,15 @@ const App: React.FC = () => {
   }
 
   // --- RENDER PENDING SCREEN ---
-  if (accessData?.paymentStatus === 'pending') {
+  if (!accessData.hasAccess && accessData?.paymentStatus === 'pending') {
     console.log('→ Показываю PENDING');
     return <PendingScreen language={userData.language} />;
   }
 
   // --- RENDER PAYWALL ---
   // Demo пользователи НЕ должны видеть Paywall!
-  if (!hasAccess && accessData?.paymentStatus !== 'demo') {
-    console.log('→ Показываю PAYWALL (hasAccess = false, не demo)');
+  if (!accessData.hasAccess) {
+    console.log('PAYWALL: нет доступа');
     return <Paywall language={userData.language} />;
   }
 
