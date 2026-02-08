@@ -132,10 +132,22 @@ export interface AccessData {
 
 export async function checkUserAccess(userId: number): Promise<AccessData> {
   try {
-    const response = await fetch(`${BOT_API_URL}/api/user/${userId}/access`);
+    // ✅ ПРАВИЛЬНЫЙ endpoint
+    const url = `${BOT_API_URL}/api/check-access?userId=${userId}`;
+    console.log('🔗 Проверка доступа:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    console.log('📡 Response status:', response.status);
     
     if (!response.ok) {
-      console.error('❌ Ошибка проверки доступа:', response.status);
+      const errorText = await response.text();
+      console.error('❌ API Error:', response.status, errorText);
       return {
         hasAccess: false,
         paymentStatus: 'unpaid',
@@ -144,10 +156,15 @@ export async function checkUserAccess(userId: number): Promise<AccessData> {
     }
     
     const result = await response.json();
+    console.log('✅ API Response:', result);
     
-    if (result.success && result.data) {
-      console.log('✅ Данные доступа:', result.data);
-      return result.data;
+    if (result.success) {
+      return {
+        hasAccess: result.hasAccess,
+        paymentStatus: result.paymentStatus,
+        demoExpires: result.demoExpires,
+        reason: result.reason
+      };
     }
     
     return {
