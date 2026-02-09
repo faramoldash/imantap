@@ -18,6 +18,10 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [isAcceptingInvite, setIsAcceptingInvite] = useState(false);
+  const [showJoinForm, setShowJoinForm] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [joinError, setJoinError] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
   
   // Форма создания
   const [circleName, setCircleName] = useState('');
@@ -151,13 +155,61 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     }
   };
 
+  // Присоединиться по коду
+  const handleJoinByCode = async () => {
+    if (!joinCode.trim() || isJoining) return;
+    
+    setJoinError('');
+    setIsJoining(true);
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          inviteCode: joinCode.trim().toUpperCase(),
+          userId: userData.userId
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to join circle');
+      }
+      
+      console.log('✅ Успешно присоединились к кругу');
+      
+      // Закрыть форму и перезагрузить круги
+      setShowJoinForm(false);
+      setJoinCode('');
+      await loadCircles();
+      
+      // Открыть детали нового круга
+      if (data.circle?.circleId) {
+        await loadCircleDetails(data.circle.circleId);
+      }
+    } catch (error: any) {
+      console.error('❌ Ошибка присоединения:', error);
+      setJoinError(
+        error.message === 'Circle not found' 
+          ? (language === 'kk' ? 'Код табылмады' : 'Код не найден')
+          : error.message === 'Already a member'
+          ? (language === 'kk' ? 'Сіз қазірдің өзінде мүшесіз' : 'Вы уже участник этого круга')
+          : (language === 'kk' ? 'Қате орын алды' : 'Произошла ошибка')
+      );
+    } finally {
+      setIsJoining(false);
+    }
+  };
+
   // Вид: Список кругов
   if (!selectedCircle) {
     return (
       <div className="space-y-6 pb-8 pt-4">
         {/* Заголовок с фоном */}
         <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => onNavigate && onNavigate('profile')}
@@ -169,11 +221,21 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 {language === 'kk' ? 'Менің топтарым' : 'Мои круги'}
               </h2>
             </div>
+          </div>
+          
+          {/* Кнопки действий */}
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setShowJoinForm(true)}
+              className="flex-1 bg-teal-600 text-white px-4 py-2.5 rounded-2xl text-sm font-black active:scale-95 transition-all shadow-lg"
+            >
+              🔗 {language === 'kk' ? 'Кодпен қосылу' : 'По коду'}
+            </button>
             <button
               onClick={() => setShowCreateForm(true)}
-              className="bg-emerald-600 text-white px-4 py-2 rounded-2xl text-sm font-black active:scale-95 transition-all shadow-lg"
+              className="flex-1 bg-emerald-600 text-white px-4 py-2.5 rounded-2xl text-sm font-black active:scale-95 transition-all shadow-lg"
             >
-              + {language === 'kk' ? 'Жаңа топ' : 'Новый круг'}
+              + {language === 'kk' ? 'Жасау' : 'Создать'}
             </button>
           </div>
         </div>
@@ -216,6 +278,53 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                   setShowCreateForm(false);
                   setCircleName('');
                   setCircleDescription('');
+                }}
+                className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-2xl font-black text-sm active:scale-95 transition-all"
+              >
+                {language === 'kk' ? 'Болдырмау' : 'Отмена'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ✅ ДОБАВИТЬ: Форма присоединения по коду */}
+        {showJoinForm && (
+          <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+            <h3 className="text-lg font-black text-slate-800 mb-2">
+              {language === 'kk' ? '🔗 Кодпен қосылу' : '🔗 Присоединиться по коду'}
+            </h3>
+            <p className="text-xs text-slate-400 mb-4">
+              {language === 'kk' 
+                ? 'Топтың 6 таңбалы кодын енгізіңіз' 
+                : 'Введите 6-значный код круга'}
+            </p>
+            
+            <input
+              type="text"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              placeholder={language === 'kk' ? 'A7B9C2' : 'A7B9C2'}
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-center text-lg font-black tracking-widest mb-3 outline-none focus:border-teal-500 uppercase"
+              maxLength={6}
+            />
+            
+            {joinError && (
+              <p className="text-xs text-red-500 mb-3 text-center">{joinError}</p>
+            )}
+            
+            <div className="flex space-x-2">
+              <button
+                onClick={handleJoinByCode}
+                disabled={joinCode.trim().length !== 6 || isJoining}
+                className="flex-1 bg-teal-600 text-white py-3 rounded-2xl font-black text-sm disabled:opacity-50 active:scale-95 transition-all"
+              >
+                {isJoining ? '...' : (language === 'kk' ? 'Қосылу' : 'Присоединиться')}
+              </button>
+              <button
+                onClick={() => {
+                  setShowJoinForm(false);
+                  setJoinCode('');
+                  setJoinError('');
                 }}
                 className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-2xl font-black text-sm active:scale-95 transition-all"
               >
