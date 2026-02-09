@@ -200,6 +200,82 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     }
   };
 
+  // Удалить участника (kick)
+  const handleRemoveMember = async (targetUserId: number) => {
+    if (!selectedCircle) return;
+    
+    const confirmed = confirm(
+      language === 'kk' 
+        ? 'Қатысушыны шынымен жойғыңыз келе ме?' 
+        : 'Вы уверены что хотите удалить этого участника?'
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/remove-member`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          circleId: selectedCircle.circleId,
+          ownerId: userData.userId,
+          targetUserId: targetUserId
+        })
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to remove member');
+      }
+      
+      console.log('✅ Участник удален');
+      
+      // Перезагружаем детали круга
+      await loadCircleDetails(selectedCircle.circleId);
+    } catch (error: any) {
+      console.error('❌ Ошибка удаления участника:', error);
+      alert(language === 'kk' ? 'Қате шықты' : 'Произошла ошибка');
+    }
+  };
+
+  // Удалить круг
+  const handleDeleteCircle = async () => {
+    if (!selectedCircle) return;
+    
+    const confirmed = confirm(
+      language === 'kk' 
+        ? 'Топты толығымен жойғыңыз келетініне сенімдісіз бе? Бұл әрекетті қайтару мүмкін емес!' 
+        : 'Вы уверены что хотите удалить круг? Это действие нельзя отменить!'
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          circleId: selectedCircle.circleId,
+          ownerId: userData.userId
+        })
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete circle');
+      }
+      
+      console.log('✅ Круг удален');
+      
+      // Вернуться к списку кругов
+      setSelectedCircle(null);
+      loadCircles();
+    } catch (error: any) {
+      console.error('❌ Ошибка удаления круга:', error);
+      alert(language === 'kk' ? 'Қате шықты' : 'Произошла ошибка');
+    }
+  };
+
   // Присоединиться по коду
   const handleJoinByCode = async () => {
     if (!joinCode.trim() || isJoining) return;
@@ -582,10 +658,23 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                     </p>
                   </div>
                 </div>
-                <span className="text-lg font-black text-emerald-600">
-                  {member.todayProgress.percent}%
-                </span>
-              </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-lg font-black text-emerald-600">
+                      {member.todayProgress.percent}%
+                    </span>
+                    
+                    {/* Кнопка удалить участника (только для владельца) */}
+                    {selectedCircle.ownerId === userData.userId && member.userId !== userData.userId && (
+                      <button
+                        onClick={() => handleRemoveMember(member.userId)}
+                        className="w-8 h-8 bg-red-100 text-red-600 rounded-xl text-xs font-black active:scale-95 transition-all hover:bg-red-200"
+                        title={language === 'kk' ? 'Жою' : 'Удалить'}
+                      >
+                        ❌
+                      </button>
+                    )}
+                  </div>
+                </div>
               
               {/* Прогресс-бар */}
               <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
@@ -597,6 +686,16 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
             </div>
           ))}
         </div>
+        
+        {/* Кнопка удалить круг (только для владельца) */}
+        {selectedCircle.ownerId === userData.userId && (
+          <button
+            onClick={handleDeleteCircle}
+            className="w-full mt-4 px-6 py-3 bg-red-500 text-white rounded-2xl font-black text-sm active:scale-95 transition-all hover:bg-red-600"
+          >
+            🗑️ {language === 'kk' ? 'Топты жою' : 'Удалить круг'}
+          </button>
+        )}
       </div>
     </div>
   );
