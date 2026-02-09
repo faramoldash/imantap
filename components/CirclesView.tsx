@@ -103,7 +103,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               onClick={() => setShowCreateForm(true)}
               className="bg-emerald-600 text-white px-4 py-2 rounded-2xl text-sm font-black active:scale-95 transition-all shadow-lg"
             >
-              + {language === 'kk' ? 'Жасау' : 'Создать'}
+              + {language === 'kk' ? 'Жаңа топ' : 'Новый круг'}
             </button>
           </div>
         </div>
