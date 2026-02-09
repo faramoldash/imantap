@@ -17,6 +17,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [isAcceptingInvite, setIsAcceptingInvite] = useState(false);
   
   // Форма создания
   const [circleName, setCircleName] = useState('');
@@ -78,6 +79,75 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
       }, 2000);
     } catch (error: any) {
       setInviteError(error.message || (language === 'kk' ? 'Қате орын алды' : 'Произошла ошибка'));
+    }
+  };
+
+  // Принять приглашение
+  const handleAcceptInvite = async () => {
+    if (!selectedCircle || isAcceptingInvite) return;
+    
+    setIsAcceptingInvite(true);
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          circleId: selectedCircle.circleId,
+          userId: userData.userId
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to accept invite');
+      }
+      
+      console.log('✅ Приглашение принято');
+      
+      // Перезагружаем детали круга
+      await loadCircleDetails(selectedCircle.circleId);
+    } catch (error) {
+      console.error('❌ Ошибка принятия приглашения:', error);
+      alert(language === 'kk' ? 'Қате шықты' : 'Произошла ошибка');
+    } finally {
+      setIsAcceptingInvite(false);
+    }
+  };
+
+  // Отклонить приглашение
+  const handleDeclineInvite = async () => {
+    if (!selectedCircle) return;
+    
+    const confirmed = confirm(
+      language === 'kk' 
+        ? 'Шақыруды бас тартқыңыз келетініне сенімдісіз бе?' 
+        : 'Вы уверены что хотите отклонить приглашение?'
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/decline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          circleId: selectedCircle.circleId,
+          userId: userData.userId
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to decline invite');
+      }
+      
+      console.log('✅ Приглашение отклонено');
+      
+      // Вернуться к списку кругов
+      setSelectedCircle(null);
+      loadCircles();
+    } catch (error) {
+      console.error('❌ Ошибка отклонения:', error);
+      alert(language === 'kk' ? 'Қате шықты' : 'Произошла ошибка');
     }
   };
 
@@ -255,6 +325,40 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
           <span>🔑 {selectedCircle.inviteCode}</span>
         </div>
       </div>
+
+      {/* Баннер приглашения */}
+      {selectedCircle.members?.find(m => m.userId === userData.userId)?.status === 'pending' && (
+        <div className="bg-amber-50 border-2 border-amber-200 p-6 rounded-[2.5rem]">
+          <div className="flex items-center space-x-3 mb-4">
+            <span className="text-3xl">📨</span>
+            <div>
+              <h3 className="text-lg font-black text-amber-900">
+                {language === 'kk' ? 'Сізге шақыру келді!' : 'Вы приглашены!'}
+              </h3>
+              <p className="text-sm text-amber-700">
+                {language === 'kk' 
+                  ? 'Осы топқа қосылғыңыз келе ме?' 
+                  : 'Хотите присоединиться к этому кругу?'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex space-x-3">
+            <button
+              onClick={handleAcceptInvite}
+              className="flex-1 bg-emerald-600 text-white py-3 rounded-2xl font-black text-sm active:scale-95 transition-all shadow-lg"
+            >
+              ✅ {language === 'kk' ? 'Қабылдау' : 'Принять'}
+            </button>
+            <button
+              onClick={handleDeclineInvite}
+              className="flex-1 bg-slate-200 text-slate-700 py-3 rounded-2xl font-black text-sm active:scale-95 transition-all"
+            >
+              ❌ {language === 'kk' ? 'Бас тарту' : 'Отклонить'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Форма приглашения */}
       {showInviteForm && (
