@@ -383,7 +383,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
                 {userCircles.reduce((sum, c) => sum + (c.members?.filter((m: any) => m.status === 'active').length || 0), 0)}
               </span>
               <span className="text-slate-400">
-                {language === 'kk' ? 'мүше' : 'участников'}
+                {language === 'kk' ? 'қатысушы' : 'участников'}
               </span>
             </div>
           </div>

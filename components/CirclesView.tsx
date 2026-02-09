@@ -195,7 +195,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
         error.message === 'Circle not found' 
           ? (language === 'kk' ? 'Код табылмады' : 'Код не найден')
           : error.message === 'Already a member'
-          ? (language === 'kk' ? 'Сіз қазірдің өзінде мүшесіз' : 'Вы уже участник этого круга')
+          ? (language === 'kk' ? 'Сіз бұл топтың мүшесісіз' : 'Вы уже участник этого круга')
           : (language === 'kk' ? 'Қате орын алды' : 'Произошла ошибка')
       );
     } finally {
@@ -235,7 +235,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               onClick={() => setShowCreateForm(true)}
               className="flex-1 bg-emerald-600 text-white px-4 py-2.5 rounded-2xl text-sm font-black active:scale-95 transition-all shadow-lg"
             >
-              + {language === 'kk' ? 'Жасау' : 'Создать'}
+              + {language === 'kk' ? 'Жаңа топ' : 'Новый круг'}
             </button>
           </div>
         </div>
@@ -244,7 +244,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
         {showCreateForm && (
           <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
             <h3 className="text-lg font-black text-slate-800 mb-4">
-              {language === 'kk' ? 'Жаңа топ жасау' : 'Создать новый круг'}
+              {language === 'kk' ? 'Жаңа топ қосу' : 'Добавить новый круг'}
             </h3>
             
             <input
@@ -271,7 +271,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 disabled={!circleName.trim()}
                 className="flex-1 bg-emerald-600 text-white py-3 rounded-2xl font-black text-sm disabled:opacity-50 active:scale-95 transition-all"
               >
-                {language === 'kk' ? 'Жасау' : 'Создать'}
+                {language === 'kk' ? 'Қосу' : 'Добавить'}
               </button>
               <button
                 onClick={() => {
