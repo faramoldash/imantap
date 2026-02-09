@@ -96,7 +96,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 ←
               </button>
               <h2 className="text-xl font-black text-slate-800">
-                {language === 'kk' ? '🤝 Менің топтарым' : '🤝 Мои круги'}
+                {language === 'kk' ? 'Менің топтарым' : 'Мои круги'}
               </h2>
             </div>
             <button
@@ -208,30 +208,40 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   // Вид: Детали круга с прогрессом
   return (
     <div className="space-y-6 pb-8 pt-4">
-      {/* Заголовок */}
-      <div className="flex items-center justify-between px-2">
-        <button
-            onClick={() => {
-                if (selectedCircle) {
-                // Если внутри круга - вернуться к списку кругов
-                setSelectedCircle(null);
-                } else if (onNavigate) {
-                // Если в списке кругов - вернуться в профиль
-                onNavigate('profile');
-                }
-            }}
-            className="text-slate-600 font-bold text-sm"
-            >
-            ← {language === 'kk' ? 'Артқа' : 'Назад'}
-            </button>
-        {selectedCircle.ownerId === userData.userId && (
+      {/* Заголовок с фоном */}
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <div className="flex items-center justify-between">
           <button
-            onClick={() => setShowInviteForm(!showInviteForm)}
-            className="bg-emerald-600 text-white px-4 py-2 rounded-2xl text-sm font-black active:scale-95 transition-all"
+            onClick={() => {
+              if (selectedCircle) {
+                setSelectedCircle(null);
+              } else if (onNavigate) {
+                onNavigate('profile');
+              }
+            }}
+            className="text-slate-600 hover:text-slate-800 font-bold text-sm transition-colors"
           >
-            + {language === 'kk' ? 'Шақыру' : 'Пригласить'}
+            ← {language === 'kk' ? 'Артқа' : 'Назад'}
           </button>
-        )}
+          
+          <div className="flex items-center space-x-2">
+            <span className="text-xl">🤝</span>
+            <h2 className="text-lg font-black text-slate-800 truncate max-w-[150px]">
+              {selectedCircle.name}
+            </h2>
+          </div>
+          
+          {selectedCircle.ownerId === userData.userId ? (
+            <button
+              onClick={() => setShowInviteForm(!showInviteForm)}
+              className="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-black active:scale-95 transition-all shadow-lg"
+            >
+              + {language === 'kk' ? 'Шақыру' : 'Пригласить'}
+            </button>
+          ) : (
+            <div className="w-16"></div>
+          )}
+        </div>
       </div>
 
       {/* Инфо о круге */}
