@@ -22,6 +22,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   const [joinCode, setJoinCode] = useState('');
   const [joinError, setJoinError] = useState('');
   const [isJoining, setIsJoining] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Форма создания
   const [circleName, setCircleName] = useState('');
@@ -37,6 +38,23 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     loadCircles();
   }, [userData.userId]);
 
+  // Автообновление прогресса круга каждые 30 секунд
+  useEffect(() => {
+    if (!selectedCircle) return;
+    
+    console.log('⏰ Запущено автообновление для круга:', selectedCircle.circleId);
+    
+    const intervalId = setInterval(() => {
+      refreshCircleDetails(selectedCircle.circleId);
+    }, 30000); // 30 секунд
+    
+    // Очистка при размонтировании или смене круга
+    return () => {
+      console.log('🛑 Остановлено автообновление');
+      clearInterval(intervalId);
+    };
+  }, [selectedCircle?.circleId]);
+
   const loadCircles = async () => {
     setIsLoading(true);
     const userCircles = await getUserCircles(userData.userId);
@@ -48,6 +66,20 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   const loadCircleDetails = async (circleId: string) => {
     const details = await getCircleDetails(circleId, userData.userId);
     setSelectedCircle(details);
+  };
+
+  // Тихое обновление деталей круга (без загрузки)
+  const refreshCircleDetails = async (circleId: string) => {
+    try {
+      setIsRefreshing(true);
+      const details = await getCircleDetails(circleId, userData.userId);
+      setSelectedCircle(details);
+      console.log('🔄 Прогресс круга обновлен');
+    } catch (error) {
+      console.error('❌ Ошибка обновления:', error);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
   };
 
   // Создание круга
@@ -625,9 +657,27 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
 
       {/* Real-time прогресс участников */}
       <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">
-          {language === 'kk' ? 'Бүгінгі прогресс' : 'Прогресс сегодня'}
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">
+            {language === 'kk' ? 'Бүгінгі прогресс' : 'Прогресс сегодня'}
+          </h3>
+          
+          {/* Индикатор автообновления */}
+          <div className="flex items-center space-x-2">
+            <span 
+              className={`text-xs transition-all duration-300 ${
+                isRefreshing 
+                  ? 'text-emerald-600 animate-spin' 
+                  : 'text-slate-300'
+              }`}
+            >
+              🔄
+            </span>
+            <span className="text-[10px] text-slate-300">
+              {language === 'kk' ? 'Авто' : 'Авто'}
+            </span>
+          </div>
+        </div>
         
         <div className="space-y-3">
           {selectedCircle.membersWithProgress?.map((member: any) => (
