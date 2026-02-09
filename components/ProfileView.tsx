@@ -317,6 +317,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
            </div>
         </div>
       </div>
+      
     </div>
   );
 };
