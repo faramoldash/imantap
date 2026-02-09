@@ -264,7 +264,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 )}
                 
                 <div className="flex items-center space-x-4 text-xs text-slate-500">
-                  <span>👥 {circle.members.filter((m: any) => m.status === 'active').length} {language === 'kk' ? 'мүше' : 'участников'}</span>
+                  <span>👥 {circle.members.filter((m: any) => m.status === 'active').length} {language === 'kk' ? 'қатысушы' : 'участников'}</span>
                   <span>🔑 {circle.inviteCode}</span>
                 </div>
               </div>
@@ -321,7 +321,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
           <p className="text-sm text-emerald-100 mb-4">{selectedCircle.description}</p>
         )}
         <div className="flex items-center space-x-4 text-sm">
-          <span>👥 {selectedCircle.membersWithProgress?.length || 0} {language === 'kk' ? 'мүше' : 'участников'}</span>
+          <span>👥 {selectedCircle.membersWithProgress?.length || 0} {language === 'kk' ? 'қатысушы' : 'участников'}</span>
           <span>🔑 {selectedCircle.inviteCode}</span>
         </div>
       </div>
