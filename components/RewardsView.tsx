@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { UserData, Language } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
 import { getGlobalLeaderboard, getFriendsLeaderboard, getCountries, getCities } from '../src/services/api';
+import { translateName } from '../src/utils/translations';
 
 interface RewardsViewProps {
   userData: UserData;
@@ -267,7 +268,9 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
               >
                 <option value="">{language === 'kk' ? 'Елді таңдаңыз' : 'Выберите страну'}</option>
                 {countries.map(country => (
-                  <option key={country} value={country}>{country}</option>
+                  <option key={country} value={country}>
+                    {translateName(country, language, 'country')}
+                  </option>
                 ))}
               </select>
 
@@ -279,7 +282,9 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
                 >
                   <option value="">{language === 'kk' ? 'Қаланы таңдаңыз' : 'Выберите город'}</option>
                   {cities.map(city => (
-                    <option key={city} value={city}>{city}</option>
+                    <option key={city} value={city}>
+                      {translateName(city, language, 'city')}
+                    </option>
                   ))}
                 </select>
               )}
@@ -337,7 +342,9 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
                       <div className="flex items-center gap-2">
                         <p className="text-[10px] text-slate-400 font-bold">{user.xp} XP</p>
                         {user.location?.city && (
-                          <span className="text-[9px] text-slate-300">📍 {user.location.city}</span>
+                          <span className="text-[9px] text-slate-300">
+                            📍 {translateName(user.location.city, language, 'city')}
+                          </span>
                         )}
                       </div>
                     </div>
