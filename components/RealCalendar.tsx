@@ -256,9 +256,9 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               {(ramadanDay || prepDay) && !isLocked && progress > 0 && progress < 100 && (
                 <div className="absolute inset-1 rounded-lg bg-white flex items-center justify-center">
                   <div className="flex flex-col items-center">
-                    <span className={`text-sm font-bold ${textColor}`}>{date.getDate()}</span>
+                    <span className="text-sm font-bold text-slate-800">{date.getDate()}</span>
                     <span className={`text-[8px] font-black mt-0.5 ${
-                      isTaraweeh ? 'text-amber-500' : isRamadan ? 'text-emerald-600' : 'text-sky-600'
+                      isTaraweeh ? 'text-amber-600' : isRamadan ? 'text-emerald-600' : 'text-sky-600'
                     }`}>
                       {isTaraweeh ? '⭐' : ramadanDay || (prepDay && '📝')}
                     </span>
