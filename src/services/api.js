@@ -132,7 +132,7 @@ export async function getFriendsLeaderboard(userId, limit = 20) {
  */
 export async function getCountries() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/leaderboard/countries`);
+    const response = await fetch(`${API_BASE_URL}/api/countries`);  // ✅ ИСПРАВЛЕНО
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -141,7 +141,7 @@ export async function getCountries() {
     const data = await response.json();
     
     if (data.success) {
-      return data.data;
+      return data.data || [];
     } else {
       throw new Error(data.error || 'Failed to fetch countries');
     }
@@ -154,10 +154,13 @@ export async function getCountries() {
 /**
  * Получить список городов для фильтра
  */
-export async function getCities(country = null) {
+export async function getCities(country) {
   try {
-    const params = country ? `?country=${encodeURIComponent(country)}` : '';
-    const response = await fetch(`${API_BASE_URL}/api/leaderboard/cities${params}`);
+    if (!country) {
+      return [];
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/api/cities/${encodeURIComponent(country)}`);  // ✅ ИСПРАВЛЕНО
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -166,7 +169,7 @@ export async function getCities(country = null) {
     const data = await response.json();
     
     if (data.success) {
-      return data.data;
+      return data.data || [];
     } else {
       throw new Error(data.error || 'Failed to fetch cities');
     }
