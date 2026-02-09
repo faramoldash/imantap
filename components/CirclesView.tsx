@@ -9,6 +9,15 @@ interface CirclesViewProps {
   onNavigate?: (view: string) => void;
 }
 
+// CSS для вращения против часовой стрелки
+const spinReverseStyle = `
+  @keyframes spin-reverse {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
+`;
+
+
 const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigate }) => {
   const t = TRANSLATIONS[language];
   
@@ -359,7 +368,9 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   // Вид: Список кругов
   if (!selectedCircle) {
     return (
-      <div className="space-y-6 pb-8 pt-4">
+      <>
+        <style>{spinReverseStyle}</style>
+        <div className="space-y-6 pb-8 pt-4">
         {/* Заголовок с фоном */}
         <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
           <div className="flex items-center justify-between mb-3">
@@ -534,12 +545,16 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
           </div>
         )}
       </div>
-    );
-  }
+    </>
+  );
+}
+
 
   // Вид: Детали круга с прогрессом
   return (
-    <div className="space-y-6 pb-8 pt-4">
+    <>
+      <style>{spinReverseStyle}</style>
+      <div className="space-y-6 pb-8 pt-4">
       {/* Заголовок с фоном */}
       <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
         <div className="flex items-center justify-between">
@@ -667,9 +682,13 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
             <span 
               className={`text-xs transition-all duration-300 ${
                 isRefreshing 
-                  ? 'text-emerald-600 animate-spin' 
+                  ? 'text-emerald-600' 
                   : 'text-slate-300'
               }`}
+              style={isRefreshing ? {
+                display: 'inline-block',
+                animation: 'spin-reverse 1s linear infinite'
+              } : {}}
             >
               🔄
             </span>
@@ -748,7 +767,8 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
         )}
       </div>
     </div>
-  );
+  </>
+);
 };
 
 export default CirclesView;
