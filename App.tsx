@@ -126,10 +126,10 @@ const App: React.FC = () => {
     const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
     const diffTime = currentDate.getTime() - startDate.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    const isStarted = diffDays >= 1;
-    const currentDay = isStarted ? Math.min(diffDays, TOTAL_DAYS) : 1;
+    const isStarted = diffDays >= 0;
+    const currentDay = isStarted ? Math.min(diffDays, TOTAL_DAYS) : 0;
     
     const daysUntil = !isStarted ? Math.ceil((startDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
     
