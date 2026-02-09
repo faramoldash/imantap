@@ -317,6 +317,37 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     }
   };
 
+  // Расчет статистики круга
+  const getCircleStats = () => {
+    if (!selectedCircle?.membersWithProgress || selectedCircle.membersWithProgress.length === 0) {
+      return {
+        averageProgress: 0,
+        topMember: null,
+        activeMembers: 0
+      };
+    }
+    
+    const members = selectedCircle.membersWithProgress;
+    
+    // Средний прогресс
+    const totalProgress = members.reduce((sum: number, m: any) => sum + m.todayProgress.percent, 0);
+    const averageProgress = Math.round(totalProgress / members.length);
+    
+    // Самый активный участник
+    const topMember = members.reduce((best: any, current: any) => {
+      return current.todayProgress.percent > best.todayProgress.percent ? current : best;
+    }, members[0]);
+    
+    // Активные участники (кто выполнил хотя бы 1 задачу)
+    const activeMembers = members.filter((m: any) => m.todayProgress.completed > 0).length;
+    
+    return {
+      averageProgress,
+      topMember,
+      activeMembers
+    };
+  };
+
   // Присоединиться по коду
   const handleJoinByCode = async () => {
     if (!joinCode.trim() || isJoining) return;
@@ -607,6 +638,86 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
           <span>🔑 {selectedCircle.inviteCode}</span>
         </div>
       </div>
+
+      {/* Статистика круга */}
+      {(() => {
+        const stats = getCircleStats();
+        
+        return (
+          <div className="grid grid-cols-3 gap-3">
+            {/* Средний прогресс */}
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              <div className="text-2xl mb-1">📈</div>
+              <div className="text-2xl font-black text-slate-800">
+                {stats.averageProgress}%
+              </div>
+              <div className="text-[10px] text-slate-400 font-bold">
+                {language === 'kk' ? 'Орташа' : 'Средний'}
+              </div>
+            </div>
+            
+            {/* Лучший участник */}
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              <div className="text-2xl mb-1">🏆</div>
+              <div className="text-sm font-black text-slate-800 truncate">
+                {stats.topMember ? stats.topMember.name.split(' ')[0] : '-'}
+              </div>
+              <div className="text-[10px] text-slate-400 font-bold">
+                {language === 'kk' ? 'Үздік' : 'Лучший'}
+              </div>
+            </div>
+            
+            {/* Активные участники */}
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              <div className="text-2xl mb-1">⚡</div>
+              <div className="text-2xl font-black text-slate-800">
+                {stats.activeMembers}
+              </div>
+              <div className="text-[10px] text-slate-400 font-bold">
+                {language === 'kk' ? 'Белсенді' : 'Активных'}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Карточка лучшего участника дня */}
+      {(() => {
+        const stats = getCircleStats();
+        
+        if (!stats.topMember || stats.topMember.todayProgress.percent === 0) return null;
+        
+        return (
+          <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-6 rounded-[2.5rem] text-white shadow-xl">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center text-xl font-black">
+                  {stats.topMember.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-xs text-amber-100 font-bold">
+                    {language === 'kk' ? '🏆 Бүгінгі үздік' : '🏆 Лучший сегодня'}
+                  </p>
+                  <p className="text-lg font-black">
+                    {stats.topMember.name}
+                    {stats.topMember.userId === userData.userId && (
+                      <span className="text-[10px] bg-white/30 px-1.5 py-0.5 rounded-md ml-1">
+                        {language === 'kk' ? 'СІЗ' : 'ВЫ'}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-black">{stats.topMember.todayProgress.percent}%</div>
+                <div className="text-xs text-amber-100">
+                  {stats.topMember.todayProgress.completed}/{stats.topMember.todayProgress.total}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Баннер приглашения */}
       {selectedCircle.members?.find(m => m.userId === userData.userId)?.status === 'pending' && (
