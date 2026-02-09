@@ -859,7 +859,7 @@ const App: React.FC = () => {
         return <TasksList language={userData.language} userData={userData} setUserData={handleUserDataUpdate} />;
         
       case 'profile':
-        return <ProfileView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} />;
+        return <ProfileView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} onNavigate={setCurrentView} />;
         
       case 'names-99':
         return <NamesMemorizer language={userData.language} userData={userData} setUserData={handleUserDataUpdate} />;
