@@ -122,21 +122,27 @@ const App: React.FC = () => {
     const start = new Date(userData.startDate);
     const now = new Date();
     
+    // ✅ Убираем время из обеих дат (обнуляем до полуночи)
     const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
+    // ✅ Разница в днях
     const diffTime = currentDate.getTime() - startDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
+    // ✅ Рамадан начался если diffDays >= 0
     const isStarted = diffDays >= 0;
-    const currentDay = isStarted ? Math.min(diffDays, TOTAL_DAYS) : 0;
     
-    const daysUntil = !isStarted ? Math.ceil((startDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+    // ✅ Текущий день: если не начался = 0, если начался = diffDays + 1
+    const currentDay = isStarted ? Math.min(diffDays + 1, TOTAL_DAYS) : 0;
     
-    console.log('📅 RAMADAN STATUS:', {
+    // ✅ Дней до начала: если не начался = -diffDays, иначе 0
+    const daysUntil = !isStarted ? -diffDays : 0;
+    
+    console.log('🌙 RAMADAN STATUS', {
       userData_startDate: userData.startDate,
-      startDate: startDate.toISOString(),
-      currentDate: currentDate.toISOString(),
+      startDate: startDate.toISOString().split('T')[0],  // ✅ Показываем только дату
+      currentDate: currentDate.toISOString().split('T')[0],
       diffDays,
       isStarted,
       currentDay,
