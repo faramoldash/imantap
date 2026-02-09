@@ -77,6 +77,7 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
   const prepStartDate = new Date(PREPARATION_START_DATE);
   const currentDayDate = new Date(prepStartDate);
   currentDayDate.setDate(prepStartDate.getDate() + (day - 1));
+  currentDayDate.setHours(0, 0, 0, 0);
   const dayOfWeek = currentDayDate.getDay();
   
   const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
