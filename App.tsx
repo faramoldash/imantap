@@ -18,6 +18,9 @@ import PreparationTracker from './components/PreparationTracker';
 import BasicTracker from './components/BasicTracker';
 import { initTelegramApp, getTelegramUserId, getTelegramWebApp } from './src/utils/telegram';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
+import CirclesView from './components/CirclesView';
+import { getUserCircles } from './src/services/api';
+
 
 interface BackendUserData {
   userId: string;
@@ -115,6 +118,25 @@ const App: React.FC = () => {
     }
   }, [initialUserData]);
 
+  // Загрузка кругов пользователя
+  useEffect(() => {
+    const loadUserCircles = async () => {
+      const userId = getTelegramUserId();
+      if (!userId) return;
+      
+      try {
+        const circles = await getUserCircles(userId);
+        setUserCircles(circles || []);
+        console.log('🤝 Загружено кругов:', circles?.length || 0);
+      } catch (error) {
+        console.error('❌ Ошибка загрузки кругов:', error);
+        setUserCircles([]);
+      }
+    };
+    
+    loadUserCircles();
+  }, []);
+
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [newBadge, setNewBadge] = useState<typeof BADGES[0] | null>(null);
 
@@ -164,6 +186,7 @@ const App: React.FC = () => {
   const [selectedBasicDate, setSelectedBasicDate] = useState<Date | null>(null);
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const [userCircles, setUserCircles] = useState<any[]>([]);
 
   // SCROLL LOGIC - с сохранением позиций
   const scrollMemory = useRef<Record<string, number>>({});
@@ -843,6 +866,9 @@ const App: React.FC = () => {
         
       case 'rewards':
         return <RewardsView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} />;
+
+      case 'circles':
+        return <CirclesView userData={userData} language={userData.language} onNavigate={setCurrentView} />;
         
       default:
         return null;

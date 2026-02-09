@@ -178,3 +178,119 @@ export async function getCities(country) {
     return [];
   }
 }
+
+/**
+ * CIRCLES API
+ */
+
+/**
+ * Создать новый круг
+ */
+export async function createCircle(userId, name, description = '') {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/circles/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, name, description })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.circle;
+    } else {
+      throw new Error(data.error || 'Failed to create circle');
+    }
+  } catch (error) {
+    console.error('Error creating circle:', error);
+    return null;
+  }
+}
+
+/**
+ * Получить круги пользователя
+ */
+export async function getUserCircles(userId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/circles/user/${userId}`);
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Failed to fetch circles');
+    }
+  } catch (error) {
+    console.error('Error fetching circles:', error);
+    return [];
+  }
+}
+
+/**
+ * Получить детали круга с прогрессом
+ */
+export async function getCircleDetails(circleId, userId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/circles/${circleId}/details?userId=${userId}`);
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      throw new Error(data.error || 'Failed to fetch circle details');
+    }
+  } catch (error) {
+    console.error('Error fetching circle details:', error);
+    return null;
+  }
+}
+
+/**
+ * Пригласить пользователя в круг
+ */
+export async function inviteToCircle(circleId, inviterId, targetUsername) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/circles/invite`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ circleId, inviterId, targetUsername })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return true;
+    } else {
+      throw new Error(data.error || 'Failed to send invite');
+    }
+  } catch (error) {
+    console.error('Error inviting to circle:', error);
+    throw error;
+  }
+}
+
+/**
+ * Принять приглашение
+ */
+export async function acceptCircleInvite(circleId, userId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/circles/accept`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ circleId, userId })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      return true;
+    } else {
+      throw new Error(data.error || 'Failed to accept invite');
+    }
+  } catch (error) {
+    console.error('Error accepting invite:', error);
+    throw error;
+  }
+}

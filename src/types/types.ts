@@ -67,4 +67,4 @@ export interface UserData {
   _lastUpdate?: number; // Временная метка последнего обновления данных
 }
 
-export type ViewType = 'dashboard' | 'calendar' | 'quran' | 'tasks' | 'profile' | 'names-99' | 'rewards';
+export type ViewType = 'dashboard' | 'calendar' | 'quran' | 'tasks' | 'profile' | 'names-99' | 'rewards' | 'circles';

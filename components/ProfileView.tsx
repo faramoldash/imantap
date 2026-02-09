@@ -1,17 +1,38 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { UserData, Language, DayProgress } from '../src/types/types';
 import { TRANSLATIONS, XP_VALUES, BADGES } from '../constants';
+import { getUserCircles } from '../src/services/api';
 
 
 interface ProfileViewProps {
   userData: UserData;
   language: Language;
   setUserData: (data: UserData) => void;
+  onNavigate?: (view: string) => void;
 }
 
 
-const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserData }) => {
+const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserData, onNavigate }) => {
   const t = TRANSLATIONS[language];
+  const [userCircles, setUserCircles] = useState<any[]>([]);
+  const [isLoadingCircles, setIsLoadingCircles] = useState(false);
+
+  useEffect(() => {
+    const loadCircles = async () => {
+      setIsLoadingCircles(true);
+      try {
+        const circles = await getUserCircles(userData.userId);
+        setUserCircles(circles || []);
+      } catch (error) {
+        console.error('❌ Ошибка загрузки кругов:', error);
+      } finally {
+        setIsLoadingCircles(false);
+      }
+    };
+    
+    loadCircles();
+  }, [userData.userId]);
+
   const level = Math.floor(userData.xp / 1000) + 1;
   const levelName = t[`level${Math.min(level, 5)}`];
 
@@ -316,6 +337,63 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
               </div>
            </div>
         </div>
+      </div>
+
+      {/* 🤝 Мои круги */}
+      <div 
+        onClick={() => onNavigate && onNavigate('circles')}
+        className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 active:scale-[0.98] transition-all cursor-pointer"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-2xl">🤝</span>
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-800">
+                {language === 'kk' ? 'Менің топтарым' : 'Мои круги'}
+              </h3>
+              <p className="text-xs text-slate-400">
+                {language === 'kk' 
+                  ? 'Достармен бірге прогресс' 
+                  : 'Прогресс вместе с друзьями'}
+              </p>
+            </div>
+          </div>
+          <span className="text-2xl text-slate-300">→</span>
+        </div>
+        
+        {/* Статистика */}
+        {isLoadingCircles ? (
+          <div className="text-center py-2">
+            <div className="inline-block w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : userCircles.length > 0 ? (
+          <div className="flex items-center space-x-4 text-xs">
+            <div className="flex items-center space-x-1">
+              <span className="text-emerald-600 font-black text-base">
+                {userCircles.length}
+              </span>
+              <span className="text-slate-400">
+                {language === 'kk' ? 'топ' : userCircles.length === 1 ? 'круг' : 'кругов'}
+              </span>
+            </div>
+            <div className="flex items-center space-x-1">
+              <span className="text-emerald-600 font-black text-base">
+                {userCircles.reduce((sum, c) => sum + (c.members?.filter((m: any) => m.status === 'active').length || 0), 0)}
+              </span>
+              <span className="text-slate-400">
+                {language === 'kk' ? 'мүше' : 'участников'}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-slate-400 italic">
+            {language === 'kk' 
+              ? 'Әзірге топтар жоқ. Біріншіні жасаңыз!' 
+              : 'Пока нет кругов. Создайте первый!'}
+          </p>
+        )}
       </div>
       
     </div>
