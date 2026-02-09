@@ -155,6 +155,51 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     }
   };
 
+  // Выйти из круга
+  const handleLeaveCircle = async () => {
+    if (!selectedCircle) return;
+    
+    const confirmed = confirm(
+      language === 'kk' 
+        ? 'Топтан шығуға сенімдісіз бе?' 
+        : 'Вы уверены что хотите выйти из круга?'
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/leave`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          circleId: selectedCircle.circleId,
+          userId: userData.userId
+        })
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to leave circle');
+      }
+      
+      console.log('✅ Вышли из круга');
+      
+      // Вернуться к списку кругов
+      setSelectedCircle(null);
+      loadCircles();
+    } catch (error: any) {
+      console.error('❌ Ошибка выхода:', error);
+      
+      if (error.message.includes('Owner cannot leave')) {
+        alert(language === 'kk' 
+          ? 'Иесі топтан шыға алмайды. Топты жойыңыз.' 
+          : 'Владелец не может выйти из круга. Удалите круг.');
+      } else {
+        alert(language === 'kk' ? 'Қате шықты' : 'Произошла ошибка');
+      }
+    }
+  };
+
   // Присоединиться по коду
   const handleJoinByCode = async () => {
     if (!joinCode.trim() || isJoining) return;
@@ -418,7 +463,12 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               + {language === 'kk' ? 'Шақыру' : 'Пригласить'}
             </button>
           ) : (
-            <div className="w-16"></div>
+            <button
+              onClick={handleLeaveCircle}
+              className="bg-red-500 text-white px-3 py-2 rounded-xl text-xs font-black active:scale-95 transition-all shadow-lg"
+            >
+              🚪 {language === 'kk' ? 'Шығу' : 'Выйти'}
+            </button>
           )}
         </div>
       </div>
