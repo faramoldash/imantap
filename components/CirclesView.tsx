@@ -85,17 +85,27 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   if (!selectedCircle) {
     return (
       <div className="space-y-6 pb-8 pt-4">
-        {/* Заголовок */}
-        <div className="flex items-center justify-between px-2">
-          <h2 className="text-2xl font-black text-slate-800">
-            {language === 'kk' ? '🤝 Менің топтарым' : '🤝 Мои круги'}
-          </h2>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-emerald-600 text-white px-4 py-2 rounded-2xl text-sm font-black active:scale-95 transition-all"
-          >
-            + {language === 'kk' ? 'Жасау' : 'Создать'}
-          </button>
+        {/* Заголовок с фоном */}
+        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => onNavigate && onNavigate('profile')}
+                className="text-slate-600 hover:text-slate-800 font-bold text-sm transition-colors"
+              >
+                ←
+              </button>
+              <h2 className="text-xl font-black text-slate-800">
+                {language === 'kk' ? '🤝 Менің топтарым' : '🤝 Мои круги'}
+              </h2>
+            </div>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="bg-emerald-600 text-white px-4 py-2 rounded-2xl text-sm font-black active:scale-95 transition-all shadow-lg"
+            >
+              + {language === 'kk' ? 'Жасау' : 'Создать'}
+            </button>
+          </div>
         </div>
 
         {/* Форма создания */}
