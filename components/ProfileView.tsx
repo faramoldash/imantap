@@ -206,7 +206,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
 
 
   return (
-    <div className="space-y-6 pb-24 pt-4 animate-in fade-in slide-in-from-right duration-500">
+    <div className="space-y-6 pb-8 pt-4 animate-in fade-in slide-in-from-right duration-500">
       
       {/* Header / Profile Card */}
       <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 relative overflow-hidden">
@@ -317,49 +317,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
            </div>
         </div>
       </div>
-
-
-      {/* Redeem Promo Code */}
-      <div className={`p-8 rounded-[3rem] border transition-all ${userData.hasRedeemedReferral ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-slate-100 shadow-sm'}`}>
-        <h3 className="text-lg font-black uppercase mb-1 text-slate-800">{t.promoInputTitle}</h3>
-        
-        {userData.hasRedeemedReferral ? (
-            <div className="flex items-center space-x-2 mt-4 text-emerald-600">
-                <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">✓</div>
-                <p className="font-bold text-xs">{t.promoActivated}</p>
-            </div>
-        ) : (
-            <>
-                <p className="text-xs text-slate-400 mb-4">{t.promoInputDesc}</p>
-                <div className="flex space-x-2">
-                    <input 
-                        type="text" 
-                        value={promoInput}
-                        onChange={(e) => {
-                            setPromoInput(e.target.value);
-                            setPromoError('');
-                        }}
-                        disabled={isValidating}
-                        onFocus={handleInputFocus}
-                        placeholder={t.promoInputPlaceholder}
-                        maxLength={10}
-                        className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-black uppercase outline-none focus:border-emerald-500 transition-colors disabled:opacity-50"
-                    />
-                    <button 
-                        onClick={redeemPromoCode}
-                        disabled={!promoInput || isValidating}
-                        className="bg-slate-900 text-white px-4 rounded-2xl font-black text-xs disabled:opacity-50 transition-all active:scale-95"
-                    >
-                        {isValidating ? t.promoBtnChecking : t.promoBtnRedeem}
-                    </button>
-                </div>
-                {promoError && <p className="text-[10px] font-bold text-red-500 mt-2 ml-1">{promoError}</p>}
-                {promoSuccess && <p className="text-[10px] font-bold text-emerald-500 mt-2 ml-1 animate-pulse">{promoSuccess}</p>}
-            </>
-        )}
-      </div>
-
-
     </div>
   );
 };
