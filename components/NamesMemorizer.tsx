@@ -54,7 +54,7 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
   const hasNext = selectedId !== null && selectedId < 99;
 
   return (
-    <div className="space-y-6 pb-24 pt-4">
+    <div className="space-y-6 pb-8 pt-4">
       {/* Header with Stats */}
       <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl">
         <div className="absolute top-0 right-0 p-8 opacity-5">

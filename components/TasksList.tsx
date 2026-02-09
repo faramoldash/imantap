@@ -102,7 +102,7 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
   const overallPercent = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
 
   return (
-    <div className="space-y-6 pb-24 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 pb-8 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Daily Limits Summary Card */}
       <section className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">

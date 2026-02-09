@@ -181,7 +181,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
   };
 
   return (
-    <div className="space-y-6 pb-24 pt-4">
+    <div className="space-y-6 pb-8 pt-4">
       {/* Карточка уровня - НЕ скроллится */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">

@@ -45,7 +45,7 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
   };
 
   return (
-    <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 pb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* 1. Progress Summary or Khatam Button */}
       <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-50 flex flex-col items-center">
         <h3 className="text-lg font-black text-slate-800 mb-6 uppercase tracking-widest">{t.quranProgress}</h3>

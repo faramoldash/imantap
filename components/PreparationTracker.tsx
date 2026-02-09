@@ -187,7 +187,7 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
   ), [data, updateField, canEdit, t]);
 
   return (
-    <div className="space-y-6 pb-24">
+    <div className="space-y-6 pb-8">
       {/* Header */}
       <div className="bg-gradient-to-br from-sky-600 to-blue-600 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10">

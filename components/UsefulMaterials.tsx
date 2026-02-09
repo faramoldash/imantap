@@ -63,7 +63,7 @@ const UsefulMaterials: React.FC<UsefulMaterialsProps> = ({ language, setView }) 
 
   if (selectedMaterial) {
     return (
-      <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-right duration-300">
+      <div className="space-y-6 pb-8 animate-in fade-in slide-in-from-right duration-300">
         <div className="flex items-center justify-between sticky top-0 z-40 bg-slate-50/80 backdrop-blur-md py-4">
           <button 
             onClick={() => setSelectedId(null)}
