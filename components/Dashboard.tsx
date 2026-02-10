@@ -306,22 +306,26 @@ const Dashboard: React.FC<DashboardProps> = ({
   // ✅ Состояние для управления видимыми именами
   const [visibleNames, setVisibleNames] = useState<typeof NAMES_99>([]);
   const [fadingOutId, setFadingOutId] = useState<number | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // ✅ Инициализация имен
+  // ✅ Инициализация имен - только один раз!
   useEffect(() => {
-    const memorized = userData?.memorizedNames || [];
-    const unlearned = NAMES_99.filter(name => !memorized.includes(name.id));
-    
-    if (unlearned.length === 0) {
-      // Все выучены - показываем рандомные
-      const shuffled = [...NAMES_99].sort(() => Math.random() - 0.5);
-      setVisibleNames(shuffled.slice(0, 3));
-    } else {
-      // Есть невыученные
-      const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
-      setVisibleNames(shuffled.slice(0, 3));
+    if (!isInitialized) {
+      const memorized = userData?.memorizedNames || [];
+      const unlearned = NAMES_99.filter(name => !memorized.includes(name.id));
+      
+      if (unlearned.length === 0) {
+        // Все выучены - показываем рандомные
+        const shuffled = [...NAMES_99].sort(() => Math.random() - 0.5);
+        setVisibleNames(shuffled.slice(0, 3));
+      } else {
+        // Есть невыученные
+        const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
+        setVisibleNames(shuffled.slice(0, 3));
+      }
+      setIsInitialized(true);
     }
-  }, [userData?.memorizedNames]);
+  }, [isInitialized]);
 
   // Проверяем все ли имена выучены
   const allNamesLearned = (userData?.memorizedNames?.length || 0) === 99;
