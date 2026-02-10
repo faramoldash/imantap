@@ -880,6 +880,7 @@ const App: React.FC = () => {
             allProgress={userData.progress} 
             updateProgress={updateProgress}
             updatePreparationProgress={updatePreparationProgress}
+            updateBasicProgress={updateBasicProgress}
             language={userData.language} 
             onDaySelect={(d) => setSelectedDay(d)} 
             onPreparationDaySelect={(d) => setSelectedPreparationDay(d)} 

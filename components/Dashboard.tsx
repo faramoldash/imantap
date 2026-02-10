@@ -13,6 +13,7 @@ interface DashboardProps {
   language: Language;
   updateProgress: (day: number, updates: Partial<DayProgress>) => void;
   updatePreparationProgress: (day: number, updates: Partial<DayProgress>) => void;
+  updateBasicProgress?: (dateStr: string, updates: Partial<DayProgress>) => void;
   onDaySelect: (day: number) => void;
   onBasicDateSelect: (date: Date) => void;
   xp: number;
@@ -30,6 +31,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   allProgress, 
   updateProgress,
   updatePreparationProgress,
+  updateBasicProgress,
   language,
   onDaySelect,
   onPreparationDaySelect,
@@ -61,35 +63,103 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   }, [ramadanInfo.isStarted]);
 
-  // ✅ ОПРЕДЕЛЯЕМ ФАЗУ ВЫБРАННОГО ДНЯ
+  // ✅ ОПРЕДЕЛЯЕМ ФАЗУ И ДАТУ ВЫБРАННОГО ДНЯ
   const selectedDayInfo = useMemo(() => {
-    if (ramadanInfo.isStarted) {
-      return { phase: 'ramadan' as const, maxDays: 30 };
+    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+    const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+    
+    // Вычисляем абсолютный номер дня относительно начала подготовки
+    // selectedDay теперь может быть отрицательным (базовые дни)
+    const daysSincePrepStart = selectedDay;
+    
+    // Вычисляем реальную дату
+    const selectedDate = new Date(prepStart);
+    selectedDate.setDate(prepStart.getDate() + (daysSincePrepStart - 1));
+    
+    // Определяем фазу
+    let phase: 'basic' | 'preparation' | 'ramadan';
+    let dayInPhase: number;
+    
+    if (selectedDate < prepStart) {
+      // Базовый день (до подготовки)
+      phase = 'basic';
+      dayInPhase = selectedDay; // Номер может быть отрицательным
+    } else if (selectedDate < ramadanStart) {
+      // День подготовки
+      phase = 'preparation';
+      const daysSincePrep = Math.floor((selectedDate.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
+      dayInPhase = daysSincePrep + 1;
     } else {
-      return { phase: 'preparation' as const, maxDays: 10 };
+      // День Рамадана
+      phase = 'ramadan';
+      const daysSinceRamadan = Math.floor((selectedDate.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
+      dayInPhase = daysSinceRamadan + 1;
     }
-  }, [ramadanInfo.isStarted]);
+    
+    return { phase, dayInPhase, selectedDate };
+  }, [selectedDay]);
+
+  console.log('📅 SELECTED DAY INFO:', {
+    selectedDay,
+    phase: selectedDayInfo.phase,
+    dayInPhase: selectedDayInfo.dayInPhase,
+    date: selectedDayInfo.selectedDate.toISOString().split('T')[0]
+  });
 
   // ✅ ДАННЫЕ ОТОБРАЖАЕМОГО ДНЯ
   const displayedData = useMemo(() => {
     if (selectedDayInfo.phase === 'ramadan') {
-      return allProgress[selectedDay] || {};
+      return allProgress[selectedDayInfo.dayInPhase] || {};
     } else if (selectedDayInfo.phase === 'preparation') {
-      return userData?.preparationProgress?.[selectedDay] || {};
+      return userData?.preparationProgress?.[selectedDayInfo.dayInPhase] || {};
     } else {
-      return userData?.basicProgress?.[selectedDay] || {};
+      // Базовые дни - используем дату как ключ
+      const dateKey = selectedDayInfo.selectedDate.toISOString().split('T')[0];
+      return userData?.basicProgress?.[dateKey] || {};
     }
-  }, [selectedDay, selectedDayInfo.phase, allProgress, userData]);
+  }, [selectedDay, selectedDayInfo, allProgress, userData]);
 
   // ✅ ПРОВЕРКА - СЕГОДНЯШНИЙ ДЕНЬ?
-  const isToday = selectedDay === currentDay;
+  const isToday = useMemo(() => {
+    const almatyOffset = 5 * 60;
+    const now = new Date();
+    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
+    const today = new Date(almatyTime.getFullYear(), almatyTime.getMonth(), almatyTime.getDate());
+    const selected = new Date(selectedDayInfo.selectedDate.getFullYear(), selectedDayInfo.selectedDate.getMonth(), selectedDayInfo.selectedDate.getDate());
+    return today.getTime() === selected.getTime();
+  }, [selectedDayInfo.selectedDate]);
 
   // ✅ ПРОВЕРКА - БУДУЩИЙ ДЕНЬ?
-  const isFutureDay = selectedDay > currentDay;
+  const isFutureDay = useMemo(() => {
+    const almatyOffset = 5 * 60;
+    const now = new Date();
+    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
+    const today = new Date(almatyTime.getFullYear(), almatyTime.getMonth(), almatyTime.getDate());
+    const selected = new Date(selectedDayInfo.selectedDate.getFullYear(), selectedDayInfo.selectedDate.getMonth(), selectedDayInfo.selectedDate.getDate());
+    
+    // Первый день Рамадана всегда доступен для демо
+    const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+    const isFirstRamadanDay = selected.getTime() === ramadanStart.getTime();
+    
+    return selected > today && !isFirstRamadanDay;
+  }, [selectedDayInfo.selectedDate]);
 
   // ✅ НАВИГАЦИЯ
-  const canGoPrev = selectedDay > 1;
-  const canGoNext = selectedDay < selectedDayInfo.maxDays;
+  const canGoPrev = true; // Всегда можно листать назад
+  const canGoNext = useMemo(() => {
+    const almatyOffset = 5 * 60;
+    const now = new Date();
+    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
+    const today = new Date(almatyTime.getFullYear(), almatyTime.getMonth(), almatyTime.getDate());
+    const nextDay = new Date(selectedDayInfo.selectedDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    
+    // Можно листать до: сегодня + 1 день Рамадана (демо)
+    const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+    const isNextDayFirstRamadan = nextDay.getTime() === ramadanStart.getTime();
+    
+    return nextDay <= today || isNextDayFirstRamadan;
+  }, [selectedDayInfo.selectedDate]);
 
   const goToPrevDay = () => {
     if (canGoPrev) {
@@ -107,7 +177,17 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const goToToday = () => {
     haptics.medium();
-    onDaySelect(currentDay);
+    
+    // Вычисляем номер дня для текущей даты
+    const almatyOffset = 5 * 60;
+    const now = new Date();
+    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
+    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+    
+    const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
+    const todayDayNumber = daysSincePrep + 1;
+    
+    onDaySelect(todayDayNumber);
   };
 
   console.log('📅 DASHBOARD:', {
@@ -134,33 +214,35 @@ const Dashboard: React.FC<DashboardProps> = ({
     
     // ✅ Используем правильную функцию в зависимости от фазы
     if (selectedDayInfo.phase === 'ramadan') {
-      updateProgress(selectedDay, { [key]: !displayedData[key] });
+      updateProgress(selectedDayInfo.dayInPhase, { [key]: !displayedData[key] });
     } else if (selectedDayInfo.phase === 'preparation') {
-      updatePreparationProgress(selectedDay, { [key]: !displayedData[key] });
+      updatePreparationProgress(selectedDayInfo.dayInPhase, { [key]: !displayedData[key] });
+    } else {
+      // Базовый день - используем дату
+      const dateKey = selectedDayInfo.selectedDate.toISOString().split('T')[0];
+      if (updateBasicProgress) {
+        updateBasicProgress(dateKey, { [key]: !displayedData[key] });
+      }
     }
   };
 
-  const calculateProgress = (dayNum: number) => {
-    let dayData;
+  const calculateProgress = () => {
     let keys;
     
     if (selectedDayInfo.phase === 'ramadan') {
-      dayData = allProgress[dayNum];
       keys = TRACKER_KEYS;
-    } else if (selectedDayInfo.phase === 'preparation') {
-      dayData = userData?.preparationProgress?.[dayNum];
+    } else if (selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') {
       keys = PREPARATION_TRACKER_KEYS;
     } else {
-      dayData = userData?.basicProgress?.[dayNum];
       keys = TRACKER_KEYS;
     }
     
-    if (!dayData) return 0;
-    const completed = keys.filter(key => dayData[key as keyof DayProgress]).length;
+    if (!displayedData) return 0;
+    const completed = keys.filter(key => displayedData[key as keyof DayProgress]).length;
     return Math.round((completed / keys.length) * 100);
   };
 
-  const selectedDayProgress = calculateProgress(selectedDay);
+  const selectedDayProgress = calculateProgress();
 
   const toggleMemorized = (id: number, e?: React.MouseEvent<HTMLElement>) => {
     if (!userData || !setUserData) return;
@@ -350,11 +432,16 @@ const Dashboard: React.FC<DashboardProps> = ({
             <p className="text-[10px] font-black uppercase tracking-widest opacity-90 mb-2">
               {selectedDayInfo.phase === 'ramadan'
                 ? (language === 'kk' ? 'Рамазан' : 'Рамадан')
-                : (language === 'kk' ? 'Рамазанға дайындық' : 'Подготовка к Рамадану')}
+                : selectedDayInfo.phase === 'preparation'
+                ? (language === 'kk' ? 'Рамазанға дайындық' : 'Подготовка к Рамадану')
+                : (language === 'kk' ? 'Базалық трекер' : 'Базовый трекер')}
             </p>
+            
             <div className="flex items-center justify-center gap-2">
               <h1 className="text-2xl font-black">
-                {language === 'kk' ? 'Күн' : 'День'} {selectedDay}
+                {selectedDayInfo.phase === 'basic' 
+                  ? (language === 'kk' ? 'Күн' : 'День')
+                  : (language === 'kk' ? 'Күн' : 'День')} {selectedDayInfo.dayInPhase}
               </h1>
               {isToday && (
                 <span className="bg-amber-500/20 backdrop-blur-sm text-amber-300 px-2 py-1 rounded-xl text-[10px] font-black uppercase border border-amber-300/30">
@@ -367,17 +454,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </span>
               )}
             </div>
+            
             <p className="text-sm font-bold opacity-90 mt-2">
               {(() => {
-                let startDate;
-                if (selectedDayInfo.phase === 'ramadan') {
-                  startDate = new Date(RAMADAN_START_DATE);
-                } else {
-                  startDate = new Date(PREPARATION_START_DATE);
-                }
-                
-                const currentDayDate = new Date(startDate);
-                currentDayDate.setDate(startDate.getDate() + (selectedDay - 1));
+                const currentDayDate = selectedDayInfo.selectedDate;
                 
                 const monthNames = language === 'kk' 
                   ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
@@ -390,15 +470,12 @@ const Dashboard: React.FC<DashboardProps> = ({
               })()}
             </p>
             
-            {/* Бейджи для подготовки */}
-            {selectedDayInfo.phase === 'preparation' && (() => {
-              const prepStartDate = new Date(PREPARATION_START_DATE);
-              const currentDayDate = new Date(prepStartDate);
-              currentDayDate.setDate(prepStartDate.getDate() + (selectedDay - 1));
-              const dayOfWeek = currentDayDate.getDay();
+            {/* Бейджи для подготовки и базовых дней */}
+            {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
+              const dayOfWeek = selectedDayInfo.selectedDate.getDay();
               const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
               const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
-              const isFirstTaraweehDay = currentDayDate.getTime() === firstTaraweehDate.getTime();
+              const isFirstTaraweehDay = selectedDayInfo.selectedDate.getTime() === firstTaraweehDate.getTime();
               
               return (
                 <div className="flex justify-center gap-2 flex-wrap mt-3">
@@ -422,15 +499,19 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Ораза */}
       {(() => {
         let showFasting = false;
+        let fastingType = '';
         
         if (selectedDayInfo.phase === 'ramadan') {
           showFasting = true;
+          fastingType = language === 'kk' ? 'Міндетті ораза' : 'Обязательная ораза';
         } else if (selectedDayInfo.phase === 'preparation') {
-          const prepStartDate = new Date(PREPARATION_START_DATE);
-          const currentDayDate = new Date(prepStartDate);
-          currentDayDate.setDate(prepStartDate.getDate() + (selectedDay - 1));
-          const dayOfWeek = currentDayDate.getDay();
+          const dayOfWeek = selectedDayInfo.selectedDate.getDay();
           showFasting = dayOfWeek === 1 || dayOfWeek === 4;
+          fastingType = language === 'kk' ? 'Сүннет ораза' : 'Сунна ораза';
+        } else if (selectedDayInfo.phase === 'basic') {
+          const dayOfWeek = selectedDayInfo.selectedDate.getDay();
+          showFasting = dayOfWeek === 1 || dayOfWeek === 4;
+          fastingType = language === 'kk' ? 'Сүннет ораза (Дүйсенбі/Бейсенбі)' : 'Сунна ораза (пн/чт)';
         }
         
         if (!showFasting) return null;
@@ -447,9 +528,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     {language === 'kk' ? 'Ораза' : 'Ораза'}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {selectedDayInfo.phase === 'ramadan'
-                      ? (language === 'kk' ? 'Міндетті ораза' : 'Обязательная ораза')
-                      : (language === 'kk' ? 'Сүннет ораза' : 'Сунна ораза')}
+                    {fastingType}
                   </p>
                 </div>
               </div>
@@ -490,12 +569,9 @@ const Dashboard: React.FC<DashboardProps> = ({
               <ItemButton id="witr" icon={<span className="text-2xl">✨</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
             </>
           )}
-          {selectedDayInfo.phase === 'preparation' && (() => {
-            const prepStartDate = new Date(PREPARATION_START_DATE);
-            const currentDayDate = new Date(prepStartDate);
-            currentDayDate.setDate(prepStartDate.getDate() + (selectedDay - 1));
+          {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
             const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
-            const isFirstTaraweehDay = currentDayDate.getTime() === firstTaraweehDate.getTime();
+            const isFirstTaraweehDay = selectedDayInfo.selectedDate.getTime() === firstTaraweehDate.getTime();
             
             return isFirstTaraweehDay ? (
               <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
@@ -513,7 +589,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           <ItemButton id="quranRead" icon={<span className="text-2xl">📖</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
           <ItemButton id="morningDhikr" icon={<span className="text-2xl">🤲</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
           <ItemButton id="eveningDhikr" icon={<span className="text-2xl">🌙</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          {selectedDayInfo.phase === 'preparation' && (
+          {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (
             <>
               <ItemButton id="salawat" icon={<span className="text-2xl">☪️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
               <ItemButton id="hadith" icon={<span className="text-2xl">📜</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
@@ -646,7 +722,10 @@ const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex items-end justify-between mb-3">
             <div>
               <p className="text-5xl font-black leading-none">
-                {(selectedDayInfo.phase === 'ramadan' ? TRACKER_KEYS : PREPARATION_TRACKER_KEYS).filter(k => displayedData[k as keyof DayProgress]).length}
+                {(() => {
+                  const keys = selectedDayInfo.phase === 'ramadan' ? TRACKER_KEYS : PREPARATION_TRACKER_KEYS;
+                  return keys.filter(k => displayedData[k as keyof DayProgress]).length;
+                })()}
               </p>
               <p className="text-sm font-bold text-white/60 mt-1">
                 / {selectedDayInfo.phase === 'ramadan' ? TRACKER_KEYS.length : PREPARATION_TRACKER_KEYS.length} {language === 'kk' ? 'тапсырма' : 'задач'}
