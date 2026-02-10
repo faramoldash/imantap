@@ -26,6 +26,8 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [showInviteMenu, setShowInviteMenu] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteModalStep, setInviteModalStep] = useState<'choice' | 'username'>('choice');
   const [isAcceptingInvite, setIsAcceptingInvite] = useState(false);
   const [showJoinForm, setShowJoinForm] = useState(false);
   const [joinCode, setJoinCode] = useState('');
@@ -398,19 +400,16 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               <div className="relative">
                 {selectedCircle.ownerId === userData.userId ? (
                   <>
-                    <button onClick={(e) => { e.stopPropagation(); setShowInviteMenu(!showInviteMenu); }} className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-xl text-xs font-black active:scale-95 transition-all">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowInviteModal(true);
+                        setInviteModalStep('choice');
+                      }}
+                      className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-xl text-xs font-black active:scale-95 transition-all"
+                    >
                       + {language === 'kk' ? 'Шақыру' : 'Пригласить'}
                     </button>
-                    {showInviteMenu && (
-                      <div className="absolute top-12 right-0 bg-white rounded-2xl shadow-xl overflow-hidden z-10 min-w-[200px]">
-                        <button onClick={(e) => { e.stopPropagation(); setShowInviteMenu(false); handleShareInvite(); }} className="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors flex items-center space-x-2">
-                          <span>📤</span><span>{language === 'kk' ? 'Бөлісу' : 'Поделиться'}</span>
-                        </button>
-                        <button onClick={(e) => { e.stopPropagation(); setShowInviteMenu(false); setShowInviteForm(true); }} className="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors flex items-center space-x-2 border-t border-slate-100">
-                          <span>👤</span><span>{language === 'kk' ? 'Username арқылы' : 'По username'}</span>
-                        </button>
-                      </div>
-                    )}
                   </>
                 ) : (
                   <button onClick={handleLeaveCircle} className="bg-red-500/80 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-black active:scale-95 transition-all">
@@ -480,21 +479,6 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
           </div>
         )}
 
-        {/* Форма приглашения */}
-        {showInviteForm && (
-          <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-            <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">
-              {language === 'kk' ? 'Қолданушыны шақыру' : 'Пригласить пользователя'}
-            </h3>
-            <input type="text" value={inviteUsername} onChange={(e) => setInviteUsername(e.target.value)} placeholder="@username" className="w-full bg-slate-50 border-none rounded-2xl px-4 py-3 text-sm font-bold mb-3 outline-none focus:ring-2 ring-emerald-500 transition-all" />
-            <button onClick={handleInvite} disabled={!inviteUsername.trim()} className="w-full bg-emerald-600 text-white py-3 rounded-2xl font-black text-sm disabled:opacity-50 active:scale-95 transition-all shadow-lg">
-              {language === 'kk' ? 'Жіберу' : 'Отправить'}
-            </button>
-            {inviteError && <p className="text-xs text-red-500 mt-2">{inviteError}</p>}
-            {inviteSuccess && <p className="text-xs text-emerald-600 mt-2">{inviteSuccess}</p>}
-          </div>
-        )}
-
         {/* Участники */}
         <div className="bg-white p-6 rounded-[3rem] shadow-sm border border-slate-100">
           <div className="flex items-center justify-between mb-5">
@@ -550,7 +534,10 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
             <div className="space-y-2 mt-4">
               {/* Кнопка пригласить */}
               <button 
-                onClick={() => setShowInviteMenu(!showInviteMenu)} 
+                onClick={() => {
+                  setShowInviteModal(true);
+                  setInviteModalStep('choice');
+                }} 
                 className="w-full px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black text-sm active:scale-95 transition-all hover:bg-emerald-700 shadow-lg"
               >
                 + {language === 'kk' ? 'Шақыру' : 'Пригласить'}
@@ -566,6 +553,118 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
             </div>
           )}
         </div>
+        {/* Модальное окно приглашения */}
+        {showInviteModal && (
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" 
+            onClick={() => {
+              setShowInviteModal(false);
+              setInviteModalStep('choice');
+              setInviteUsername('');
+              setInviteError('');
+              setInviteSuccess('');
+            }}
+          >
+            <div 
+              className="bg-white rounded-[2.5rem] p-6 w-full max-w-sm shadow-2xl animate-in zoom-in duration-300" 
+              onClick={(e) => e.stopPropagation()}
+            >
+              
+              {/* Выбор способа */}
+              {inviteModalStep === 'choice' && (
+                <>
+                  <h3 className="text-lg font-black text-slate-800 mb-6 text-center">
+                    {language === 'kk' ? 'Шақыру жіберу' : 'Отправить приглашение'}
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    {/* Кнопка 1: Поделиться */}
+                    <button
+                      onClick={() => {
+                        handleShareInvite();
+                        setShowInviteModal(false);
+                      }}
+                      className="w-full flex items-center space-x-4 p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-[1.5rem] font-bold text-sm active:scale-95 transition-all shadow-lg"
+                    >
+                      <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">
+                        📤
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-black">{language === 'kk' ? 'Жеке хабарлама жіберу' : 'Отправить личное сообщение'}</p>
+                        <p className="text-xs text-blue-100 font-medium">{language === 'kk' ? 'Telegram арқылы' : 'Через Telegram'}</p>
+                      </div>
+                    </button>
+                    
+                    {/* Кнопка 2: По username */}
+                    <button
+                      onClick={() => setInviteModalStep('username')}
+                      className="w-full flex items-center space-x-4 p-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-[1.5rem] font-bold text-sm active:scale-95 transition-all shadow-lg"
+                    >
+                      <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">
+                        👤
+                      </div>
+                      <div className="flex-1 text-left">
+                        <p className="font-black">{language === 'kk' ? 'Username арқылы' : 'По username'}</p>
+                        <p className="text-xs text-emerald-100 font-medium">{language === 'kk' ? '@username енгізіңіз' : 'Введите @username'}</p>
+                      </div>
+                    </button>
+                  </div>
+                  
+                  <button
+                    onClick={() => setShowInviteModal(false)}
+                    className="w-full mt-4 py-3 bg-slate-100 text-slate-600 rounded-2xl font-black text-sm active:scale-95 transition-all"
+                  >
+                    {language === 'kk' ? 'Болдырмау' : 'Отмена'}
+                  </button>
+                </>
+              )}
+              
+              {/* Форма ввода username */}
+              {inviteModalStep === 'username' && (
+                <>
+                  <button
+                    onClick={() => {
+                      setInviteModalStep('choice');
+                      setInviteUsername('');
+                      setInviteError('');
+                      setInviteSuccess('');
+                    }}
+                    className="text-slate-600 hover:text-slate-800 font-bold text-sm mb-4 transition-colors"
+                  >
+                    ← {language === 'kk' ? 'Артқа' : 'Назад'}
+                  </button>
+                  
+                  <h3 className="text-lg font-black text-slate-800 mb-2">
+                    {language === 'kk' ? 'Username енгізіңіз' : 'Введите username'}
+                  </h3>
+                  <p className="text-xs text-slate-400 mb-4">
+                    {language === 'kk' ? 'Telegram username арқылы шақыру жіберу' : 'Отправить приглашение по Telegram username'}
+                  </p>
+                  
+                  <input
+                    type="text"
+                    value={inviteUsername}
+                    onChange={(e) => setInviteUsername(e.target.value)}
+                    placeholder="@username"
+                    className="w-full bg-slate-50 border-none rounded-2xl px-4 py-3 text-sm font-bold mb-3 outline-none focus:ring-2 ring-emerald-500 transition-all"
+                    autoFocus
+                  />
+                  
+                  {inviteError && <p className="text-xs text-red-500 mb-3">{inviteError}</p>}
+                  {inviteSuccess && <p className="text-xs text-emerald-600 mb-3">{inviteSuccess}</p>}
+                  
+                  <button
+                    onClick={handleInvite}
+                    disabled={!inviteUsername.trim()}
+                    className="w-full bg-emerald-600 text-white py-3 rounded-2xl font-black text-sm disabled:opacity-50 active:scale-95 transition-all shadow-lg"
+                  >
+                    {language === 'kk' ? 'Жіберу' : 'Отправить'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
