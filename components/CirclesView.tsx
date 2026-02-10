@@ -26,6 +26,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   const [isLoading, setIsLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showInviteForm, setShowInviteForm] = useState(false);
+  const [showInviteMenu, setShowInviteMenu] = useState(false);
   const [isAcceptingInvite, setIsAcceptingInvite] = useState(false);
   const [showJoinForm, setShowJoinForm] = useState(false);
   const [joinCode, setJoinCode] = useState('');
@@ -63,6 +64,23 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
       clearInterval(intervalId);
     };
   }, [selectedCircle?.circleId]);
+
+  // Закрытие меню при клике вне
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showInviteMenu) {
+        setShowInviteMenu(false);
+      }
+    };
+    
+    if (showInviteMenu) {
+      document.addEventListener('click', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [showInviteMenu]);
 
   const loadCircles = async () => {
     setIsLoading(true);
@@ -348,6 +366,34 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     };
   };
 
+  // Поделиться приглашением в круг
+  const handleShareInvite = () => {
+    if (!selectedCircle) return;
+    
+    // Формируем текст приглашения
+    const shareText = 
+      `🤝 ${language === 'kk' ? 'Менің тобыма қосыл' : 'Присоединяйся к моему кругу'} ImanTap!\n\n` +
+      `📝 "${selectedCircle.name}"\n` +
+      (selectedCircle.description ? `💬 ${selectedCircle.description}\n` : '') +
+      `🔑 ${language === 'kk' ? 'Код' : 'Код'}: ${selectedCircle.inviteCode}\n\n` +
+      `${language === 'kk' 
+        ? '@imantap_bot ботын аш және кодты енгіз!' 
+        : 'Открой бот @imantap_bot и введи код!'}`;
+    
+    // Открываем Telegram Share
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(`https://t.me/${process.env.BOT_USERNAME || 'imantap_bot'}`)}&text=${encodeURIComponent(shareText)}`;
+    
+    // Используем Telegram WebApp API если доступен
+    if (window.Telegram?.WebApp) {
+      window.Telegram.WebApp.openTelegramLink(shareUrl);
+    } else {
+      // Fallback: открываем в новом окне
+      window.open(shareUrl, '_blank');
+    }
+    
+    console.log('📤 Открыт диалог шаринга приглашения');
+  };
+
   // Присоединиться по коду
   const handleJoinByCode = async () => {
     if (!joinCode.trim() || isJoining) return;
@@ -586,53 +632,81 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     <>
       <style>{spinReverseStyle}</style>
       <div className="space-y-6 pb-8 pt-4">
-      {/* Заголовок с фоном */}
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
-        <div className="flex items-center justify-between">
+
+      {/* Инфо о круге */}
+      <div className="bg-gradient-to-br from-emerald-600 to-teal-600 p-6 rounded-[3rem] text-white shadow-xl">
+        {/* Шапка с кнопкой назад и действиями */}
+        <div className="flex items-center justify-between mb-6">
           <button
-            onClick={() => {
-              if (selectedCircle) {
-                setSelectedCircle(null);
-              } else if (onNavigate) {
-                onNavigate('profile');
-              }
-            }}
-            className="text-slate-600 hover:text-slate-800 font-bold text-sm transition-colors"
+            onClick={() => setSelectedCircle(null)}
+            className="text-white/80 hover:text-white font-bold text-sm transition-colors"
           >
             ← {language === 'kk' ? 'Артқа' : 'Назад'}
           </button>
           
-          <div className="flex items-center space-x-2">
-            <span className="text-xl">🤝</span>
-            <h2 className="text-lg font-black text-slate-800 truncate max-w-[150px]">
-              {selectedCircle.name}
-            </h2>
+          {/* Кнопки действий */}
+          <div className="flex items-center space-x-2 relative">
+            {selectedCircle.ownerId === userData.userId ? (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowInviteMenu(!showInviteMenu);
+                  }}
+                  className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-xl text-xs font-black active:scale-95 transition-all"
+                >
+                  + {language === 'kk' ? 'Шақыру' : 'Пригласить'}
+                </button>
+                
+                {/* Выпадающее меню */}
+                {showInviteMenu && (
+                  <div className="absolute top-12 right-0 bg-white rounded-2xl shadow-xl overflow-hidden z-10 min-w-[200px]">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowInviteMenu(false);
+                        handleShareInvite();
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors flex items-center space-x-2"
+                    >
+                      <span>📤</span>
+                      <span>{language === 'kk' ? 'Бөлісу' : 'Поделиться'}</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowInviteMenu(false);
+                        setShowInviteForm(true);
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors flex items-center space-x-2 border-t border-slate-100"
+                    >
+                      <span>👤</span>
+                      <span>{language === 'kk' ? 'Username арқылы' : 'По username'}</span>
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <button
+                onClick={handleLeaveCircle}
+                className="bg-red-500/80 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-black active:scale-95 transition-all"
+              >
+                🚪 {language === 'kk' ? 'Шығу' : 'Выйти'}
+              </button>
+            )}
           </div>
-          
-          {selectedCircle.ownerId === userData.userId ? (
-            <button
-              onClick={() => setShowInviteForm(!showInviteForm)}
-              className="bg-emerald-600 text-white px-3 py-2 rounded-xl text-xs font-black active:scale-95 transition-all shadow-lg"
-            >
-              + {language === 'kk' ? 'Шақыру' : 'Пригласить'}
-            </button>
-          ) : (
-            <button
-              onClick={handleLeaveCircle}
-              className="bg-red-500 text-white px-3 py-2 rounded-xl text-xs font-black active:scale-95 transition-all shadow-lg"
-            >
-              🚪 {language === 'kk' ? 'Шығу' : 'Выйти'}
-            </button>
-          )}
         </div>
-      </div>
-
-      {/* Инфо о круге */}
-      <div className="bg-gradient-to-br from-emerald-600 to-teal-600 p-8 rounded-[3rem] text-white shadow-xl">
-        <h2 className="text-2xl font-black mb-2">{selectedCircle.name}</h2>
+        
+        {/* Информация о круге */}
+        <div className="flex items-center space-x-3 mb-3">
+          <span className="text-3xl">🤝</span>
+          <h2 className="text-2xl font-black">{selectedCircle.name}</h2>
+        </div>
+        
         {selectedCircle.description && (
           <p className="text-sm text-emerald-100 mb-4">{selectedCircle.description}</p>
         )}
+        
         <div className="flex items-center space-x-4 text-sm">
           <span>👥 {selectedCircle.membersWithProgress?.length || 0} {language === 'kk' ? 'қатысушы' : 'участников'}</span>
           <span>🔑 {selectedCircle.inviteCode}</span>
