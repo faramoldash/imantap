@@ -181,7 +181,7 @@ const App: React.FC = () => {
   }, [calculateRamadanStatus]);
 
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
-  const [selectedDay, setSelectedDay] = useState<number>(ramadanInfo.currentDay);
+  const [selectedDay, setSelectedDay] = useState<number>(1);
   const [realTodayDay, setRealTodayDay] = useState<number>(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
   const [selectedBasicDate, setSelectedBasicDate] = useState<Date | null>(null);
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
@@ -219,11 +219,15 @@ const App: React.FC = () => {
     // ✅ Обновляем realTodayDay синхронно с ramadanInfo
     setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
     
+    // ✅ ВАЖНО: Синхронизируем selectedDay с текущим днем
+    setSelectedDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : Math.abs(ramadanInfo.daysUntil) + 1);
+    
     // ✅ Обновляем каждые 60 секунд
     const interval = setInterval(() => {
       const newStatus = calculateRamadanStatus();
       console.log('📅 RAMADAN INFO UPDATE:', newStatus);
       setRealTodayDay(newStatus.isStarted ? newStatus.currentDay : 0);
+      setSelectedDay(newStatus.isStarted ? newStatus.currentDay : Math.abs(newStatus.daysUntil) + 1);
     }, 60000);
     
     return () => clearInterval(interval);
