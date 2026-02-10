@@ -19,7 +19,7 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
   onBack
 }) => {
   const t = language === 'kk' ? {
-    title: 'Рамазанға дайындық',
+    title: 'Рамазанға',
     backButton: 'Артқа',
     day: 'Күн',
     fasting: 'Ораза',

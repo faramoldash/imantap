@@ -427,8 +427,8 @@ const Dashboard: React.FC<DashboardProps> = ({
               {selectedDayInfo.phase === 'ramadan'
                 ? (language === 'kk' ? 'Рамазан' : 'Рамадан')
                 : selectedDayInfo.phase === 'preparation'
-                ? (language === 'kk' ? 'Рамазанға дайындық' : 'Подготовка к Рамадану')
-                : (language === 'kk' ? 'Базалық трекер' : 'Базовый трекер')}
+                ? (language === 'kk' ? 'Рамазанға' : 'Подготовка к Рамадану')
+                : (language === 'kk' ? 'трекер' : 'трекер')}
             </p>
             
             <div className="flex items-center justify-center gap-2">
@@ -440,7 +440,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <h1 className="text-2xl font-black">
                   {selectedDayInfo.phase === 'preparation' 
                     ? (language === 'kk' ? 'Дайындық' : 'Подготовка')
-                    : (language === 'kk' ? 'Базалық трекер' : 'Базовый трекер')}
+                    : (language === 'kk' ? 'трекер' : 'трекер')}
                 </h1>
               )}
               {isToday && (
