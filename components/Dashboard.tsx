@@ -624,7 +624,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       {isToday && (
         <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-8 rounded-[3rem] shadow-2xl text-white relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-10 opacity-5 text-9xl font-serif pointer-events-none group-hover:scale-110 transition-transform duration-1000">
-            {visibleNames[0]?.arabic}
+            الله
           </div>
           <div className="relative z-10">
             <div className="flex justify-between items-center mb-6">
