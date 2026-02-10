@@ -242,6 +242,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const selectedDayProgress = calculateProgress();
 
   const toggleMemorized = (id: number, e?: React.MouseEvent<HTMLElement>) => {
+    console.log('🔍 Clicked on:', id);
     if (!userData || !setUserData) return;
     
     // Если все выучены - ничего не делаем (режим повторения)
@@ -267,15 +268,18 @@ const Dashboard: React.FC<DashboardProps> = ({
     
     // Анимация исчезновения
     setFadingOutId(id);
+    console.log('🎬 Fading out:', id);
     
-    // Через 300мс заменяем имя на той же позиции
+    // Через 1000мс заменяем имя на той же позиции
     setTimeout(() => {
       const memorized = next;
       const unlearned = NAMES_99.filter(name => !memorized.includes(name.id));
       
       setVisibleNames(prev => {
+        console.log('🔄 Current visible:', prev.map(n => n.id));
         // Находим индекс кликнутого имени
         const clickedIndex = prev.findIndex(n => n.id === id);
+        console.log('📍 Clicked index:', clickedIndex);
         
         if (unlearned.length === 0) {
           // Все выучены - режим повторения, не заменяем
@@ -284,16 +288,19 @@ const Dashboard: React.FC<DashboardProps> = ({
           // Берем новое невыученное (не из текущих видимых)
           const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
           const newName = shuffled.find(n => !prev.find(v => v.id === n.id)) || shuffled[0];
+          console.log('✨ New name:', newName.id);
           
           // Заменяем имя на той же позиции
           const newVisible = [...prev];
           newVisible[clickedIndex] = newName;
+          console.log('📋 New visible:', newVisible.map(n => n.id));
           return newVisible;
         }
       });
       
       setFadingOutId(null);
-    }, 300);
+      console.log('✅ Fading complete');
+    }, 1000);
   };
 
   // ✅ Состояние для управления видимыми именами
@@ -641,16 +648,16 @@ const Dashboard: React.FC<DashboardProps> = ({
             )}
             
             <div className="grid grid-cols-1 gap-3">
-              {visibleNames.map((name) => {
+              {visibleNames.map((name, index) => {
                 const isLearned = userData?.memorizedNames?.includes(name.id);
                 const isFading = fadingOutId === name.id;
                 
                 return (
                   <div 
-                    key={name.id} 
+                    key={`${name.id}-${index}`}
                     onClick={(e) => !allNamesLearned && toggleMemorized(name.id, e)} 
-                    className={`flex items-center justify-between p-4 rounded-[1.8rem] border transition-all duration-300 ${
-                      isFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                    className={`flex items-center justify-between p-4 rounded-[1.8rem] border transition-all duration-500 ease-out ${
+                      isFading ? 'opacity-0 scale-95 translate-x-4' : 'opacity-100 scale-100 translate-x-0'
                     } ${
                       allNamesLearned
                         ? 'bg-white/10 border-white/20 text-white cursor-default'
