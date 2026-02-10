@@ -243,38 +243,74 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const toggleMemorized = (id: number, e?: React.MouseEvent<HTMLElement>) => {
     if (!userData || !setUserData) return;
+    
+    // Если все выучены - ничего не делаем (режим повторения)
+    if (allNamesLearned) return;
+    
     const current = userData.memorizedNames || [];
     const isMemorized = current.includes(id);
-    const next = isMemorized ? current.filter(x => x !== id) : [...current, id];
-    const nameXp = XP_VALUES['name'] || 15;
-    const xpDelta = isMemorized ? -nameXp : nameXp;
     
-    if (isMemorized) {
-      haptics.light();
-    } else {
-      haptics.success();
-    }
-
+    // Только добавление (нельзя убрать выученное с главной страницы)
+    if (isMemorized) return;
+    
+    haptics.success();
+    
+    // Добавляем в выученные
+    const next = [...current, id];
+    const nameXp = XP_VALUES['name'] || 15;
+    
     setUserData({ 
       ...userData, 
       memorizedNames: next,
-      xp: Math.max(0, userData.xp + xpDelta)
+      xp: userData.xp + nameXp
     });
+    
+    // Анимация исчезновения
+    setFadingOutId(id);
+    
+    // Через 300мс заменяем имя
+    setTimeout(() => {
+      const memorized = next;
+      const unlearned = NAMES_99.filter(name => !memorized.includes(name.id));
+      
+      if (unlearned.length === 0) {
+        // Все выучены - показываем рандомные
+        const shuffled = [...NAMES_99].sort(() => Math.random() - 0.5);
+        const newNames = shuffled.filter(n => !visibleNames.find(v => v.id === n.id)).slice(0, 1);
+        setVisibleNames(prev => [...prev.filter(n => n.id !== id), ...newNames]);
+      } else {
+        // Берем новое невыученное
+        const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
+        const newName = shuffled.find(n => !visibleNames.find(v => v.id === n.id)) || shuffled[0];
+        setVisibleNames(prev => [...prev.filter(n => n.id !== id), newName]);
+      }
+      
+      setFadingOutId(null);
+    }, 300);
   };
 
-  // ✅ РАНДОМНЫЕ НЕВЫУЧЕННЫЕ ИМЕНА (3 штуки)
-  const dailyNames = useMemo(() => {
+  // ✅ Состояние для управления видимыми именами
+  const [visibleNames, setVisibleNames] = useState<typeof NAMES_99>([]);
+  const [fadingOutId, setFadingOutId] = useState<number | null>(null);
+
+  // ✅ Инициализация имен
+  useEffect(() => {
     const memorized = userData?.memorizedNames || [];
     const unlearned = NAMES_99.filter(name => !memorized.includes(name.id));
     
     if (unlearned.length === 0) {
+      // Все выучены - показываем рандомные
       const shuffled = [...NAMES_99].sort(() => Math.random() - 0.5);
-      return shuffled.slice(0, 3);
+      setVisibleNames(shuffled.slice(0, 3));
+    } else {
+      // Есть невыученные
+      const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
+      setVisibleNames(shuffled.slice(0, 3));
     }
-    
-    const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 3);
-  }, [userData?.memorizedNames, currentDay]);
+  }, [userData?.memorizedNames]);
+
+  // Проверяем все ли имена выучены
+  const allNamesLearned = (userData?.memorizedNames?.length || 0) === 99;
 
   // ✅ REF для шапки трекера
   const headerRef = React.useRef<HTMLDivElement>(null);
@@ -570,7 +606,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       {isToday && (
         <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-8 rounded-[3rem] shadow-2xl text-white relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-10 opacity-5 text-9xl font-serif pointer-events-none group-hover:scale-110 transition-transform duration-1000">
-            {dailyNames[0]?.arabic}
+            {visibleNames[0]?.arabic}
           </div>
           <div className="relative z-10">
             <div className="flex justify-between items-center mb-6">
@@ -589,23 +625,31 @@ const Dashboard: React.FC<DashboardProps> = ({
               </button>
             </div>
             
-            <p className="text-xs text-emerald-200 mb-4 font-medium">
-              {language === 'kk' 
-                ? '🎯 Бүгін үшін 3 жаңа есім' 
-                : '🎯 3 новых имени на сегодня'}
-            </p>
+            {allNamesLearned && (
+              <p className="text-xs text-emerald-200 mb-4 font-medium">
+                ✅ {language === 'kk' 
+                  ? 'Барлық есімдер жаттадыңыз! МашаАллаһ!' 
+                  : 'Все имена выучены! МашаАллаһ!'}
+              </p>
+            )}
             
             <div className="grid grid-cols-1 gap-3">
-              {dailyNames.map((name) => {
+              {visibleNames.map((name) => {
                 const isLearned = userData?.memorizedNames?.includes(name.id);
+                const isFading = fadingOutId === name.id;
+                
                 return (
                   <div 
                     key={name.id} 
-                    onClick={(e) => toggleMemorized(name.id, e)} 
-                    className={`flex items-center justify-between p-4 rounded-[1.8rem] border transition-all cursor-pointer active:scale-[0.98] ${
-                      isLearned 
-                        ? 'bg-white/20 border-white/30 text-white shadow-lg' 
-                        : 'bg-black/10 border-white/10 text-emerald-50 hover:bg-black/20'
+                    onClick={(e) => !allNamesLearned && toggleMemorized(name.id, e)} 
+                    className={`flex items-center justify-between p-4 rounded-[1.8rem] border transition-all duration-300 ${
+                      isFading ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                    } ${
+                      allNamesLearned
+                        ? 'bg-white/10 border-white/20 text-white cursor-default'
+                        : isLearned 
+                        ? 'bg-white/20 border-white/30 text-white shadow-lg cursor-pointer active:scale-[0.98]' 
+                        : 'bg-black/10 border-white/10 text-emerald-50 hover:bg-black/20 cursor-pointer active:scale-[0.98]'
                     }`}
                   >
                     <div className="flex items-center space-x-4 overflow-hidden">
@@ -621,13 +665,15 @@ const Dashboard: React.FC<DashboardProps> = ({
                         <span className="text-[10px] font-black uppercase tracking-widest text-emerald-200/70 truncate">{name.translit}</span>
                       </div>
                     </div>
-                    <div className={`w-8 h-8 rounded-xl border-2 flex-shrink-0 flex items-center justify-center transition-all ${
-                      isLearned 
-                        ? 'bg-white border-white text-emerald-700' 
-                        : 'border-white/20 bg-transparent'
-                    }`}>
-                      {isLearned && <span className="text-sm font-black">✓</span>}
-                    </div>
+                    {!allNamesLearned && (
+                      <div className={`w-8 h-8 rounded-xl border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+                        isLearned 
+                          ? 'bg-white border-white text-emerald-700' 
+                          : 'border-white/20 bg-transparent'
+                      }`}>
+                        {isLearned && <span className="text-sm font-black">✓</span>}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -637,7 +683,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="mt-4 pt-4 border-t border-white/10">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-white/60 font-bold">
-                  {language === 'kk' ? 'Жаттандым' : 'Выучено'}
+                  {language === 'kk' ? 'Жаттадым' : 'Выучено'}
                 </span>
                 <span className="text-emerald-400 font-black">
                   {userData?.memorizedNames?.length || 0} / 99
