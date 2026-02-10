@@ -111,7 +111,7 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
                   photoUrl: telegramUser?.photo_url || serverData.photoUrl,
                   language: 'kk' as const,
                   // ✅ КРИТИЧНО: НЕ перезаписываем registrationDate если он есть на сервере!
-                  registrationDate: serverData.registrationDate || new Date().toISOString(),
+                  registrationDate: serverData.registrationDate,  // ✅ Уже приходит правильная от getUserFullData
                   // ✅ ЯВНО ГАРАНТИРУЕМ ВСЕ ПОЛЯ ПРОГРЕССА
                   progress: serverData.progress || {},
                   preparationProgress: serverData.preparationProgress || {},
