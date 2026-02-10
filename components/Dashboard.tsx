@@ -434,32 +434,24 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
           
           <div className="text-center">
-            {/* Название фазы - только для текущего дня */}
-            {isToday && (
+            {/* Название фазы - НЕ показываем для базовых дней */}
+            {selectedDayInfo.phase !== 'basic' && (
               <p className="text-[10px] font-black uppercase tracking-widest opacity-90 mb-2">
                 {selectedDayInfo.phase === 'ramadan'
                   ? (language === 'kk' ? 'Рамазан' : 'Рамадан')
-                  : selectedDayInfo.phase === 'preparation'
-                  ? (language === 'kk' ? 'Рамазанға дайындық' : 'Подготовка к Рамадану')
-                  : (language === 'kk' ? 'Базалық трекер' : 'Базовый трекер')}
+                  : (language === 'kk' ? 'Рамазанға дайындық' : 'Подготовка к Рамадану')}
               </p>
             )}
             
-            {/* Заголовок */}
-            {selectedDayInfo.phase === 'ramadan' ? (
+            {/* Заголовок "День X" - только для Рамадана */}
+            {selectedDayInfo.phase === 'ramadan' && (
               <h1 className="text-2xl font-black mb-2">
                 {language === 'kk' ? 'Күн' : 'День'} {selectedDayInfo.dayInPhase}
               </h1>
-            ) : isToday ? (
-              <h1 className="text-2xl font-black mb-2">
-                {selectedDayInfo.phase === 'preparation' 
-                  ? (language === 'kk' ? 'Дайындық' : 'Подготовка')
-                  : (language === 'kk' ? 'Базалық трекер' : 'Базовый трекер')}
-              </h1>
-            ) : null}
+            )}
             
             {/* Дата */}
-            <p className="text-sm font-bold opacity-90">
+            <p className={`text-sm font-bold opacity-90 ${selectedDayInfo.phase === 'ramadan' ? '' : 'mb-2'}`}>
               {(() => {
                 const currentDayDate = selectedDayInfo.selectedDate;
                 
@@ -474,8 +466,8 @@ const Dashboard: React.FC<DashboardProps> = ({
               })()}
             </p>
             
-            {/* Бейджи - только для текущего дня подготовки */}
-            {isToday && selectedDayInfo.phase === 'preparation' && (() => {
+            {/* Бейджи - для подготовки и базовых дней */}
+            {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
               const dayOfWeek = selectedDayInfo.selectedDate.getDay();
               const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
               const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
