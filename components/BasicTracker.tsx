@@ -66,6 +66,7 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
   const data = userData.basicProgress?.[dateStr] || {
     day: 0,
     date: dateStr,  // ✅ Используем dateStr
+    fasting: false,
     fajr: false,
     morningDhikr: false,
     quranRead: false,
