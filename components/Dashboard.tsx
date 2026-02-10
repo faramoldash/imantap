@@ -12,6 +12,7 @@ interface DashboardProps {
   allProgress: Record<number, DayProgress>;
   language: Language;
   updateProgress: (day: number, updates: Partial<DayProgress>) => void;
+  updatePreparationProgress: (day: number, updates: Partial<DayProgress>) => void;
   onDaySelect: (day: number) => void;
   onBasicDateSelect: (date: Date) => void;
   xp: number;
@@ -27,7 +28,8 @@ const Dashboard: React.FC<DashboardProps> = ({
   ramadanInfo,
   data, 
   allProgress, 
-  updateProgress, 
+  updateProgress,
+  updatePreparationProgress,
   language,
   onDaySelect,
   onPreparationDaySelect,
@@ -37,6 +39,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   setUserData,
   setView,
 }) => {
+
   const t = TRANSLATIONS[language];
 
   // ✅ ОПРЕДЕЛЯЕМ ТЕКУЩИЙ ДЕНЬ С УЧЕТОМ ФАЗЫ
@@ -119,7 +122,13 @@ const Dashboard: React.FC<DashboardProps> = ({
     } else {
       haptics.success();
     }
-    updateProgress(selectedDay, { [key]: !displayedData[key] });
+    
+    // ✅ Используем правильную функцию в зависимости от фазы
+    if (selectedDayInfo.phase === 'ramadan') {
+      updateProgress(selectedDay, { [key]: !displayedData[key] });
+    } else if (selectedDayInfo.phase === 'preparation') {
+      updatePreparationProgress(selectedDay, { [key]: !displayedData[key] });
+    }
   };
 
   const calculateProgress = (dayNum: number) => {

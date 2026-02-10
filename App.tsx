@@ -878,7 +878,8 @@ const App: React.FC = () => {
             ramadanInfo={ramadanInfo} 
             data={dayData} 
             allProgress={userData.progress} 
-            updateProgress={updateProgress} 
+            updateProgress={updateProgress}
+            updatePreparationProgress={updatePreparationProgress}
             language={userData.language} 
             onDaySelect={(d) => setSelectedDay(d)} 
             onPreparationDaySelect={(d) => setSelectedPreparationDay(d)} 
