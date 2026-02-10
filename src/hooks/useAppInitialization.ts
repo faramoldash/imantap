@@ -100,25 +100,23 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
 
                 // Мерджим локальные и серверные данные
                 finalUserData = {
-                  ...(localData || getDefaultUserData()),
-                  ...serverData,
+                  ...getDefaultUserData(), // Сначала дефолтные значения
+                  ...serverData, // Потом ВСЕ данные с сервера
                   userId: userId,
-                  // Telegram данные всегда актуальные
+                  // Telegram данные всегда актуальные (перезаписываем)
                   name: telegramUser?.first_name 
                     ? `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim() 
                     : serverData.name || 'User',
                   username: telegramUser?.username ? `@${telegramUser.username}` : serverData.username,
                   photoUrl: telegramUser?.photo_url || serverData.photoUrl,
                   language: 'kk' as const,
-                  // ✅ ЯВНО БЕРЁМ ПРОГРЕСС С СЕРВЕРА (приоритет сервера!)
+                  // ✅ ЯВНО ГАРАНТИРУЕМ ВСЕ ПОЛЯ ПРОГРЕССА (приоритет сервера)
                   progress: serverData.progress || {},
                   preparationProgress: serverData.preparationProgress || {},
                   basicProgress: serverData.basicProgress || {},
-                  // ✅ Стрики с сервера
                   currentStreak: serverData.currentStreak ?? 0,
                   longestStreak: serverData.longestStreak ?? 0,
                   lastActiveDate: serverData.lastActiveDate || '',
-                  // ✅ Остальные поля с сервера
                   xp: serverData.xp ?? 0,
                   memorizedNames: serverData.memorizedNames || [],
                   completedJuzs: serverData.completedJuzs || [],
@@ -132,6 +130,14 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
                   unlockedBadges: serverData.unlockedBadges || [],
                   hasRedeemedReferral: serverData.hasRedeemedReferral ?? false
                 };
+
+                console.log('📥 Данные загружены с сервера:', {
+                  progressDays: Object.keys(finalUserData.progress).length,
+                  preparationDays: Object.keys(finalUserData.preparationProgress).length,
+                  basicDays: Object.keys(finalUserData.basicProgress).length,
+                  currentStreak: finalUserData.currentStreak,
+                  xp: finalUserData.xp
+                });
 
                 // Сохраняем в localStorage
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(finalUserData));
