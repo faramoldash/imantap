@@ -630,7 +630,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex justify-between items-center mb-6">
               <h4 className="text-[10px] font-black text-emerald-400 tracking-[0.3em] uppercase flex items-center">
                 <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
-                {language === 'kk' ? 'Аллаһтың 99 есімі' : '99 имен Аллаха'}
+                {language === 'kk' ? 'Алланың 99 есімі' : '99 имен Аллаха'}
               </h4>
               <button 
                 onClick={() => {

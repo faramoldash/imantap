@@ -728,7 +728,12 @@ const App: React.FC = () => {
 
       return newState;
     });
-  }, []);
+    
+    // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ ПРОГРЕССА (без debounce)
+    setTimeout(() => {
+      syncToServerFn();
+    }, 100);
+  }, [syncToServerFn]);
 
   const updatePreparationProgress = useCallback((day: number, updates: Partial<DayProgress>) => {
     setUserData(prev => {
@@ -784,8 +789,13 @@ const App: React.FC = () => {
       if (newBadges) newState.unlockedBadges = newBadges;
 
       return newState;
-    });
-  }, []);
+        });
+        
+        // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ
+        setTimeout(() => {
+          syncToServerFn();
+        }, 100);
+      }, [syncToServerFn]);
 
   const updateBasicProgress = useCallback((dateStr: string, updates: Partial<DayProgress>) => {
     setUserData(prev => {
@@ -829,8 +839,13 @@ const App: React.FC = () => {
       newState = updateStreak(newState);
 
       return newState;
-    });
-  }, []);
+        });
+        
+        // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ
+        setTimeout(() => {
+          syncToServerFn();
+        }, 100);
+      }, [syncToServerFn]);
 
   const handleUserDataUpdate = (newData: UserData) => {
     const newBadges = checkBadges(newData);
