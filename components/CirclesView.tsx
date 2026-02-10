@@ -441,8 +441,10 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 <p className="text-3xl font-black">{stats.averageProgress}%</p>
                 <p className="text-[9px] font-black text-white/60 uppercase mt-1">{language === 'kk' ? 'Орташа' : 'Средний'}</p>
               </div>
-              <div className="text-center">
-                <p className="text-lg font-black truncate">{stats.topMember ? stats.topMember.name.split(' ')[0] : '-'}</p>
+              <div className="text-center px-2">
+                <p className="text-sm font-black break-words line-clamp-2 leading-tight">
+                  {stats.topMember ? stats.topMember.name.split(' ')[0] : '-'}
+                </p>
                 <p className="text-[9px] font-black text-white/60 uppercase mt-1">{language === 'kk' ? 'Үздік' : 'Лучший'}</p>
               </div>
               <div className="text-center">
