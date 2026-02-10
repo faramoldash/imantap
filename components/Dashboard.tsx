@@ -380,7 +380,13 @@ const Dashboard: React.FC<DashboardProps> = ({
       )}
 
       {/* ✅ ТРЕКЕР ВЫБРАННОГО ДНЯ - ШАПКА С НАВИГАЦИЕЙ */}
-      <section className="bg-gradient-to-br from-sky-600 to-blue-600 p-6 rounded-[3rem] shadow-xl text-white relative overflow-hidden">
+      <section className={`p-6 rounded-[3rem] shadow-xl text-white relative overflow-hidden ${
+        selectedDayInfo.phase === 'ramadan'
+          ? 'bg-gradient-to-br from-emerald-900 to-emerald-700'
+          : selectedDayInfo.phase === 'preparation'
+          ? 'bg-gradient-to-br from-orange-600 to-orange-400'
+          : 'bg-gradient-to-br from-blue-900 to-blue-600'
+      }`}>
         <div className="absolute top-0 right-0 p-10 opacity-10">
           <span className="text-9xl">🌙</span>
         </div>
@@ -400,12 +406,17 @@ const Dashboard: React.FC<DashboardProps> = ({
               ←
             </button>
             
-            {!isToday && (
+            {/* Центральная кнопка */}
+            {isToday ? (
+              <div className="bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-2xl text-xs font-black uppercase border border-white/30">
+                {language === 'kk' ? 'Бүгін' : 'Сегодня'}
+              </div>
+            ) : (
               <button
                 onClick={goToToday}
-                className="bg-amber-500/20 hover:bg-amber-500/30 backdrop-blur-sm text-white px-4 py-2 rounded-2xl text-xs font-black uppercase transition-all active:scale-95 border border-amber-300/30"
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-2xl text-xs font-black uppercase transition-all active:scale-95 border border-white/30"
               >
-                {language === 'kk' ? 'Бүгінге' : 'Сегодня'}
+                {language === 'kk' ? 'Бүгінге өту' : 'К сегодня'}
               </button>
             )}
             
@@ -423,34 +434,32 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
           
           <div className="text-center">
-            <p className="text-[10px] font-black uppercase tracking-widest opacity-90 mb-2">
-              {selectedDayInfo.phase === 'ramadan'
-                ? (language === 'kk' ? 'Рамазан' : 'Рамадан')
-                : selectedDayInfo.phase === 'preparation'
-                ? (language === 'kk' ? 'Рамазанға' : 'Подготовка к Рамадану')
-                : (language === 'kk' ? 'трекер' : 'трекер')}
-            </p>
+            {/* Название фазы - только для текущего дня */}
+            {isToday && (
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-90 mb-2">
+                {selectedDayInfo.phase === 'ramadan'
+                  ? (language === 'kk' ? 'Рамазан' : 'Рамадан')
+                  : selectedDayInfo.phase === 'preparation'
+                  ? (language === 'kk' ? 'Рамазанға дайындық' : 'Подготовка к Рамадану')
+                  : (language === 'kk' ? 'Базалық трекер' : 'Базовый трекер')}
+              </p>
+            )}
             
-            <div className="flex items-center justify-center gap-2">
-              {selectedDayInfo.phase === 'ramadan' ? (
-                <h1 className="text-2xl font-black">
-                  {language === 'kk' ? 'Күн' : 'День'} {selectedDayInfo.dayInPhase}
-                </h1>
-              ) : (
-                <h1 className="text-2xl font-black">
-                  {selectedDayInfo.phase === 'preparation' 
-                    ? (language === 'kk' ? 'Дайындық' : 'Подготовка')
-                    : (language === 'kk' ? 'трекер' : 'трекер')}
-                </h1>
-              )}
-              {isToday && (
-                <span className="bg-amber-500/20 backdrop-blur-sm text-amber-300 px-2 py-1 rounded-xl text-[10px] font-black uppercase border border-amber-300/30">
-                  {language === 'kk' ? 'Бүгін' : 'Сегодня'}
-                </span>
-              )}
-            </div>
+            {/* Заголовок */}
+            {selectedDayInfo.phase === 'ramadan' ? (
+              <h1 className="text-2xl font-black mb-2">
+                {language === 'kk' ? 'Күн' : 'День'} {selectedDayInfo.dayInPhase}
+              </h1>
+            ) : isToday ? (
+              <h1 className="text-2xl font-black mb-2">
+                {selectedDayInfo.phase === 'preparation' 
+                  ? (language === 'kk' ? 'Дайындық' : 'Подготовка')
+                  : (language === 'kk' ? 'Базалық трекер' : 'Базовый трекер')}
+              </h1>
+            ) : null}
             
-            <p className="text-sm font-bold opacity-90 mt-2">
+            {/* Дата */}
+            <p className="text-sm font-bold opacity-90">
               {(() => {
                 const currentDayDate = selectedDayInfo.selectedDate;
                 
@@ -465,12 +474,14 @@ const Dashboard: React.FC<DashboardProps> = ({
               })()}
             </p>
             
-            {/* Бейджи для подготовки и базовых дней */}
-            {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
+            {/* Бейджи - только для текущего дня подготовки */}
+            {isToday && selectedDayInfo.phase === 'preparation' && (() => {
               const dayOfWeek = selectedDayInfo.selectedDate.getDay();
               const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
               const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
               const isFirstTaraweehDay = selectedDayInfo.selectedDate.getTime() === firstTaraweehDate.getTime();
+              
+              if (!isMondayOrThursday && !isFirstTaraweehDay) return null;
               
               return (
                 <div className="flex justify-center gap-2 flex-wrap mt-3">
@@ -480,7 +491,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                   )}
                   {isFirstTaraweehDay && (
-                    <div className="bg-amber-500/20 backdrop-blur-sm rounded-full px-3 py-1.5 border border-amber-300/30">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/30">
                       <p className="text-xs font-bold">⭐ {language === 'kk' ? 'Бірінші таравих!' : 'Первый таравих!'}</p>
                     </div>
                   )}
