@@ -129,7 +129,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     return today.getTime() === selected.getTime();
   }, [selectedDayInfo.selectedDate]);
 
-  // ✅ ПРОВЕРКА - БУДУЩИЙ ДЕНЬ?
+  // ✅ ПРОВЕРКА - БУДУЩИЙ ДЕНЬ? (только для блокировки чекбоксов)
   const isFutureDay = useMemo(() => {
     const almatyOffset = 5 * 60;
     const now = new Date();
@@ -137,29 +137,23 @@ const Dashboard: React.FC<DashboardProps> = ({
     const today = new Date(almatyTime.getFullYear(), almatyTime.getMonth(), almatyTime.getDate());
     const selected = new Date(selectedDayInfo.selectedDate.getFullYear(), selectedDayInfo.selectedDate.getMonth(), selectedDayInfo.selectedDate.getDate());
     
-    // Первый день Рамадана всегда доступен для демо
-    const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
-    const isFirstRamadanDay = selected.getTime() === ramadanStart.getTime();
-    
-    return selected > today && !isFirstRamadanDay;
+    return selected > today;
   }, [selectedDayInfo.selectedDate]);
 
   // ✅ НАВИГАЦИЯ
   const canGoPrev = true; // Всегда можно листать назад
   const canGoNext = useMemo(() => {
-    const almatyOffset = 5 * 60;
-    const now = new Date();
-    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
-    const today = new Date(almatyTime.getFullYear(), almatyTime.getMonth(), almatyTime.getDate());
+    // ✅ Можем листать до конца Рамадана (30 дней)
+    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+    const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+    const ramadanEnd = new Date(ramadanStart);
+    ramadanEnd.setDate(ramadanEnd.getDate() + 29); // 30-й день Рамадана
+    
     const nextDay = new Date(selectedDayInfo.selectedDate);
     nextDay.setDate(nextDay.getDate() + 1);
     
-    // Можно листать до: сегодня + 1 день Рамадана (демо)
-    const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
-    const ramadanStartDay = new Date(ramadanStart.getFullYear(), ramadanStart.getMonth(), ramadanStart.getDate());
-    
-    // Следующий день должен быть <= сегодня ИЛИ быть 1-м днем Рамадана
-    return nextDay.getTime() <= today.getTime() || nextDay.getTime() === ramadanStartDay.getTime();
+    // Можем листать пока не достигли конца Рамадана
+    return nextDay <= ramadanEnd;
   }, [selectedDayInfo.selectedDate]);
 
   const goToPrevDay = () => {
@@ -438,19 +432,20 @@ const Dashboard: React.FC<DashboardProps> = ({
             </p>
             
             <div className="flex items-center justify-center gap-2">
-              <h1 className="text-2xl font-black">
-                {selectedDayInfo.phase === 'basic' 
-                  ? (language === 'kk' ? 'Күн' : 'День')
-                  : (language === 'kk' ? 'Күн' : 'День')} {selectedDayInfo.dayInPhase}
-              </h1>
+              {selectedDayInfo.phase === 'ramadan' ? (
+                <h1 className="text-2xl font-black">
+                  {language === 'kk' ? 'Күн' : 'День'} {selectedDayInfo.dayInPhase}
+                </h1>
+              ) : (
+                <h1 className="text-2xl font-black">
+                  {selectedDayInfo.phase === 'preparation' 
+                    ? (language === 'kk' ? 'Дайындық' : 'Подготовка')
+                    : (language === 'kk' ? 'Базалық трекер' : 'Базовый трекер')}
+                </h1>
+              )}
               {isToday && (
                 <span className="bg-amber-500/20 backdrop-blur-sm text-amber-300 px-2 py-1 rounded-xl text-[10px] font-black uppercase border border-amber-300/30">
                   {language === 'kk' ? 'Бүгін' : 'Сегодня'}
-                </span>
-              )}
-              {isFutureDay && (
-                <span className="bg-slate-500/20 backdrop-blur-sm text-slate-300 px-2 py-1 rounded-xl text-[10px] font-black uppercase border border-slate-300/30">
-                  🔒 {language === 'kk' ? 'Болашақ' : 'Будущее'}
                 </span>
               )}
             </div>

@@ -85,7 +85,9 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   
   const isToday = (date: Date | null) => {
     if (!date) return false;
-    return date.getTime() === today.getTime();
+    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    return dateOnly.getTime() === todayOnly.getTime();
   };
   
   const isRamadanDay = (date: Date | null) => {
@@ -190,24 +192,8 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
           const ramadanDay = isRamadan ? getRamadanDayNumber(date) : null;
           const prepDay = isPrep ? getPreparationDayNumber(date) : null;
           
-          // Логика блокировки
-          let isLocked = false;
-
-          if (ramadanDay) {
-            // Рамадан: блокируем будущие дни, кроме 1-го (демо)
-            isLocked = ramadanDay > realTodayDay && ramadanDay !== 1;
-          } else if (isPrep || !isRamadan) {
-            // Подготовка и базовые дни: блокируем только строго будущие
-            const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-            const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            
-            // Разрешаем клик на 1-й день Рамадана для демо
-            const ramadanStart = new Date(ramadanStartDate + 'T00:00:00+05:00');
-            const ramadanStartOnly = new Date(ramadanStart.getFullYear(), ramadanStart.getMonth(), ramadanStart.getDate());
-            const isFirstRamadanDay = dateOnly.getTime() === ramadanStartOnly.getTime();
-            
-            isLocked = dateOnly > todayOnly && !isFirstRamadanDay;
-          }
+          // ✅ Убираем блокировку - все дни доступны
+          const isLocked = false;
           
           const isSelected = false; // TODO: добавить логику выбора
           const progress = ramadanDay ? calculateProgress(ramadanDay, false) : 
@@ -216,33 +202,25 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
           // Цвета
           let bgColor = 'rgb(248 250 252)'; // обычный день
           let textColor = 'text-slate-600';
-          
+
           if (isTodayDate) {
             bgColor = 'rgb(16 185 129)'; // зелёный
             textColor = 'text-white';
           } else if (isTaraweeh) {
             bgColor = 'rgb(251 191 36)'; // золотой - первый таравих
             textColor = 'text-white';
-          } else if (isRamadan && !isLocked) {
+          } else if (isRamadan) {
             bgColor = progress > 0 ? '' : 'rgb(240 253 244)'; // светло-зелёный
             textColor = 'text-emerald-700';
-          } else if (isRamadan && isLocked) {
-            bgColor = 'rgb(241 245 249)';
-            textColor = 'text-slate-400';
-          } else if (isPrep && !isLocked) {
+          } else if (isPrep) {
             bgColor = progress > 0 ? '' : 'rgb(224 242 254)'; // голубой
             textColor = 'text-sky-700';
-          } else if (isPrep && isLocked) {
-            bgColor = 'rgb(241 245 249)';
-            textColor = 'text-slate-400';
           }
           
           return (
             <div
               key={idx}
               onClick={() => {
-                if (isLocked) return; // Блокируем клик на будущие дни
-                
                 // ✅ УНИВЕРСАЛЬНАЯ ЛОГИКА: вычисляем номер дня относительно начала подготовки
                 const prepStartDate = new Date(preparationStartDate + 'T00:00:00+05:00');
                 const daysSincePrep = Math.floor((date.getTime() - prepStartDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -253,8 +231,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               }}
               className={`
                 aspect-square rounded-xl flex flex-col items-center justify-center text-center
-                transition-all relative overflow-hidden
-                ${!isLocked ? 'cursor-pointer active:scale-95' : 'cursor-not-allowed'}
+                transition-all relative overflow-hidden cursor-pointer active:scale-95
                 ${isSelected ? 'ring-2 ring-emerald-600 scale-105 z-10' : ''}
               `}
               style={{
@@ -290,21 +267,17 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
                   
                   {ramadanDay && (
                     <span className={`text-[8px] font-black mt-0.5 ${
-                      isTodayDate ? 'text-white' : 
-                      isLocked ? 'text-slate-400' :
-                      'text-emerald-600'
+                      isTodayDate ? 'text-white' : 'text-emerald-600'
                     }`}>
-                      {isLocked ? '🔒' : ramadanDay}
+                      {ramadanDay}
                     </span>
                   )}
-                  
+
                   {prepDay && (
                     <span className={`text-[8px] font-black mt-0.5 ${
-                      isTaraweeh ? 'text-white' :
-                      isLocked ? 'text-slate-400' :
-                      'text-sky-600'
+                      isTaraweeh ? 'text-white' : 'text-sky-600'
                     }`}>
-                      {isLocked ? '🔒' : isTaraweeh ? '⭐' : '📝'}
+                      {isTaraweeh ? '⭐' : '📝'}
                     </span>
                   )}
                 </>
