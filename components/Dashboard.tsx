@@ -268,22 +268,29 @@ const Dashboard: React.FC<DashboardProps> = ({
     // Анимация исчезновения
     setFadingOutId(id);
     
-    // Через 300мс заменяем имя
+    // Через 300мс заменяем имя на той же позиции
     setTimeout(() => {
       const memorized = next;
       const unlearned = NAMES_99.filter(name => !memorized.includes(name.id));
       
-      if (unlearned.length === 0) {
-        // Все выучены - показываем рандомные
-        const shuffled = [...NAMES_99].sort(() => Math.random() - 0.5);
-        const newNames = shuffled.filter(n => !visibleNames.find(v => v.id === n.id)).slice(0, 1);
-        setVisibleNames(prev => [...prev.filter(n => n.id !== id), ...newNames]);
-      } else {
-        // Берем новое невыученное
-        const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
-        const newName = shuffled.find(n => !visibleNames.find(v => v.id === n.id)) || shuffled[0];
-        setVisibleNames(prev => [...prev.filter(n => n.id !== id), newName]);
-      }
+      setVisibleNames(prev => {
+        // Находим индекс кликнутого имени
+        const clickedIndex = prev.findIndex(n => n.id === id);
+        
+        if (unlearned.length === 0) {
+          // Все выучены - режим повторения, не заменяем
+          return prev;
+        } else {
+          // Берем новое невыученное (не из текущих видимых)
+          const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
+          const newName = shuffled.find(n => !prev.find(v => v.id === n.id)) || shuffled[0];
+          
+          // Заменяем имя на той же позиции
+          const newVisible = [...prev];
+          newVisible[clickedIndex] = newName;
+          return newVisible;
+        }
+      });
       
       setFadingOutId(null);
     }, 300);
