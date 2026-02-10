@@ -20,6 +20,7 @@ import { initTelegramApp, getTelegramUserId, getTelegramWebApp } from './src/uti
 import { useAppInitialization } from './src/hooks/useAppInitialization';
 import CirclesView from './components/CirclesView';
 import { getUserCircles } from './src/services/api';
+import { PREPARATION_START_DATE } from './constants';
 
 
 interface BackendUserData {
@@ -216,22 +217,58 @@ const App: React.FC = () => {
   const t = TRANSLATIONS[userData.language];
 
   useEffect(() => {
-    // ✅ Обновляем realTodayDay синхронно с ramadanInfo
-    setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
+    // ✅ Вычисляем текущий день правильно
+    const almatyOffset = 5 * 60;
+    const now = new Date();
+    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
     
-    // ✅ ВАЖНО: Синхронизируем selectedDay с текущим днем
-    setSelectedDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : Math.abs(ramadanInfo.daysUntil) + 1);
+    let calculatedDay = 1;
+    
+    if (ramadanInfo.isStarted) {
+      // Рамадан
+      const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+      const daysSinceRamadan = Math.floor((almatyTime.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
+      calculatedDay = Math.max(1, Math.min(daysSinceRamadan + 1, 30));
+    } else {
+      // Подготовка
+      const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+      const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
+      calculatedDay = Math.max(1, Math.min(daysSincePrep + 1, 10));
+    }
+    
+    console.log('📅 CALCULATED DAY:', {
+      isStarted: ramadanInfo.isStarted,
+      calculatedDay,
+      date: almatyTime.toISOString().split('T')[0]
+    });
+    
+    // ✅ Обновляем оба state
+    setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
+    setSelectedDay(calculatedDay);
     
     // ✅ Обновляем каждые 60 секунд
     const interval = setInterval(() => {
-      const newStatus = calculateRamadanStatus();
-      console.log('📅 RAMADAN INFO UPDATE:', newStatus);
-      setRealTodayDay(newStatus.isStarted ? newStatus.currentDay : 0);
-      setSelectedDay(newStatus.isStarted ? newStatus.currentDay : Math.abs(newStatus.daysUntil) + 1);
+      const newNow = new Date();
+      const newAlmatyTime = new Date(newNow.getTime() + (almatyOffset + newNow.getTimezoneOffset()) * 60000);
+      
+      let newCalculatedDay = 1;
+      
+      if (ramadanInfo.isStarted) {
+        const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+        const daysSinceRamadan = Math.floor((newAlmatyTime.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
+        newCalculatedDay = Math.max(1, Math.min(daysSinceRamadan + 1, 30));
+      } else {
+        const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+        const daysSincePrep = Math.floor((newAlmatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
+        newCalculatedDay = Math.max(1, Math.min(daysSincePrep + 1, 10));
+      }
+      
+      setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
+      setSelectedDay(newCalculatedDay);
     }, 60000);
     
     return () => clearInterval(interval);
-  }, [ramadanInfo, calculateRamadanStatus]);
+  }, [ramadanInfo.isStarted, calculateRamadanStatus]);
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {
