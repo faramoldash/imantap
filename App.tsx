@@ -436,12 +436,25 @@ const App: React.FC = () => {
 
   // Save to localStorage AND sync to server whenever userData changes
   useEffect(() => {
-    if (!isLoading) {
-      // ✅ НЕМЕДЛЕННО сохраняем в localStorage
+    if (!isLoading && userData.userId) { // ✅ ПРОВЕРКА: userData загружен!
       localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
       
-      // ✅ Синхронизируем с сервером с задержкой (для оптимизации)
-      debouncedSync();
+      // ✅ ЗАЩИТА: не синхронизируем если данные выглядят пустыми
+      const hasData = userData.xp > 0 || 
+                    Object.keys(userData.progress).length > 0 ||
+                    Object.keys(userData.preparationProgress || {}).length > 0 ||
+                    (userData.memorizedNames || []).length > 0;
+      
+      if (hasData) {
+        debouncedSync();
+      } else {
+        console.log('⚠️ Пропускаем sync - данные выглядят пустыми:', {
+          xp: userData.xp,
+          progressDays: Object.keys(userData.progress).length,
+          preparationDays: Object.keys(userData.preparationProgress || {}).length,
+          memorizedNames: (userData.memorizedNames || []).length
+        });
+      }
     }
   }, [userData, isLoading, debouncedSync]);
 
@@ -657,7 +670,11 @@ const App: React.FC = () => {
 
   // --- STREAK LOGIC ---
   const updateStreak = (data: UserData): UserData => {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    // ✅ Используем Almaty время (UTC+5)
+    const almatyOffset = 5 * 60;
+    const now = new Date();
+    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
+    const today = almatyTime.toISOString().split('T')[0]; // YYYY-MM-DD
     const lastActive = data.lastActiveDate || '';
     
     // ✅ Если уже обновляли сегодня - не трогаем
@@ -745,7 +762,9 @@ const App: React.FC = () => {
     
     // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ ПРОГРЕССА (без debounce)
     setTimeout(() => {
-      syncToServerFn();
+      if (userDataRef.current.xp > 0) {
+        syncToServerFn();
+      }
     }, 100);
   }, [syncToServerFn]);
 
@@ -807,7 +826,9 @@ const App: React.FC = () => {
         
     // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ
     setTimeout(() => {
-      syncToServerFn();
+      if (userDataRef.current.xp > 0) {
+        syncToServerFn();
+      }
     }, 100);
   }, [syncToServerFn]);
 
@@ -857,7 +878,10 @@ const App: React.FC = () => {
         
     // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ
     setTimeout(() => {
-      syncToServerFn();
+      const hasData = Object.keys(userDataRef.current.basicProgress || {}).length > 0;
+      if (hasData) {
+        syncToServerFn();
+      }
     }, 100);
   }, [syncToServerFn]);
 
