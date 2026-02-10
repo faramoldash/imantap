@@ -158,6 +158,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const goToPrevDay = () => {
     if (canGoPrev) {
+      hasNavigated.current = true; // ✅ Устанавливаем флаг
       haptics.selection();
       onDaySelect(selectedDay - 1);
     }
@@ -165,12 +166,14 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const goToNextDay = () => {
     if (canGoNext) {
+      hasNavigated.current = true; // ✅ Устанавливаем флаг
       haptics.selection();
       onDaySelect(selectedDay + 1);
     }
   };
 
   const goToToday = () => {
+    hasNavigated.current = true; // ✅ Устанавливаем флаг
     haptics.medium();
     
     // Вычисляем номер дня для текущей даты
@@ -276,9 +279,12 @@ const Dashboard: React.FC<DashboardProps> = ({
   // ✅ REF для шапки трекера
   const headerRef = React.useRef<HTMLDivElement>(null);
 
-  // ✅ Скроллим к шапке при смене дня
+  // ✅ Флаг для отслеживания навигации (не скроллим при первом рендере)
+  const hasNavigated = React.useRef(false);
+
+  // ✅ Скроллим к шапке только после навигации
   useEffect(() => {
-    if (headerRef.current) {
+    if (hasNavigated.current && headerRef.current) {
       headerRef.current.scrollIntoView({ 
         behavior: 'smooth', 
         block: 'start' 
