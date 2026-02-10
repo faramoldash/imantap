@@ -191,8 +191,23 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
           const prepDay = isPrep ? getPreparationDayNumber(date) : null;
           
           // Логика блокировки
-          const isLocked = ramadanDay ? (ramadanDay > realTodayDay && ramadanDay !== 1) : 
-                           prepDay ? (date > today) : false;
+          let isLocked = false;
+
+          if (ramadanDay) {
+            // Рамадан: блокируем будущие дни, кроме 1-го (демо)
+            isLocked = ramadanDay > realTodayDay && ramadanDay !== 1;
+          } else if (isPrep || !isRamadan) {
+            // Подготовка и базовые дни: блокируем только строго будущие
+            const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            
+            // Разрешаем клик на 1-й день Рамадана для демо
+            const ramadanStart = new Date(ramadanStartDate + 'T00:00:00+05:00');
+            const ramadanStartOnly = new Date(ramadanStart.getFullYear(), ramadanStart.getMonth(), ramadanStart.getDate());
+            const isFirstRamadanDay = dateOnly.getTime() === ramadanStartOnly.getTime();
+            
+            isLocked = dateOnly > todayOnly && !isFirstRamadanDay;
+          }
           
           const isSelected = false; // TODO: добавить логику выбора
           const progress = ramadanDay ? calculateProgress(ramadanDay, false) : 
@@ -226,20 +241,20 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
             <div
               key={idx}
               onClick={() => {
-                if (ramadanDay && !isLocked) {
-                    onDaySelect(ramadanDay);
-                } else if (prepDay) {
-                    onPreparationDaySelect(prepDay);
-                } else if (!isRamadan && !isPrep) {
-                    // ✅ КЛИК НА ОБЫЧНЫЙ ДЕНЬ
-                    onBasicDateSelect(date);
-                }
-                }}
+                if (isLocked) return; // Блокируем клик на будущие дни
+                
+                // ✅ УНИВЕРСАЛЬНАЯ ЛОГИКА: вычисляем номер дня относительно начала подготовки
+                const prepStartDate = new Date(preparationStartDate + 'T00:00:00+05:00');
+                const daysSincePrep = Math.floor((date.getTime() - prepStartDate.getTime()) / (1000 * 60 * 60 * 24));
+                const dayNumber = daysSincePrep + 1;
+                
+                // Вызываем только onDaySelect с универсальным номером
+                onDaySelect(dayNumber);
+              }}
               className={`
                 aspect-square rounded-xl flex flex-col items-center justify-center text-center
                 transition-all relative overflow-hidden
-                ${(ramadanDay || prepDay) && !isLocked ? 'cursor-pointer active:scale-95' : ''}
-                ${isLocked ? 'cursor-not-allowed' : ''}
+                ${!isLocked ? 'cursor-pointer active:scale-95' : 'cursor-not-allowed'}
                 ${isSelected ? 'ring-2 ring-emerald-600 scale-105 z-10' : ''}
               `}
               style={{

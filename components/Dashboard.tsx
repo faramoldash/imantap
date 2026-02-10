@@ -156,9 +156,10 @@ const Dashboard: React.FC<DashboardProps> = ({
     
     // Можно листать до: сегодня + 1 день Рамадана (демо)
     const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
-    const isNextDayFirstRamadan = nextDay.getTime() === ramadanStart.getTime();
+    const ramadanStartDay = new Date(ramadanStart.getFullYear(), ramadanStart.getMonth(), ramadanStart.getDate());
     
-    return nextDay <= today || isNextDayFirstRamadan;
+    // Следующий день должен быть <= сегодня ИЛИ быть 1-м днем Рамадана
+    return nextDay.getTime() <= today.getTime() || nextDay.getTime() === ramadanStartDay.getTime();
   }, [selectedDayInfo.selectedDate]);
 
   const goToPrevDay = () => {
