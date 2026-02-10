@@ -39,24 +39,62 @@ const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const t = TRANSLATIONS[language];
 
+  // ✅ ОПРЕДЕЛЯЕМ ТЕКУЩИЙ ДЕНЬ С УЧЕТОМ ФАЗЫ
+  const currentDay = useMemo(() => {
+    const almatyOffset = 5 * 60;
+    const now = new Date();
+    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
+    
+    if (ramadanInfo.isStarted) {
+      // Рамадан
+      const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+      const daysSinceRamadan = Math.floor((almatyTime.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.max(1, Math.min(daysSinceRamadan + 1, 30));
+    } else {
+      // Подготовка
+      const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+      const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.max(1, Math.min(daysSincePrep + 1, 10));
+    }
+  }, [ramadanInfo.isStarted]);
+
+  // ✅ ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЙ ИСТОЧНИК ДАННЫХ
+  const currentData = useMemo(() => {
+    if (ramadanInfo.isStarted) {
+      return allProgress[currentDay] || {};
+    } else {
+      return userData?.preparationProgress?.[currentDay] || {};
+    }
+  }, [currentDay, ramadanInfo.isStarted, allProgress, userData?.preparationProgress]);
+
+  console.log('📅 DASHBOARD CURRENT DAY:', {
+    currentDay,
+    isRamadan: ramadanInfo.isStarted,
+    currentData
+  });
+
   const toggleItem = (key: keyof DayProgress, e?: React.MouseEvent<HTMLElement>) => {
-    const isCompleted = data[key];
+    const isCompleted = currentData[key];
     if (isCompleted) {
       haptics.light();
     } else {
       haptics.success();
     }
-    updateProgress(selectedDay, { [key]: !data[key] });
+    updateProgress(currentDay, { [key]: !currentData[key] });
   };
 
   const calculateProgress = (dayNum: number) => {
-    const dayData = allProgress[dayNum];
+    const dayData = ramadanInfo.isStarted 
+      ? allProgress[dayNum]
+      : userData?.preparationProgress?.[dayNum];
     if (!dayData) return 0;
-    const completed = TRACKER_KEYS.filter(key => dayData[key as keyof DayProgress]).length;
-    return Math.round((completed / TRACKER_KEYS.length) * 100);
+    
+    const keys = ramadanInfo.isStarted ? TRACKER_KEYS : PREPARATION_TRACKER_KEYS;
+    const completed = keys.filter(key => dayData[key as keyof DayProgress]).length;
+    return Math.round((completed / keys.length) * 100);
   };
 
-  const currentDayProgress = calculateProgress(selectedDay);
+  const currentDayProgress = calculateProgress(currentDay);
 
   const toggleMemorized = (id: number, e?: React.MouseEvent<HTMLElement>) => {
     if (!userData || !setUserData) return;
@@ -93,16 +131,16 @@ const Dashboard: React.FC<DashboardProps> = ({
     // Показываем 3 рандомных невыученных
     const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 3);
-  }, [userData?.memorizedNames, selectedDay]);
+  }, [userData?.memorizedNames, currentDay]);
 
-  const ItemButton = React.memo(({ id, icon, small, data, toggleItem, t }: any) => (
+  const ItemButton = React.memo(({ id, icon, small, currentData, toggleItem, t }: any) => (
     <button 
       onClick={(e) => toggleItem(id, e)} 
-      className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative active:scale-95 ${small ? 'h-20' : 'h-24'} ${data[id] ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' : 'bg-white border-slate-100 text-slate-600 shadow-sm'}`}
+      className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative active:scale-95 ${small ? 'h-20' : 'h-24'} ${currentData[id] ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' : 'bg-white border-slate-100 text-slate-600 shadow-sm'}`}
     >
       {icon}
       <span className="text-[11px] font-bold text-center leading-tight">{t.items[id]}</span>
-      {data[id] && <span className="absolute top-1 right-1 text-xs">✓</span>}
+      {currentData[id] && <span className="absolute top-1 right-1 text-xs">✓</span>}
     </button>
   ));
 
@@ -203,7 +241,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 : (language === 'kk' ? 'Рамазанға дайындық' : 'Подготовка к Рамадану')}
             </p>
             <h1 className="text-2xl font-black mb-2">
-              {language === 'kk' ? 'Күн' : 'День'} {selectedDay}
+              {language === 'kk' ? 'Күн' : 'День'} {currentDay}
             </h1>
             <p className="text-sm font-bold opacity-90">
               {(() => {
@@ -211,7 +249,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   ? new Date(RAMADAN_START_DATE)
                   : new Date(PREPARATION_START_DATE);
                 const currentDayDate = new Date(prepStartDate);
-                currentDayDate.setDate(prepStartDate.getDate() + (selectedDay - 1));
+                currentDayDate.setDate(prepStartDate.getDate() + (currentDay - 1));
                 
                 const monthNames = language === 'kk' 
                   ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
@@ -228,7 +266,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             {!ramadanInfo.isStarted && (() => {
               const prepStartDate = new Date(PREPARATION_START_DATE);
               const currentDayDate = new Date(prepStartDate);
-              currentDayDate.setDate(prepStartDate.getDate() + (selectedDay - 1));
+              currentDayDate.setDate(prepStartDate.getDate() + (currentDay - 1));
               const dayOfWeek = currentDayDate.getDay();
               const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
               const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
@@ -258,7 +296,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         const showFasting = ramadanInfo.isStarted || (() => {
           const prepStartDate = new Date(PREPARATION_START_DATE);
           const currentDayDate = new Date(prepStartDate);
-          currentDayDate.setDate(prepStartDate.getDate() + (selectedDay - 1));
+          currentDayDate.setDate(prepStartDate.getDate() + (currentDay - 1));
           const dayOfWeek = currentDayDate.getDay();
           return dayOfWeek === 1 || dayOfWeek === 4;
         })();
@@ -286,12 +324,12 @@ const Dashboard: React.FC<DashboardProps> = ({
               <button
                 onClick={() => toggleItem('fasting')}
                 className={`w-12 h-12 rounded-2xl transition-all ${
-                  data.fasting
+                  currentData.fasting
                     ? 'bg-sky-600 text-white shadow-lg active:scale-95'
                     : 'bg-slate-100 text-slate-400 active:scale-95'
                 }`}
               >
-                {data.fasting ? '✓' : ''}
+                {currentData.fasting ? '✓' : ''}
               </button>
             </div>
           </div>
@@ -304,28 +342,28 @@ const Dashboard: React.FC<DashboardProps> = ({
           {language === 'kk' ? 'Намаздар' : 'Намазы'}
         </h4>
         <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="fajr" icon={<span className="text-2xl">🌅</span>} small data={data} toggleItem={toggleItem} t={t} />
-          <ItemButton id="duha" icon={<span className="text-2xl">☀️</span>} small data={data} toggleItem={toggleItem} t={t} />
-          <ItemButton id="dhuhr" icon={<span className="text-2xl">🌞</span>} small data={data} toggleItem={toggleItem} t={t} />
-          <ItemButton id="asr" icon={<span className="text-2xl">🌤️</span>} small data={data} toggleItem={toggleItem} t={t} />
-          <ItemButton id="maghrib" icon={<span className="text-2xl">🌆</span>} small data={data} toggleItem={toggleItem} t={t} />
-          <ItemButton id="isha" icon={<span className="text-2xl">🌙</span>} small data={data} toggleItem={toggleItem} t={t} />
+          <ItemButton id="fajr" icon={<span className="text-2xl">🌅</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="duha" icon={<span className="text-2xl">☀️</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="dhuhr" icon={<span className="text-2xl">🌞</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="asr" icon={<span className="text-2xl">🌤️</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="maghrib" icon={<span className="text-2xl">🌆</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="isha" icon={<span className="text-2xl">🌙</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
           {ramadanInfo.isStarted && (
             <>
-              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small data={data} toggleItem={toggleItem} t={t} />
-              <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small data={data} toggleItem={toggleItem} t={t} />
-              <ItemButton id="witr" icon={<span className="text-2xl">✨</span>} small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="witr" icon={<span className="text-2xl">✨</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
             </>
           )}
           {!ramadanInfo.isStarted && (() => {
             const prepStartDate = new Date(PREPARATION_START_DATE);
             const currentDayDate = new Date(prepStartDate);
-            currentDayDate.setDate(prepStartDate.getDate() + (selectedDay - 1));
+            currentDayDate.setDate(prepStartDate.getDate() + (currentDay - 1));
             const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
             const isFirstTaraweehDay = currentDayDate.getTime() === firstTaraweehDate.getTime();
             
             return isFirstTaraweehDay ? (
-              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
             ) : null;
           })()}
         </div>
@@ -337,14 +375,14 @@ const Dashboard: React.FC<DashboardProps> = ({
           {language === 'kk' ? 'Рухани амалдар' : 'Духовные практики'}
         </h4>
         <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="quranRead" icon={<span className="text-2xl">📖</span>} small data={data} toggleItem={toggleItem} t={t} />
-          <ItemButton id="morningDhikr" icon={<span className="text-2xl">🤲</span>} small data={data} toggleItem={toggleItem} t={t} />
-          <ItemButton id="eveningDhikr" icon={<span className="text-2xl">🌙</span>} small data={data} toggleItem={toggleItem} t={t} />
+          <ItemButton id="quranRead" icon={<span className="text-2xl">📖</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="morningDhikr" icon={<span className="text-2xl">🤲</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="eveningDhikr" icon={<span className="text-2xl">🌙</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
           {!ramadanInfo.isStarted && (
             <>
-              <ItemButton id="salawat" icon={<span className="text-2xl">☪️</span>} small data={data} toggleItem={toggleItem} t={t} />
-              <ItemButton id="hadith" icon={<span className="text-2xl">📜</span>} small data={data} toggleItem={toggleItem} t={t} />
-              <ItemButton id="charity" icon={<span className="text-2xl">💝</span>} small data={data} toggleItem={toggleItem} t={t} />
+              <ItemButton id="salawat" icon={<span className="text-2xl">☪️</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="hadith" icon={<span className="text-2xl">📜</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="charity" icon={<span className="text-2xl">💝</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
             </>
           )}
         </div>
@@ -462,17 +500,17 @@ const Dashboard: React.FC<DashboardProps> = ({
               {language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс'}
             </h4>
             <span className="text-xs font-black text-white/40">
-              {language === 'kk' ? `${selectedDay}-күн` : `День ${selectedDay}`}
+              {language === 'kk' ? `${currentDay}-күн` : `День ${currentDay}`}
             </span>
           </div>
           
           <div className="flex items-end justify-between mb-3">
             <div>
               <p className="text-5xl font-black leading-none">
-                {TRACKER_KEYS.filter(k => data[k as keyof DayProgress]).length}
+                {(ramadanInfo.isStarted ? TRACKER_KEYS : PREPARATION_TRACKER_KEYS).filter(k => currentData[k as keyof DayProgress]).length}
               </p>
               <p className="text-sm font-bold text-white/60 mt-1">
-                / {TRACKER_KEYS.length} {language === 'kk' ? 'тапсырма' : 'задач'}
+                / {ramadanInfo.isStarted ? TRACKER_KEYS.length : PREPARATION_TRACKER_KEYS.length} {language === 'kk' ? 'тапсырма' : 'задач'}
               </p>
             </div>
             
