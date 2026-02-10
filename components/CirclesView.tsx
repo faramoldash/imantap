@@ -236,11 +236,11 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   const handleShareInvite = () => {
     if (!selectedCircle) return;
     const shareText = 
-      `🤝 ${language === 'kk' ? 'Менің тобыма қосыл' : 'Присоединяйся к моему кругу'} ImanTap!\n\n` +
+      `🤝 ${language === 'kk' ? 'ImanTap-та менің тобыма қосыл!' : 'Присоединяйся к моему кругу в ImanTap!'}!\n\n` +
       `📝 "${selectedCircle.name}"\n` +
       (selectedCircle.description ? `💬 ${selectedCircle.description}\n` : '') +
       `🔑 ${language === 'kk' ? 'Код' : 'Код'}: ${selectedCircle.inviteCode}\n\n` +
-      `${language === 'kk' ? '@imantap_bot ботын аш және кодты енгіз!' : 'Открой бот @imantap_bot и введи код!'}`;
+      `${language === 'kk' ? '@imantap_bot Telegram боты арқылы тіркел!' : 'Регистрируйся через бот @imantap_bot в Telegram!'}`;
     const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(`https://t.me/${process.env.BOT_USERNAME || 'imantap_bot'}`)}&text=${encodeURIComponent(shareText)}`;
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.openTelegramLink(shareUrl);
