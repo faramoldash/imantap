@@ -273,6 +273,19 @@ const Dashboard: React.FC<DashboardProps> = ({
     return shuffled.slice(0, 3);
   }, [userData?.memorizedNames, currentDay]);
 
+  // ✅ REF для шапки трекера
+  const headerRef = React.useRef<HTMLDivElement>(null);
+
+  // ✅ Скроллим к шапке при смене дня
+  useEffect(() => {
+    if (headerRef.current) {
+      headerRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  }, [selectedDay]);
+
   const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t, disabled }: any) => (
     <button 
       onClick={(e) => !disabled && toggleItem(id, e)} 
@@ -380,7 +393,9 @@ const Dashboard: React.FC<DashboardProps> = ({
       )}
 
       {/* ✅ ТРЕКЕР ВЫБРАННОГО ДНЯ - ШАПКА С НАВИГАЦИЕЙ */}
-      <section className={`p-6 rounded-[3rem] shadow-xl text-white relative overflow-hidden ${
+      <section 
+        ref={headerRef}
+        className={`p-6 rounded-[3rem] shadow-xl text-white relative overflow-hidden ${
         selectedDayInfo.phase === 'ramadan'
           ? 'bg-gradient-to-br from-emerald-900 to-emerald-700'
           : selectedDayInfo.phase === 'preparation'
