@@ -401,6 +401,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* ✅ ТРЕКЕР ВЫБРАННОГО ДНЯ - ШАПКА С НАВИГАЦИЕЙ */}
       <section 
         ref={headerRef}
+        style={{ scrollMarginTop: '24px' }}
         className={`p-6 rounded-[3rem] shadow-xl text-white relative overflow-hidden ${
         selectedDayInfo.phase === 'ramadan'
           ? 'bg-gradient-to-br from-emerald-900 to-emerald-700'
