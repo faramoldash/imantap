@@ -58,43 +58,91 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   }, [ramadanInfo.isStarted]);
 
-  // ✅ ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЙ ИСТОЧНИК ДАННЫХ
-  const currentData = useMemo(() => {
+  // ✅ ОПРЕДЕЛЯЕМ ФАЗУ ВЫБРАННОГО ДНЯ
+  const selectedDayInfo = useMemo(() => {
     if (ramadanInfo.isStarted) {
-      return allProgress[currentDay] || {};
+      return { phase: 'ramadan' as const, maxDays: 30 };
     } else {
-      return userData?.preparationProgress?.[currentDay] || {};
+      return { phase: 'preparation' as const, maxDays: 10 };
     }
-  }, [currentDay, ramadanInfo.isStarted, allProgress, userData?.preparationProgress]);
+  }, [ramadanInfo.isStarted]);
 
-  console.log('📅 DASHBOARD CURRENT DAY:', {
+  // ✅ ДАННЫЕ ОТОБРАЖАЕМОГО ДНЯ
+  const displayedData = useMemo(() => {
+    if (selectedDayInfo.phase === 'ramadan') {
+      return allProgress[selectedDay] || {};
+    } else if (selectedDayInfo.phase === 'preparation') {
+      return userData?.preparationProgress?.[selectedDay] || {};
+    } else {
+      return userData?.basicProgress?.[selectedDay] || {};
+    }
+  }, [selectedDay, selectedDayInfo.phase, allProgress, userData]);
+
+  // ✅ ПРОВЕРКА - СЕГОДНЯШНИЙ ДЕНЬ?
+  const isToday = selectedDay === currentDay;
+
+  // ✅ НАВИГАЦИЯ
+  const canGoPrev = selectedDay > 1;
+  const canGoNext = selectedDay < selectedDayInfo.maxDays;
+
+  const goToPrevDay = () => {
+    if (canGoPrev) {
+      haptics.selection();
+      onDaySelect(selectedDay - 1);
+    }
+  };
+
+  const goToNextDay = () => {
+    if (canGoNext) {
+      haptics.selection();
+      onDaySelect(selectedDay + 1);
+    }
+  };
+
+  const goToToday = () => {
+    haptics.medium();
+    onDaySelect(currentDay);
+  };
+
+  console.log('📅 DASHBOARD:', {
+    selectedDay,
     currentDay,
-    isRamadan: ramadanInfo.isStarted,
-    currentData
+    isToday,
+    phase: selectedDayInfo.phase,
+    displayedData
   });
 
   const toggleItem = (key: keyof DayProgress, e?: React.MouseEvent<HTMLElement>) => {
-    const isCompleted = currentData[key];
+    const isCompleted = displayedData[key];
     if (isCompleted) {
       haptics.light();
     } else {
       haptics.success();
     }
-    updateProgress(currentDay, { [key]: !currentData[key] });
+    updateProgress(selectedDay, { [key]: !displayedData[key] });
   };
 
   const calculateProgress = (dayNum: number) => {
-    const dayData = ramadanInfo.isStarted 
-      ? allProgress[dayNum]
-      : userData?.preparationProgress?.[dayNum];
-    if (!dayData) return 0;
+    let dayData;
+    let keys;
     
-    const keys = ramadanInfo.isStarted ? TRACKER_KEYS : PREPARATION_TRACKER_KEYS;
+    if (selectedDayInfo.phase === 'ramadan') {
+      dayData = allProgress[dayNum];
+      keys = TRACKER_KEYS;
+    } else if (selectedDayInfo.phase === 'preparation') {
+      dayData = userData?.preparationProgress?.[dayNum];
+      keys = PREPARATION_TRACKER_KEYS;
+    } else {
+      dayData = userData?.basicProgress?.[dayNum];
+      keys = TRACKER_KEYS;
+    }
+    
+    if (!dayData) return 0;
     const completed = keys.filter(key => dayData[key as keyof DayProgress]).length;
     return Math.round((completed / keys.length) * 100);
   };
 
-  const currentDayProgress = calculateProgress(currentDay);
+  const selectedDayProgress = calculateProgress(selectedDay);
 
   const toggleMemorized = (id: number, e?: React.MouseEvent<HTMLElement>) => {
     if (!userData || !setUserData) return;
@@ -123,24 +171,22 @@ const Dashboard: React.FC<DashboardProps> = ({
     const unlearned = NAMES_99.filter(name => !memorized.includes(name.id));
     
     if (unlearned.length === 0) {
-      // Все имена выучены - показываем рандомные
       const shuffled = [...NAMES_99].sort(() => Math.random() - 0.5);
       return shuffled.slice(0, 3);
     }
     
-    // Показываем 3 рандомных невыученных
     const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 3);
   }, [userData?.memorizedNames, currentDay]);
 
-  const ItemButton = React.memo(({ id, icon, small, currentData, toggleItem, t }: any) => (
+  const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t }: any) => (
     <button 
       onClick={(e) => toggleItem(id, e)} 
-      className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative active:scale-95 ${small ? 'h-20' : 'h-24'} ${currentData[id] ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' : 'bg-white border-slate-100 text-slate-600 shadow-sm'}`}
+      className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative active:scale-95 ${small ? 'h-20' : 'h-24'} ${displayedData[id] ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' : 'bg-white border-slate-100 text-slate-600 shadow-sm'}`}
     >
       {icon}
       <span className="text-[11px] font-bold text-center leading-tight">{t.items[id]}</span>
-      {currentData[id] && <span className="absolute top-1 right-1 text-xs">✓</span>}
+      {displayedData[id] && <span className="absolute top-1 right-1 text-xs">✓</span>}
     </button>
   ));
 
@@ -148,7 +194,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     <div className="space-y-6 pb-4 relative">
 
       {/* Real-time Countdown Card */}
-      {!ramadanInfo.isStarted && (
+      {!ramadanInfo.isStarted && isToday && (
         <section className="bg-gradient-to-br from-emerald-950 to-emerald-900 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden text-center text-white border border-emerald-800 animate-in fade-in">
           <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
             <span className="text-8xl">🌙</span>
@@ -177,79 +223,128 @@ const Dashboard: React.FC<DashboardProps> = ({
         </section>
       )}
 
-      {/* ✅ STREAK CARD */}
-      <section className="bg-gradient-to-br from-orange-500 to-red-600 p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-20 text-9xl">🔥</div>
-        
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex-1">
-            <p className="text-[10px] font-black text-white/80 uppercase tracking-widest mb-1">
-              {language === 'kk' ? 'Қатарынан' : 'Подряд'}
-            </p>
-            <div className="flex items-baseline space-x-2">
-              <h3 className="text-5xl font-black text-white leading-none">
-                {userData?.currentStreak || 0}
-              </h3>
-              <span className="text-xl font-black text-white/80">
-                {language === 'kk' ? 'күн' : 'дней'}
-              </span>
-            </div>
-            
-            {(userData?.currentStreak || 0) > 0 && (
-              <p className="text-xs font-bold text-white/90 mt-2">
-                {language === 'kk' ? '🔥 Жалғастырыңыз! МашаАллаһ!' : '🔥 Продолжайте! МашаАллаһ!'}
-              </p>
-            )}
-            
-            {(userData?.currentStreak || 0) === 0 && (
-              <p className="text-xs font-bold text-white/90 mt-2">
-                {language === 'kk' ? 'Бүгін белгілеп қатарды бастаңыз! 💪' : 'Начните серию сегодня! 💪'}
-              </p>
-            )}
-          </div>
+      {/* ✅ STREAK CARD - только для текущего дня */}
+      {isToday && (
+        <section className="bg-gradient-to-br from-orange-500 to-red-600 p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-20 text-9xl">🔥</div>
           
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-5xl mb-2 backdrop-blur-sm">
-              🔥
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-[10px] font-black text-white/80 uppercase tracking-widest mb-1">
+                {language === 'kk' ? 'Қатарынан' : 'Подряд'}
+              </p>
+              <div className="flex items-baseline space-x-2">
+                <h3 className="text-5xl font-black text-white leading-none">
+                  {userData?.currentStreak || 0}
+                </h3>
+                <span className="text-xl font-black text-white/80">
+                  {language === 'kk' ? 'күн' : 'дней'}
+                </span>
+              </div>
+              
+              {(userData?.currentStreak || 0) > 0 && (
+                <p className="text-xs font-bold text-white/90 mt-2">
+                  {language === 'kk' ? '🔥 Жалғастырыңыз! МашаАллаһ!' : '🔥 Продолжайте! МашаАллаһ!'}
+                </p>
+              )}
+              
+              {(userData?.currentStreak || 0) === 0 && (
+                <p className="text-xs font-bold text-white/90 mt-2">
+                  {language === 'kk' ? 'Бүгін белгілеп қатарды бастаңыз! 💪' : 'Начните серию сегодня! 💪'}
+                </p>
+              )}
             </div>
-            <div className="text-center">
-              <p className="text-[8px] font-black text-white/70 uppercase tracking-wider">
-                {language === 'kk' ? 'Максимум' : 'Максимум'}
-              </p>
-              <p className="text-xs font-black text-white leading-tight">
-                {userData?.longestStreak || 0} {language === 'kk' ? 'күн' : 'дней'}
-              </p>
-              <p className="text-[7px] font-bold text-white/70">
-                {language === 'kk' ? 'қатарынан' : 'подряд'}
-              </p>
+            
+            <div className="flex flex-col items-center">
+              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-5xl mb-2 backdrop-blur-sm">
+                🔥
+              </div>
+              <div className="text-center">
+                <p className="text-[8px] font-black text-white/70 uppercase tracking-wider">
+                  {language === 'kk' ? 'Максимум' : 'Максимум'}
+                </p>
+                <p className="text-xs font-black text-white leading-tight">
+                  {userData?.longestStreak || 0} {language === 'kk' ? 'күн' : 'дней'}
+                </p>
+                <p className="text-[7px] font-bold text-white/70">
+                  {language === 'kk' ? 'қатарынан' : 'подряд'}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* ✅ ТРЕКЕР ТЕКУЩЕГО ДНЯ - ШАПКА */}
+      {/* ✅ ТРЕКЕР ВЫБРАННОГО ДНЯ - ШАПКА С НАВИГАЦИЕЙ */}
       <section className="bg-gradient-to-br from-sky-600 to-blue-600 p-6 rounded-[3rem] shadow-xl text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10">
           <span className="text-9xl">🌙</span>
         </div>
         
         <div className="relative z-10">
-          <div className="text-center mb-4">
+          {/* Навигация */}
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={goToPrevDay}
+              disabled={!canGoPrev}
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all font-bold text-lg ${
+                canGoPrev 
+                  ? 'bg-white/20 hover:bg-white/30 active:scale-95 text-white' 
+                  : 'bg-white/5 text-white/30 cursor-not-allowed'
+              }`}
+            >
+              ←
+            </button>
+            
+            {!isToday && (
+              <button
+                onClick={goToToday}
+                className="bg-amber-500/20 hover:bg-amber-500/30 backdrop-blur-sm text-white px-4 py-2 rounded-2xl text-xs font-black uppercase transition-all active:scale-95 border border-amber-300/30"
+              >
+                {language === 'kk' ? 'Бүгінге' : 'Сегодня'}
+              </button>
+            )}
+            
+            <button
+              onClick={goToNextDay}
+              disabled={!canGoNext}
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all font-bold text-lg ${
+                canGoNext 
+                  ? 'bg-white/20 hover:bg-white/30 active:scale-95 text-white' 
+                  : 'bg-white/5 text-white/30 cursor-not-allowed'
+              }`}
+            >
+              →
+            </button>
+          </div>
+          
+          <div className="text-center">
             <p className="text-[10px] font-black uppercase tracking-widest opacity-90 mb-2">
-              {ramadanInfo.isStarted 
+              {selectedDayInfo.phase === 'ramadan'
                 ? (language === 'kk' ? 'Рамазан' : 'Рамадан')
                 : (language === 'kk' ? 'Рамазанға дайындық' : 'Подготовка к Рамадану')}
             </p>
-            <h1 className="text-2xl font-black mb-2">
-              {language === 'kk' ? 'Күн' : 'День'} {currentDay}
-            </h1>
-            <p className="text-sm font-bold opacity-90">
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-2xl font-black">
+                {language === 'kk' ? 'Күн' : 'День'} {selectedDay}
+              </h1>
+              {isToday && (
+                <span className="bg-amber-500/20 backdrop-blur-sm text-amber-300 px-2 py-1 rounded-xl text-[10px] font-black uppercase border border-amber-300/30">
+                  {language === 'kk' ? 'Бүгін' : 'Сегодня'}
+                </span>
+              )}
+            </div>
+            <p className="text-sm font-bold opacity-90 mt-2">
               {(() => {
-                const prepStartDate = ramadanInfo.isStarted 
-                  ? new Date(RAMADAN_START_DATE)
-                  : new Date(PREPARATION_START_DATE);
-                const currentDayDate = new Date(prepStartDate);
-                currentDayDate.setDate(prepStartDate.getDate() + (currentDay - 1));
+                let startDate;
+                if (selectedDayInfo.phase === 'ramadan') {
+                  startDate = new Date(RAMADAN_START_DATE);
+                } else {
+                  startDate = new Date(PREPARATION_START_DATE);
+                }
+                
+                const currentDayDate = new Date(startDate);
+                currentDayDate.setDate(startDate.getDate() + (selectedDay - 1));
                 
                 const monthNames = language === 'kk' 
                   ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
@@ -263,10 +358,10 @@ const Dashboard: React.FC<DashboardProps> = ({
             </p>
             
             {/* Бейджи для подготовки */}
-            {!ramadanInfo.isStarted && (() => {
+            {selectedDayInfo.phase === 'preparation' && (() => {
               const prepStartDate = new Date(PREPARATION_START_DATE);
               const currentDayDate = new Date(prepStartDate);
-              currentDayDate.setDate(prepStartDate.getDate() + (currentDay - 1));
+              currentDayDate.setDate(prepStartDate.getDate() + (selectedDay - 1));
               const dayOfWeek = currentDayDate.getDay();
               const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
               const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
@@ -293,13 +388,17 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Ораза */}
       {(() => {
-        const showFasting = ramadanInfo.isStarted || (() => {
+        let showFasting = false;
+        
+        if (selectedDayInfo.phase === 'ramadan') {
+          showFasting = true;
+        } else if (selectedDayInfo.phase === 'preparation') {
           const prepStartDate = new Date(PREPARATION_START_DATE);
           const currentDayDate = new Date(prepStartDate);
-          currentDayDate.setDate(prepStartDate.getDate() + (currentDay - 1));
+          currentDayDate.setDate(prepStartDate.getDate() + (selectedDay - 1));
           const dayOfWeek = currentDayDate.getDay();
-          return dayOfWeek === 1 || dayOfWeek === 4;
-        })();
+          showFasting = dayOfWeek === 1 || dayOfWeek === 4;
+        }
         
         if (!showFasting) return null;
         
@@ -315,7 +414,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     {language === 'kk' ? 'Ораза' : 'Ораза'}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {ramadanInfo.isStarted 
+                    {selectedDayInfo.phase === 'ramadan'
                       ? (language === 'kk' ? 'Міндетті ораза' : 'Обязательная ораза')
                       : (language === 'kk' ? 'Сүннет ораза' : 'Сунна ораза')}
                   </p>
@@ -324,12 +423,12 @@ const Dashboard: React.FC<DashboardProps> = ({
               <button
                 onClick={() => toggleItem('fasting')}
                 className={`w-12 h-12 rounded-2xl transition-all ${
-                  currentData.fasting
+                  displayedData.fasting
                     ? 'bg-sky-600 text-white shadow-lg active:scale-95'
                     : 'bg-slate-100 text-slate-400 active:scale-95'
                 }`}
               >
-                {currentData.fasting ? '✓' : ''}
+                {displayedData.fasting ? '✓' : ''}
               </button>
             </div>
           </div>
@@ -342,28 +441,28 @@ const Dashboard: React.FC<DashboardProps> = ({
           {language === 'kk' ? 'Намаздар' : 'Намазы'}
         </h4>
         <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="fajr" icon={<span className="text-2xl">🌅</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="duha" icon={<span className="text-2xl">☀️</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="dhuhr" icon={<span className="text-2xl">🌞</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="asr" icon={<span className="text-2xl">🌤️</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="maghrib" icon={<span className="text-2xl">🌆</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="isha" icon={<span className="text-2xl">🌙</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-          {ramadanInfo.isStarted && (
+          <ItemButton id="fajr" icon={<span className="text-2xl">🌅</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="duha" icon={<span className="text-2xl">☀️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="dhuhr" icon={<span className="text-2xl">🌞</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="asr" icon={<span className="text-2xl">🌤️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="maghrib" icon={<span className="text-2xl">🌆</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="isha" icon={<span className="text-2xl">🌙</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          {selectedDayInfo.phase === 'ramadan' && (
             <>
-              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-              <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-              <ItemButton id="witr" icon={<span className="text-2xl">✨</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="witr" icon={<span className="text-2xl">✨</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
             </>
           )}
-          {!ramadanInfo.isStarted && (() => {
+          {selectedDayInfo.phase === 'preparation' && (() => {
             const prepStartDate = new Date(PREPARATION_START_DATE);
             const currentDayDate = new Date(prepStartDate);
-            currentDayDate.setDate(prepStartDate.getDate() + (currentDay - 1));
+            currentDayDate.setDate(prepStartDate.getDate() + (selectedDay - 1));
             const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
             const isFirstTaraweehDay = currentDayDate.getTime() === firstTaraweehDate.getTime();
             
             return isFirstTaraweehDay ? (
-              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
             ) : null;
           })()}
         </div>
@@ -375,103 +474,105 @@ const Dashboard: React.FC<DashboardProps> = ({
           {language === 'kk' ? 'Рухани амалдар' : 'Духовные практики'}
         </h4>
         <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="quranRead" icon={<span className="text-2xl">📖</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="morningDhikr" icon={<span className="text-2xl">🤲</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="eveningDhikr" icon={<span className="text-2xl">🌙</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-          {!ramadanInfo.isStarted && (
+          <ItemButton id="quranRead" icon={<span className="text-2xl">📖</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="morningDhikr" icon={<span className="text-2xl">🤲</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="eveningDhikr" icon={<span className="text-2xl">🌙</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          {selectedDayInfo.phase === 'preparation' && (
             <>
-              <ItemButton id="salawat" icon={<span className="text-2xl">☪️</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-              <ItemButton id="hadith" icon={<span className="text-2xl">📜</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
-              <ItemButton id="charity" icon={<span className="text-2xl">💝</span>} small currentData={currentData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="salawat" icon={<span className="text-2xl">☪️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="hadith" icon={<span className="text-2xl">📜</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="charity" icon={<span className="text-2xl">💝</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
             </>
           )}
         </div>
       </div>
-      {/* ✅ 99 ИМЕН АЛЛАХА - 3 РАНДОМНЫХ НЕВЫУЧЕННЫХ */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-8 rounded-[3rem] shadow-2xl text-white relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-10 opacity-5 text-9xl font-serif pointer-events-none group-hover:scale-110 transition-transform duration-1000">
-          {dailyNames[0]?.arabic}
-        </div>
-        <div className="relative z-10">
-          <div className="flex justify-between items-center mb-6">
-            <h4 className="text-[10px] font-black text-emerald-400 tracking-[0.3em] uppercase flex items-center">
-              <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
-              {language === 'kk' ? 'Аллаһтың 99 есімі' : '99 имен Аллаха'}
-            </h4>
-            <button 
-              onClick={() => {
-                haptics.selection();
-                setView('names-99');
-              }}
-              className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-colors backdrop-blur-sm shadow-lg border border-white/20"
-            >
-              {language === 'kk' ? 'Барлығы →' : 'Все →'}
-            </button>
+      {/* ✅ 99 ИМЕН АЛЛАХА - только для текущего дня */}
+      {isToday && (
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-8 rounded-[3rem] shadow-2xl text-white relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-10 opacity-5 text-9xl font-serif pointer-events-none group-hover:scale-110 transition-transform duration-1000">
+            {dailyNames[0]?.arabic}
           </div>
-          
-          <p className="text-xs text-emerald-200 mb-4 font-medium">
-            {language === 'kk' 
-              ? '🎯 Бүгін үшін 3 жаңа есім' 
-              : '🎯 3 новых имени на сегодня'}
-          </p>
-          
-          <div className="grid grid-cols-1 gap-3">
-            {dailyNames.map((name) => {
-              const isLearned = userData?.memorizedNames?.includes(name.id);
-              return (
-                <div 
-                  key={name.id} 
-                  onClick={(e) => toggleMemorized(name.id, e)} 
-                  className={`flex items-center justify-between p-4 rounded-[1.8rem] border transition-all cursor-pointer active:scale-[0.98] ${
-                    isLearned 
-                      ? 'bg-white/20 border-white/30 text-white shadow-lg' 
-                      : 'bg-black/10 border-white/10 text-emerald-50 hover:bg-black/20'
-                  }`}
-                >
-                  <div className="flex items-center space-x-4 overflow-hidden">
-                    <div className={`w-10 h-10 rounded-2xl flex-shrink-0 flex items-center justify-center text-[10px] font-black transition-all ${
+          <div className="relative z-10">
+            <div className="flex justify-between items-center mb-6">
+              <h4 className="text-[10px] font-black text-emerald-400 tracking-[0.3em] uppercase flex items-center">
+                <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
+                {language === 'kk' ? 'Аллаһтың 99 есімі' : '99 имен Аллаха'}
+              </h4>
+              <button 
+                onClick={() => {
+                  haptics.selection();
+                  setView('names-99');
+                }}
+                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-colors backdrop-blur-sm shadow-lg border border-white/20"
+              >
+                {language === 'kk' ? 'Барлығы →' : 'Все →'}
+              </button>
+            </div>
+            
+            <p className="text-xs text-emerald-200 mb-4 font-medium">
+              {language === 'kk' 
+                ? '🎯 Бүгін үшін 3 жаңа есім' 
+                : '🎯 3 новых имени на сегодня'}
+            </p>
+            
+            <div className="grid grid-cols-1 gap-3">
+              {dailyNames.map((name) => {
+                const isLearned = userData?.memorizedNames?.includes(name.id);
+                return (
+                  <div 
+                    key={name.id} 
+                    onClick={(e) => toggleMemorized(name.id, e)} 
+                    className={`flex items-center justify-between p-4 rounded-[1.8rem] border transition-all cursor-pointer active:scale-[0.98] ${
                       isLearned 
-                        ? 'bg-emerald-400 text-emerald-900 shadow-md shadow-emerald-400/20' 
-                        : 'bg-white/10 text-emerald-200'
+                        ? 'bg-white/20 border-white/30 text-white shadow-lg' 
+                        : 'bg-black/10 border-white/10 text-emerald-50 hover:bg-black/20'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-4 overflow-hidden">
+                      <div className={`w-10 h-10 rounded-2xl flex-shrink-0 flex items-center justify-center text-[10px] font-black transition-all ${
+                        isLearned 
+                          ? 'bg-emerald-400 text-emerald-900 shadow-md shadow-emerald-400/20' 
+                          : 'bg-white/10 text-emerald-200'
+                      }`}>
+                        {name.id}
+                      </div>
+                      <div className="overflow-hidden">
+                        <span className="text-xl font-serif block leading-none mb-1 truncate">{name.arabic}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-200/70 truncate">{name.translit}</span>
+                      </div>
+                    </div>
+                    <div className={`w-8 h-8 rounded-xl border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+                      isLearned 
+                        ? 'bg-white border-white text-emerald-700' 
+                        : 'border-white/20 bg-transparent'
                     }`}>
-                      {name.id}
-                    </div>
-                    <div className="overflow-hidden">
-                      <span className="text-xl font-serif block leading-none mb-1 truncate">{name.arabic}</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-emerald-200/70 truncate">{name.translit}</span>
+                      {isLearned && <span className="text-sm font-black">✓</span>}
                     </div>
                   </div>
-                  <div className={`w-8 h-8 rounded-xl border-2 flex-shrink-0 flex items-center justify-center transition-all ${
-                    isLearned 
-                      ? 'bg-white border-white text-emerald-700' 
-                      : 'border-white/20 bg-transparent'
-                  }`}>
-                    {isLearned && <span className="text-sm font-black">✓</span>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* Прогресс заучивания */}
-          <div className="mt-4 pt-4 border-t border-white/10">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-white/60 font-bold">
-                {language === 'kk' ? 'Жаттандым' : 'Выучено'}
-              </span>
-              <span className="text-emerald-400 font-black">
-                {userData?.memorizedNames?.length || 0} / 99
-              </span>
+                );
+              })}
             </div>
-            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mt-2">
-              <div 
-                className="h-full bg-gradient-to-r from-emerald-500 to-emerald-300 transition-all duration-500"
-                style={{ width: `${Math.round(((userData?.memorizedNames?.length || 0) / 99) * 100)}%` }}
-              ></div>
+            
+            {/* Прогресс заучивания */}
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-white/60 font-bold">
+                  {language === 'kk' ? 'Жаттандым' : 'Выучено'}
+                </span>
+                <span className="text-emerald-400 font-black">
+                  {userData?.memorizedNames?.length || 0} / 99
+                </span>
+              </div>
+              <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mt-2">
+                <div 
+                  className="h-full bg-gradient-to-r from-emerald-500 to-emerald-300 transition-all duration-500"
+                  style={{ width: `${Math.round(((userData?.memorizedNames?.length || 0) / 99) * 100)}%` }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* ✅ КАЛЕНДАРЬ */}
       <RealCalendar 
@@ -497,26 +598,28 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-400">
-              {language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс'}
+              {isToday 
+                ? (language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс')
+                : (language === 'kk' ? 'Прогресс' : 'Прогресс')}
             </h4>
             <span className="text-xs font-black text-white/40">
-              {language === 'kk' ? `${currentDay}-күн` : `День ${currentDay}`}
+              {language === 'kk' ? `${selectedDay}-күн` : `День ${selectedDay}`}
             </span>
           </div>
           
           <div className="flex items-end justify-between mb-3">
             <div>
               <p className="text-5xl font-black leading-none">
-                {(ramadanInfo.isStarted ? TRACKER_KEYS : PREPARATION_TRACKER_KEYS).filter(k => currentData[k as keyof DayProgress]).length}
+                {(selectedDayInfo.phase === 'ramadan' ? TRACKER_KEYS : PREPARATION_TRACKER_KEYS).filter(k => displayedData[k as keyof DayProgress]).length}
               </p>
               <p className="text-sm font-bold text-white/60 mt-1">
-                / {ramadanInfo.isStarted ? TRACKER_KEYS.length : PREPARATION_TRACKER_KEYS.length} {language === 'kk' ? 'тапсырма' : 'задач'}
+                / {selectedDayInfo.phase === 'ramadan' ? TRACKER_KEYS.length : PREPARATION_TRACKER_KEYS.length} {language === 'kk' ? 'тапсырма' : 'задач'}
               </p>
             </div>
             
             <div className="text-right">
               <p className="text-3xl font-black">
-                {currentDayProgress}%
+                {selectedDayProgress}%
               </p>
               <p className="text-[10px] font-black text-white/60 uppercase">
                 {language === 'kk' ? 'орындалды' : 'выполнено'}
@@ -527,24 +630,24 @@ const Dashboard: React.FC<DashboardProps> = ({
           <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
             <div 
               className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 transition-all duration-1000 ease-out"
-              style={{ width: `${currentDayProgress}%` }}
+              style={{ width: `${selectedDayProgress}%` }}
             ></div>
           </div>
           
           {/* Мотивационные сообщения */}
-          {currentDayProgress === 100 && (
+          {selectedDayProgress === 100 && (
             <p className="text-xs font-black text-emerald-400 mt-3 text-center">
               🎉 {language === 'kk' ? 'Жарайсыз! Барлық амалдар орындалды!' : 'Отлично! Все задачи выполнены!'}
             </p>
           )}
           
-          {currentDayProgress >= 50 && currentDayProgress < 100 && (
+          {selectedDayProgress >= 50 && selectedDayProgress < 100 && (
             <p className="text-xs font-bold text-white/80 mt-3 text-center">
               💪 {language === 'kk' ? 'Жақсы нәтиже! Тоқтамаңыз!' : 'Хороший результат! Не останавливайтесь!'}
             </p>
           )}
           
-          {currentDayProgress < 50 && currentDayProgress > 0 && (
+          {selectedDayProgress < 50 && selectedDayProgress > 0 && (
             <p className="text-xs font-bold text-white/80 mt-3 text-center">
               🚀 {language === 'kk' ? 'Керемет бастама! Толық орындауға тырысыңыз!' : 'Отличное начало! Постарайтесь выполнить все!'}
             </p>
