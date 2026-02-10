@@ -268,7 +268,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     } catch (error: any) {
       setJoinError(
         error.message === 'Circle not found' ? (language === 'kk' ? 'Код табылмады' : 'Код не найден') :
-        error.message === 'Already a member' ? (language === 'kk' ? 'Сіз бұл топтың мүшесісіз' : 'Вы уже участник этого круга') :
+        error.message === 'Already a member' ? (language === 'kk' ? 'Сіз бұл топтың қатысушысысыз' : 'Вы уже участник этого круга') :
         (language === 'kk' ? 'Қате орын алды' : 'Произошла ошибка')
       );
     } finally {
@@ -365,7 +365,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                   </div>
                   {circle.description && <p className="text-xs text-slate-400 mb-3">{circle.description}</p>}
                   <div className="flex items-center space-x-4 text-xs text-slate-500 font-bold">
-                    <span>👥 {circle.members.filter((m: any) => m.status === 'active').length} {language === 'kk' ? 'мүше' : 'участников'}</span>
+                    <span>👥 {circle.members.filter((m: any) => m.status === 'active').length} {language === 'kk' ? 'қатысушы' : 'участников'}</span>
                     <span>🔑 {circle.inviteCode}</span>
                   </div>
                 </div>
@@ -423,7 +423,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
             <h2 className="text-2xl font-black mb-2">{selectedCircle.name}</h2>
             {selectedCircle.description && <p className="text-sm text-emerald-100 mb-3 font-medium">{selectedCircle.description}</p>}
             <div className="flex items-center space-x-4 text-sm font-bold">
-              <span>👥 {selectedCircle.membersWithProgress?.length || 0} {language === 'kk' ? 'мүше' : 'участников'}</span>
+              <span>👥 {selectedCircle.membersWithProgress?.length || 0} {language === 'kk' ? 'қатысушы' : 'участников'}</span>
               <span>🔑 {selectedCircle.inviteCode}</span>
             </div>
           </div>
@@ -434,7 +434,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
           <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl">📊</div>
           <div className="relative z-10">
             <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-400 mb-4">
-              {language === 'kk' ? 'Статистика тобы' : 'Статистика круга'}
+              {language === 'kk' ? 'Топтың статистикасы' : 'Статистика круга'}
             </h4>
             
             <div className="grid grid-cols-3 gap-4 mb-4">
@@ -545,10 +545,25 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
             ))}
           </div>
           
+          {/* Кнопки владельца */}
           {selectedCircle.ownerId === userData.userId && (
-            <button onClick={handleDeleteCircle} className="w-full mt-4 px-6 py-3 bg-red-500 text-white rounded-2xl font-black text-sm active:scale-95 transition-all hover:bg-red-600 shadow-lg">
-              🗑️ {language === 'kk' ? 'Топты жою' : 'Удалить круг'}
-            </button>
+            <div className="space-y-2 mt-4">
+              {/* Кнопка пригласить */}
+              <button 
+                onClick={() => setShowInviteMenu(!showInviteMenu)} 
+                className="w-full px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black text-sm active:scale-95 transition-all hover:bg-emerald-700 shadow-lg"
+              >
+                + {language === 'kk' ? 'Шақыру' : 'Пригласить'}
+              </button>
+              
+              {/* Кнопка удалить круг */}
+              <button 
+                onClick={handleDeleteCircle} 
+                className="w-full px-6 py-3 bg-red-500 text-white rounded-2xl font-black text-sm active:scale-95 transition-all hover:bg-red-600 shadow-lg"
+              >
+                🗑️ {language === 'kk' ? 'Топты жою' : 'Удалить круг'}
+              </button>
+            </div>
           )}
         </div>
       </div>
