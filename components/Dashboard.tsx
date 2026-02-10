@@ -84,6 +84,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   // ✅ ПРОВЕРКА - СЕГОДНЯШНИЙ ДЕНЬ?
   const isToday = selectedDay === currentDay;
 
+  // ✅ ПРОВЕРКА - БУДУЩИЙ ДЕНЬ?
+  const isFutureDay = selectedDay > currentDay;
+
   // ✅ НАВИГАЦИЯ
   const canGoPrev = selectedDay > 1;
   const canGoNext = selectedDay < selectedDayInfo.maxDays;
@@ -116,6 +119,12 @@ const Dashboard: React.FC<DashboardProps> = ({
   });
 
   const toggleItem = (key: keyof DayProgress, e?: React.MouseEvent<HTMLElement>) => {
+    // ✅ БЛОКИРУЕМ БУДУЩИЕ ДНИ
+    if (isFutureDay) {
+      haptics.light();
+      return;
+    }
+    
     const isCompleted = displayedData[key];
     if (isCompleted) {
       haptics.light();
@@ -188,14 +197,24 @@ const Dashboard: React.FC<DashboardProps> = ({
     return shuffled.slice(0, 3);
   }, [userData?.memorizedNames, currentDay]);
 
-  const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t }: any) => (
+  const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t, disabled }: any) => (
     <button 
-      onClick={(e) => toggleItem(id, e)} 
-      className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative active:scale-95 ${small ? 'h-20' : 'h-24'} ${displayedData[id] ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' : 'bg-white border-slate-100 text-slate-600 shadow-sm'}`}
+      onClick={(e) => !disabled && toggleItem(id, e)} 
+      disabled={disabled}
+      className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative ${
+        disabled 
+          ? 'cursor-not-allowed opacity-40' 
+          : 'active:scale-95 cursor-pointer'
+      } ${small ? 'h-20' : 'h-24'} ${
+        displayedData[id] 
+          ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' 
+          : 'bg-white border-slate-100 text-slate-600 shadow-sm'
+      }`}
     >
       {icon}
       <span className="text-[11px] font-bold text-center leading-tight">{t.items[id]}</span>
       {displayedData[id] && <span className="absolute top-1 right-1 text-xs">✓</span>}
+      {disabled && <span className="absolute top-1 right-1 text-xs">🔒</span>}
     </button>
   ));
 
@@ -342,6 +361,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                   {language === 'kk' ? 'Бүгін' : 'Сегодня'}
                 </span>
               )}
+              {isFutureDay && (
+                <span className="bg-slate-500/20 backdrop-blur-sm text-slate-300 px-2 py-1 rounded-xl text-[10px] font-black uppercase border border-slate-300/30">
+                  🔒 {language === 'kk' ? 'Болашақ' : 'Будущее'}
+                </span>
+              )}
             </div>
             <p className="text-sm font-bold opacity-90 mt-2">
               {(() => {
@@ -430,14 +454,17 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               </div>
               <button
-                onClick={() => toggleItem('fasting')}
+                onClick={() => !isFutureDay && toggleItem('fasting')}
+                disabled={isFutureDay}
                 className={`w-12 h-12 rounded-2xl transition-all ${
-                  displayedData.fasting
+                  isFutureDay
+                    ? 'cursor-not-allowed opacity-40 bg-slate-100 text-slate-300'
+                    : displayedData.fasting
                     ? 'bg-sky-600 text-white shadow-lg active:scale-95'
                     : 'bg-slate-100 text-slate-400 active:scale-95'
                 }`}
               >
-                {displayedData.fasting ? '✓' : ''}
+                {isFutureDay ? '🔒' : displayedData.fasting ? '✓' : ''}
               </button>
             </div>
           </div>
@@ -450,17 +477,17 @@ const Dashboard: React.FC<DashboardProps> = ({
           {language === 'kk' ? 'Намаздар' : 'Намазы'}
         </h4>
         <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="fajr" icon={<span className="text-2xl">🌅</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="duha" icon={<span className="text-2xl">☀️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="dhuhr" icon={<span className="text-2xl">🌞</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="asr" icon={<span className="text-2xl">🌤️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="maghrib" icon={<span className="text-2xl">🌆</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="isha" icon={<span className="text-2xl">🌙</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="fajr" icon={<span className="text-2xl">🌅</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="duha" icon={<span className="text-2xl">☀️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="dhuhr" icon={<span className="text-2xl">🌞</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="asr" icon={<span className="text-2xl">🌤️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="maghrib" icon={<span className="text-2xl">🌆</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="isha" icon={<span className="text-2xl">🌙</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
           {selectedDayInfo.phase === 'ramadan' && (
             <>
-              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-              <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-              <ItemButton id="witr" icon={<span className="text-2xl">✨</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+              <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+              <ItemButton id="witr" icon={<span className="text-2xl">✨</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
             </>
           )}
           {selectedDayInfo.phase === 'preparation' && (() => {
@@ -471,7 +498,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             const isFirstTaraweehDay = currentDayDate.getTime() === firstTaraweehDate.getTime();
             
             return isFirstTaraweehDay ? (
-              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
             ) : null;
           })()}
         </div>
@@ -483,14 +510,14 @@ const Dashboard: React.FC<DashboardProps> = ({
           {language === 'kk' ? 'Рухани амалдар' : 'Духовные практики'}
         </h4>
         <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="quranRead" icon={<span className="text-2xl">📖</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="morningDhikr" icon={<span className="text-2xl">🤲</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-          <ItemButton id="eveningDhikr" icon={<span className="text-2xl">🌙</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+          <ItemButton id="quranRead" icon={<span className="text-2xl">📖</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="morningDhikr" icon={<span className="text-2xl">🤲</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="eveningDhikr" icon={<span className="text-2xl">🌙</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
           {selectedDayInfo.phase === 'preparation' && (
             <>
-              <ItemButton id="salawat" icon={<span className="text-2xl">☪️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-              <ItemButton id="hadith" icon={<span className="text-2xl">📜</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
-              <ItemButton id="charity" icon={<span className="text-2xl">💝</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} />
+              <ItemButton id="salawat" icon={<span className="text-2xl">☪️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+              <ItemButton id="hadith" icon={<span className="text-2xl">📜</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+              <ItemButton id="charity" icon={<span className="text-2xl">💝</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
             </>
           )}
         </div>
