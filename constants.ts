@@ -12,18 +12,10 @@ export const FIRST_TARAWEEH_DATE = '2026-02-18'; // 18 февраля - перв
 export const RAMADAN_START_DATE = '2026-02-19';
 
 // Ключи трекера для дней подготовки (без оразы и специфичных для Рамадана)
-export const PREPARATION_TRACKER_KEYS = [
-  'fajr',
-  'morningDhikr',
-  'quranRead',
-  'salawat',
-  'duha',
-  'dhuhr',
-  'asr',
-  'eveningDhikr',
-  'maghrib',
-  'isha',
-] as const;
+export const PREPARATION_TRACKER_KEYS: (keyof DayProgress)[] = [
+  'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
+  'quranRead', 'morningDhikr', 'eveningDhikr', 'salawat', 'hadith', 'charity'
+];
 
 export const INITIAL_DAY_PROGRESS = (day: number): DayProgress => ({
   day,
