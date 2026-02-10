@@ -114,7 +114,23 @@ const App: React.FC = () => {
       const correctedData = {
         ...initialUserData,
         startDate: RAMADAN_START_DATE, // ✅ Принудительно используем константу
+        // ✅ ЯВНО ГАРАНТИРУЕМ ЧТО ВСЕ ПОЛЯ ПРОГРЕССА ЕСТЬ
+        progress: initialUserData.progress || {},
+        preparationProgress: initialUserData.preparationProgress || {},
+        basicProgress: initialUserData.basicProgress || {},
+        currentStreak: initialUserData.currentStreak ?? 0,
+        longestStreak: initialUserData.longestStreak ?? 0,
+        lastActiveDate: initialUserData.lastActiveDate || ''
       };
+      
+      console.log('📥 Инициализация userData из сервера:', {
+        progressDays: Object.keys(correctedData.progress).length,
+        preparationDays: Object.keys(correctedData.preparationProgress).length,
+        basicDays: Object.keys(correctedData.basicProgress).length,
+        currentStreak: correctedData.currentStreak,
+        lastActiveDate: correctedData.lastActiveDate
+      });
+      
       setUserData(correctedData);
     }
   }, [initialUserData]);

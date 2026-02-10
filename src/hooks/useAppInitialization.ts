@@ -109,11 +109,28 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
                     : serverData.name || 'User',
                   username: telegramUser?.username ? `@${telegramUser.username}` : serverData.username,
                   photoUrl: telegramUser?.photo_url || serverData.photoUrl,
-                  language: 'kk' as const, // Всегда казахский
-                  // ✅ Стрики берем с сервера (приоритет сервера!)
-                  currentStreak: serverData.currentStreak ?? (localData?.currentStreak || 0),
-                  longestStreak: serverData.longestStreak ?? (localData?.longestStreak || 0),
-                  lastActiveDate: serverData.lastActiveDate ?? (localData?.lastActiveDate || '')
+                  language: 'kk' as const,
+                  // ✅ ЯВНО БЕРЁМ ПРОГРЕСС С СЕРВЕРА (приоритет сервера!)
+                  progress: serverData.progress || {},
+                  preparationProgress: serverData.preparationProgress || {},
+                  basicProgress: serverData.basicProgress || {},
+                  // ✅ Стрики с сервера
+                  currentStreak: serverData.currentStreak ?? 0,
+                  longestStreak: serverData.longestStreak ?? 0,
+                  lastActiveDate: serverData.lastActiveDate || '',
+                  // ✅ Остальные поля с сервера
+                  xp: serverData.xp ?? 0,
+                  memorizedNames: serverData.memorizedNames || [],
+                  completedJuzs: serverData.completedJuzs || [],
+                  quranKhatams: serverData.quranKhatams ?? 0,
+                  completedTasks: serverData.completedTasks || [],
+                  deletedPredefinedTasks: serverData.deletedPredefinedTasks || [],
+                  customTasks: serverData.customTasks || [],
+                  quranGoal: serverData.quranGoal ?? 30,
+                  dailyQuranGoal: serverData.dailyQuranGoal ?? 5,
+                  dailyCharityGoal: serverData.dailyCharityGoal ?? 1000,
+                  unlockedBadges: serverData.unlockedBadges || [],
+                  hasRedeemedReferral: serverData.hasRedeemedReferral ?? false
                 };
 
                 // Сохраняем в localStorage
