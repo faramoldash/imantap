@@ -231,10 +231,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     
     if (selectedDayInfo.phase === 'ramadan') {
       keys = TRACKER_KEYS;
-    } else if (selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') {
-      keys = PREPARATION_TRACKER_KEYS;
     } else {
-      keys = TRACKER_KEYS;
+      // Подготовка и базовые дни используют одинаковый набор задач
+      keys = PREPARATION_TRACKER_KEYS;
     }
     
     if (!displayedData) return 0;
