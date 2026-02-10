@@ -101,16 +101,18 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
                 // Мерджим локальные и серверные данные
                 finalUserData = {
                   ...getDefaultUserData(), // Сначала дефолтные значения
-                  ...serverData, // Потом ВСЕ данные с сервера
+                  ...serverData, // ✅ Потом ВСЕ данные с сервера (перезаписывают дефолты)
                   userId: userId,
-                  // Telegram данные всегда актуальные (перезаписываем)
+                  // Telegram данные всегда актуальные (перезаписываем поверх serverData)
                   name: telegramUser?.first_name 
                     ? `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim() 
                     : serverData.name || 'User',
                   username: telegramUser?.username ? `@${telegramUser.username}` : serverData.username,
                   photoUrl: telegramUser?.photo_url || serverData.photoUrl,
                   language: 'kk' as const,
-                  // ✅ ЯВНО ГАРАНТИРУЕМ ВСЕ ПОЛЯ ПРОГРЕССА (приоритет сервера)
+                  // ✅ КРИТИЧНО: НЕ перезаписываем registrationDate если он есть на сервере!
+                  registrationDate: serverData.registrationDate || new Date().toISOString(),
+                  // ✅ ЯВНО ГАРАНТИРУЕМ ВСЕ ПОЛЯ ПРОГРЕССА
                   progress: serverData.progress || {},
                   preparationProgress: serverData.preparationProgress || {},
                   basicProgress: serverData.basicProgress || {},
@@ -130,6 +132,15 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
                   unlockedBadges: serverData.unlockedBadges || [],
                   hasRedeemedReferral: serverData.hasRedeemedReferral ?? false
                 };
+
+                console.log('📥 Данные загружены с сервера:', {
+                  progressDays: Object.keys(finalUserData.progress).length,
+                  preparationDays: Object.keys(finalUserData.preparationProgress).length,
+                  basicDays: Object.keys(finalUserData.basicProgress).length,
+                  currentStreak: finalUserData.currentStreak,
+                  xp: finalUserData.xp,
+                  registrationDate: finalUserData.registrationDate  // ✅ ДОБАВЬ В ЛОГ!
+                });
 
                 console.log('📥 Данные загружены с сервера:', {
                   progressDays: Object.keys(finalUserData.progress).length,
