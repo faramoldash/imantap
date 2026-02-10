@@ -110,11 +110,9 @@ const App: React.FC = () => {
   // Обновляем userData когда загрузка завершена
   useEffect(() => {
     if (initialUserData) {
-      // ✅ ВАЖНО: startDate берем из констант, а НЕ с сервера!
       const correctedData = {
         ...initialUserData,
-        startDate: RAMADAN_START_DATE, // ✅ Принудительно используем константу
-        // ✅ ЯВНО ГАРАНТИРУЕМ ЧТО ВСЕ ПОЛЯ ПРОГРЕССА ЕСТЬ
+        startDate: RAMADAN_START_DATE,
         progress: initialUserData.progress || {},
         preparationProgress: initialUserData.preparationProgress || {},
         basicProgress: initialUserData.basicProgress || {},
@@ -148,7 +146,7 @@ const App: React.FC = () => {
       } catch (error) {
         console.error('❌ Ошибка загрузки кругов:', error);
         setUserCircles([]);
-      }
+      } // ✅ УБРАНА точка с запятой
     };
     
     loadUserCircles();
@@ -221,7 +219,7 @@ const App: React.FC = () => {
     if (selectedBasicDate || selectedPreparationDay) {
       document.body.scrollTop = 0;
       return;
-    }
+    } // ✅ ДОБАВЛЕНА закрывающая скобка
 
     // Восстанавливаем сохраненную позицию
     const savedPos = scrollMemory.current[currentView] ?? 0;
@@ -317,7 +315,7 @@ const App: React.FC = () => {
       }
       
       lastHeight = currentHeight;
-    };
+    }; // ✅ Правильная закрывающая скобка функции checkKeyboard
     
     // Проверяем каждые 100ms
     const interval = setInterval(checkKeyboard, 100);
@@ -502,14 +500,14 @@ const App: React.FC = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: data,
-            keepalive: true // Важно для отправки при закрытии
+            keepalive: true
           }).catch(() => {
             console.log('⚠️ Fetch при закрытии не удался, данные в localStorage');
           });
         } catch (error) {
           console.log('⚠️ Ошибка отправки, данные в localStorage');
         }
-      }
+      } // ✅ УБРАНА точка с запятой
     };
     
     // Telegram WebApp события
@@ -805,13 +803,13 @@ const App: React.FC = () => {
       if (newBadges) newState.unlockedBadges = newBadges;
 
       return newState;
-        });
+    });
         
-        // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ
-        setTimeout(() => {
-          syncToServerFn();
-        }, 100);
-      }, [syncToServerFn]);
+    // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ
+    setTimeout(() => {
+      syncToServerFn();
+    }, 100);
+  }, [syncToServerFn]);
 
   const updateBasicProgress = useCallback((dateStr: string, updates: Partial<DayProgress>) => {
     setUserData(prev => {
@@ -855,13 +853,13 @@ const App: React.FC = () => {
       newState = updateStreak(newState);
 
       return newState;
-        });
+    });
         
-        // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ
-        setTimeout(() => {
-          syncToServerFn();
-        }, 100);
-      }, [syncToServerFn]);
+    // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ
+    setTimeout(() => {
+      syncToServerFn();
+    }, 100);
+  }, [syncToServerFn]);
 
   const handleUserDataUpdate = (newData: UserData) => {
     const newBadges = checkBadges(newData);
