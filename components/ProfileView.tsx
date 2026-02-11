@@ -267,7 +267,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
               {userData.subscriptionExpiresAt && userData.daysLeft !== null && (
                 <p className="text-[10px] text-slate-400 uppercase tracking-wide mt-1">
                   {language === 'kk' ? 'Жазылым аяқталатын күн' : 'Подписка до'}: {' '}
-                  <span className={`font-bold ${
+                  <span className={` ${
                     userData.daysLeft <= 3 
                       ? 'text-red-600' 
                       : userData.daysLeft <= 7 
