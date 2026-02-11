@@ -50,7 +50,7 @@ const Paywall: React.FC<PaywallProps> = ({ language }) => {
            </div>
            <div className="flex justify-between items-center">
               <span className="text-xs font-bold text-emerald-600 uppercase">{isKk ? 'Промокодпен:' : 'С промокодом:'}</span>
-              <span className="text-xl font-black text-emerald-600">1 992 ₸</span>
+              <span className="text-xl font-black text-emerald-600">1 990 ₸</span>
            </div>
            <p className="text-[10px] text-slate-400 mt-2 italic">
              {isKk ? '(-20% жеңілдік)' : '(-20% скидка)'}
