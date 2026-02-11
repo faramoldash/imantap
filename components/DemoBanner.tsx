@@ -41,9 +41,24 @@ const DemoBanner: React.FC<DemoBannerProps> = ({ demoExpires, language, userId }
     const tg = getTelegramWebApp();
     if (!tg) return;
 
-    // ✅ Открываем бота с параметром payment
-    const botUsername = 'imantap_bot';
-    tg.openTelegramLink(`https://t.me/${botUsername}?start=payment`);
+    // ✅ Показываем диалог подтверждения
+    tg.showConfirm(
+      language === 'kk'
+        ? 'Төлем туралы хабарлама ботқа жіберіледі.\n\nБотты ашып, төлем жасаңыз.'
+        : 'Сообщение об оплате будет отправлено в бот.\n\nОткройте бот и завершите оплату.',
+      (confirmed) => {
+        if (confirmed) {
+          // Пользователь подтвердил - открываем бота
+          const botUsername = 'imantap_bot'; // замени на свой username бота
+          tg.openTelegramLink(`https://t.me/${botUsername}?start=payment`);
+          
+          // Закрываем Mini App после небольшой задержки
+          setTimeout(() => {
+            tg.close();
+          }, 300);
+        }
+      }
+    );
   };
 
   return (
