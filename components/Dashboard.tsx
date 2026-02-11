@@ -3,6 +3,7 @@ import { DayProgress, Language, UserData, ViewType } from '../src/types/types';
 import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, TOTAL_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE } from '../constants';
 import { haptics } from '../src/utils/haptics';
 import RealCalendar from './RealCalendar';
+import SubscriptionStatus from '../components/SubscriptionStatus';
 
 interface DashboardProps {
   day: number;
@@ -41,6 +42,11 @@ const Dashboard: React.FC<DashboardProps> = ({
   setUserData,
   setView,
 }) => {
+
+  // Показываем предупреждение только если осталось ≤ 3 дня
+  const showSubscriptionWarning = userData.daysLeft !== null && 
+                                   userData.daysLeft <= 3 && 
+                                   userData.daysLeft > 0;
 
   const t = TRANSLATIONS[language];
 
@@ -369,6 +375,35 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="space-y-6 pb-4 relative">
+      {/* ✅ Предупреждение о подписке */}
+      {showSubscriptionWarning && (
+        <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-4 shadow-lg">
+          <div className="flex items-center space-x-3">
+            <span className="text-3xl animate-pulse">⚠️</span>
+            <div className="flex-1">
+              <p className="text-sm font-black text-red-900 mb-1">
+                {userData.language === 'kk' 
+                  ? 'Жазылым аяқталуда!' 
+                  : 'Подписка истекает!'}
+              </p>
+              <p className="text-xs font-bold text-red-700">
+                {userData.language === 'kk'
+                  ? `Тек ${userData.daysLeft} күн қалды. Жаңартыңыз!`
+                  : `Осталось ${userData.daysLeft} ${userData.daysLeft === 1 ? 'день' : 'дня'}. Продлите подписку!`}
+              </p>
+            </div>
+            <button 
+              onClick={() => {
+                const tg = (window as any).Telegram?.WebApp;
+                if (tg) tg.close();
+              }}
+              className="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl active:scale-95 transition-transform"
+            >
+              {userData.language === 'kk' ? 'Жаңарту' : 'Продлить'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Real-time Countdown Card */}
       {!ramadanInfo.isStarted && isToday && (

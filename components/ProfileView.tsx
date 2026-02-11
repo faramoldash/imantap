@@ -3,7 +3,6 @@ import { UserData, Language, DayProgress } from '../src/types/types';
 import { TRANSLATIONS, XP_VALUES, BADGES } from '../constants';
 import { getUserCircles } from '../src/services/api';
 
-
 interface ProfileViewProps {
   userData: UserData;
   language: Language;
@@ -259,6 +258,66 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
               <p className="text-[10px] text-slate-400 uppercase tracking-wide">
                  {t.joinDate}: {new Date(userData.registrationDate || userData.startDate).toLocaleDateString()}
               </p>
+              
+              {/* ✅ ДОБАВЬ ЭТО - Subscription Info */}
+              {userData.subscriptionExpiresAt && userData.daysLeft !== null && (
+                <div className="mt-3 pt-3 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-base">
+                        {userData.daysLeft <= 3 ? '⚠️' : userData.daysLeft <= 7 ? '⏰' : '📅'}
+                      </span>
+                      <div>
+                        <p className={`text-[9px] font-black uppercase tracking-wide ${
+                          userData.daysLeft <= 3 ? 'text-red-600' : userData.daysLeft <= 7 ? 'text-orange-600' : 'text-blue-600'
+                        }`}>
+                          {language === 'kk' ? 'Жазылым мерзімі' : 'Подписка до'}
+                        </p>
+                        <p className={`text-xs font-black ${
+                          userData.daysLeft <= 3 ? 'text-red-700' : userData.daysLeft <= 7 ? 'text-orange-700' : 'text-blue-700'
+                        }`}>
+                          {new Date(userData.subscriptionExpiresAt).toLocaleDateString(language === 'kk' ? 'kk-KZ' : 'ru-RU', {
+                            day: 'numeric',
+                            month: 'short'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <span className={`block text-base font-black ${
+                        userData.daysLeft <= 3 ? 'text-red-700' : userData.daysLeft <= 7 ? 'text-orange-700' : 'text-blue-700'
+                      }`}>
+                        {userData.daysLeft}
+                      </span>
+                      <span className="text-[8px] text-slate-400 uppercase tracking-wide">
+                        {language === 'kk' ? 'күн' : userData.daysLeft === 1 ? 'день' : userData.daysLeft < 5 ? 'дня' : 'дней'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Прогресс бар */}
+                  <div className="mt-2 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        userData.daysLeft <= 3 ? 'bg-red-500' : userData.daysLeft <= 7 ? 'bg-orange-500' : 'bg-blue-500'
+                      }`}
+                      style={{ 
+                        width: `${Math.min(100, Math.max(0, (userData.daysLeft / 90) * 100))}%` 
+                      }}
+                    ></div>
+                  </div>
+                  
+                  {/* Критическое предупреждение */}
+                  {userData.daysLeft <= 3 && (
+                    <p className="text-[8px] font-bold text-red-600 mt-2">
+                      ⚠️ {language === 'kk' 
+                        ? 'Жазылым жақында аяқталады!' 
+                        : 'Подписка скоро истекает!'}
+                    </p>
+                  )}
+                </div>
+              )}
            </div>
         </div>
         

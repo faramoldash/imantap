@@ -64,7 +64,9 @@ export interface UserData {
   currentStreak: number;      // Текущая серия дней подряд
   longestStreak: number;      // Лучшая серия за всё время
   lastActiveDate: string;     // Дата последней активности (для отслеживания перерывов в серии)
-  _lastUpdate?: number; // Временная метка последнего обновления данных
+  _lastUpdate?: number;
+  subscriptionExpiresAt?: string | null;
+  daysLeft?: number | null;
 }
 
 export type ViewType = 'dashboard' | 'calendar' | 'quran' | 'tasks' | 'profile' | 'names-99' | 'rewards' | 'circles';

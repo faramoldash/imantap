@@ -48,7 +48,7 @@ const App: React.FC = () => {
     }));
 
     return {
-      name: 'Брат/Сестра',
+      name: 'Мырза/Ханым',
       startDate: RAMADAN_START_DATE,
       registrationDate: new Date().toISOString(),
       progress: {},
@@ -70,7 +70,9 @@ const App: React.FC = () => {
       hasRedeemedReferral: false,
       currentStreak: 0,
       longestStreak: 0,
-      lastActiveDate: ''
+      lastActiveDate: '',
+      subscriptionExpiresAt: null,
+      daysLeft: null
     };
   }, []);
 
@@ -118,7 +120,9 @@ const App: React.FC = () => {
         basicProgress: initialUserData.basicProgress || {},
         currentStreak: initialUserData.currentStreak ?? 0,
         longestStreak: initialUserData.longestStreak ?? 0,
-        lastActiveDate: initialUserData.lastActiveDate || ''
+        lastActiveDate: initialUserData.lastActiveDate || '',
+        subscriptionExpiresAt: initialUserData.subscriptionExpiresAt || null,
+        daysLeft: initialUserData.daysLeft || null
       };
       
       console.log('📥 Инициализация userData из сервера:', {
@@ -126,7 +130,9 @@ const App: React.FC = () => {
         preparationDays: Object.keys(correctedData.preparationProgress).length,
         basicDays: Object.keys(correctedData.basicProgress).length,
         currentStreak: correctedData.currentStreak,
-        lastActiveDate: correctedData.lastActiveDate
+        lastActiveDate: correctedData.lastActiveDate,
+        subscriptionExpiresAt: correctedData.subscriptionExpiresAt,
+        daysLeft: correctedData.daysLeft
       });
       
       setUserData(correctedData);
