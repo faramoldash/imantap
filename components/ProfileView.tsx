@@ -259,48 +259,59 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
                  {t.joinDate}: {new Date(userData.registrationDate || userData.startDate).toLocaleDateString()}
               </p>
               
-              {/* ✅ ДОБАВЬ ЭТО - Subscription Info */}
+              {/* ✅ Минималистичный дизайн подписки */}
               {userData.subscriptionExpiresAt && userData.daysLeft !== null && (
-                <div className="mt-3 pt-3 border-t border-slate-100">
+                <div className="mt-3 pt-3 border-t border-slate-100/50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <span className="text-base">
-                        {userData.daysLeft <= 3 ? '⚠️' : userData.daysLeft <= 7 ? '⏰' : '📅'}
+                      <span className="text-sm opacity-40">
+                        {userData.daysLeft <= 3 ? '⚠️' : '📅'}
                       </span>
                       <div>
-                        <p className={`text-[9px] font-black uppercase tracking-wide ${
-                          userData.daysLeft <= 3 ? 'text-red-600' : userData.daysLeft <= 7 ? 'text-orange-600' : 'text-blue-600'
-                        }`}>
-                          {language === 'kk' ? 'Жазылым мерзімі' : 'Подписка до'}
+                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                          {language === 'kk' ? 'Жазылым' : 'Подписка'}
                         </p>
                         <p className={`text-xs font-black ${
-                          userData.daysLeft <= 3 ? 'text-red-700' : userData.daysLeft <= 7 ? 'text-orange-700' : 'text-blue-700'
+                          userData.daysLeft <= 3 
+                            ? 'text-red-600' 
+                            : userData.daysLeft <= 7 
+                            ? 'text-orange-600' 
+                            : 'text-slate-700'
                         }`}>
                           {new Date(userData.subscriptionExpiresAt).toLocaleDateString(language === 'kk' ? 'kk-KZ' : 'ru-RU', {
                             day: 'numeric',
-                            month: 'short'
+                            month: 'short',
+                            year: 'numeric'
                           })}
                         </p>
                       </div>
                     </div>
                     
                     <div className="text-right">
-                      <span className={`block text-base font-black ${
-                        userData.daysLeft <= 3 ? 'text-red-700' : userData.daysLeft <= 7 ? 'text-orange-700' : 'text-blue-700'
+                      <span className={`block text-sm font-black ${
+                        userData.daysLeft <= 3 
+                          ? 'text-red-600' 
+                          : userData.daysLeft <= 7 
+                          ? 'text-orange-600' 
+                          : 'text-emerald-600'
                       }`}>
                         {userData.daysLeft}
                       </span>
-                      <span className="text-[8px] text-slate-400 uppercase tracking-wide">
+                      <span className="text-[7px] text-slate-400 uppercase tracking-wide font-bold">
                         {language === 'kk' ? 'күн' : userData.daysLeft === 1 ? 'день' : userData.daysLeft < 5 ? 'дня' : 'дней'}
                       </span>
                     </div>
                   </div>
                   
-                  {/* Прогресс бар */}
-                  <div className="mt-2 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  {/* Тонкий прогресс бар */}
+                  <div className="mt-2 bg-slate-50 rounded-full h-1 overflow-hidden">
                     <div 
                       className={`h-full rounded-full transition-all duration-300 ${
-                        userData.daysLeft <= 3 ? 'bg-red-500' : userData.daysLeft <= 7 ? 'bg-orange-500' : 'bg-blue-500'
+                        userData.daysLeft <= 3 
+                          ? 'bg-red-500' 
+                          : userData.daysLeft <= 7 
+                          ? 'bg-orange-500' 
+                          : 'bg-emerald-500'
                       }`}
                       style={{ 
                         width: `${Math.min(100, Math.max(0, (userData.daysLeft / 90) * 100))}%` 
@@ -308,12 +319,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
                     ></div>
                   </div>
                   
-                  {/* Критическое предупреждение */}
+                  {/* Минималистичное предупреждение */}
                   {userData.daysLeft <= 3 && (
-                    <p className="text-[8px] font-bold text-red-600 mt-2">
-                      ⚠️ {language === 'kk' 
-                        ? 'Жазылым жақында аяқталады!' 
-                        : 'Подписка скоро истекает!'}
+                    <p className="text-[7px] font-bold text-red-500 mt-2 opacity-80">
+                      {language === 'kk' 
+                        ? 'Жазылымды жаңартыңыз' 
+                        : 'Продлите подписку'}
                     </p>
                   )}
                 </div>
