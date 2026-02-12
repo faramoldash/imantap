@@ -769,7 +769,10 @@ const Dashboard: React.FC<DashboardProps> = ({
         preparationProgress={userData?.preparationProgress || {}}
         selectedDay={selectedDay}
         realTodayDay={realTodayDay}
-        onDaySelect={onDaySelect}
+        onDaySelect={(day) => {
+          hasNavigated.current = true;
+          onDaySelect(day);
+        }}
         onPreparationDaySelect={onPreparationDaySelect}
         onBasicDateSelect={onBasicDateSelect}
         trackerKeys={TRACKER_KEYS}
