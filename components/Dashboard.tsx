@@ -598,7 +598,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   )}
                   {isFirstTaraweehDay && (
                     <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/30">
-                      <p className="text-xs font-bold">⭐ {language === 'kk' ? 'Бірінші таравих!' : 'Первый таравих!'}</p>
+                      <p className="text-xs font-bold">⭐ {language === 'kk' ? 'Бірінші тарауық!' : 'Первый таравих!'}</p>
                     </div>
                   )}
                   {isEidDay && (
@@ -609,26 +609,22 @@ const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               );
             })()}
+            {/* ⚠️ Предупреждение для прошлых дней подготовки/Рамадана */}
+            {!isToday && !isFutureDay && (selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'ramadan') && (
+              <div className="mt-3 pt-3 border-t border-white/20">
+                <p className="text-[10px] font-bold text-white/80 text-center flex items-center justify-center space-x-1.5">
+                  <span>⚠️</span>
+                  <span>
+                    {language === 'kk' 
+                      ? 'XP тек бүгінгі күн үшін есептеледі' 
+                      : 'XP начисляется только за сегодняшний день'}
+                  </span>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>
-
-      {/* ✅ Индикатор для прошлых дней */}
-      {!isToday && !isFutureDay && (
-        <div className="bg-amber-50 border-2 border-amber-200 rounded-[2.5rem] p-6 flex items-center space-x-3 shadow-sm">
-          <span className="text-2xl">ℹ️</span>
-          <div className="flex-1">
-            <p className="text-xs font-black text-amber-900 mb-1">
-              {language === 'kk' ? 'Өткен күн' : 'Прошедший день'}
-            </p>
-            <p className="text-[10px] font-bold text-amber-700">
-              {language === 'kk' 
-                ? 'XP тек бүгінгі күн үшін есептеледі ⚡' 
-                : 'XP начисляется только за сегодняшний день ⚡'}
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* ✅ СЧЁТЧИК STREAK с множителем - для текущего дня */}
       {isToday && userData?.currentStreak && userData.currentStreak > 0 && (
