@@ -73,9 +73,11 @@ const Dashboard: React.FC<DashboardProps> = ({
   const selectedDayInfo = useMemo(() => {
     const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
     const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+    const ramadanEnd = new Date(ramadanStart);
+    ramadanEnd.setDate(ramadanEnd.getDate() + 29); // 30-й день (индекс 29)
+    ramadanEnd.setHours(23, 59, 59, 999); // Конец дня
     
     // Вычисляем абсолютный номер дня относительно начала подготовки
-    // selectedDay теперь может быть отрицательным (базовые дни)
     const daysSincePrepStart = selectedDay;
     
     // Вычисляем реальную дату
@@ -89,17 +91,21 @@ const Dashboard: React.FC<DashboardProps> = ({
     if (selectedDate < prepStart) {
       // Базовый день (до подготовки)
       phase = 'basic';
-      dayInPhase = selectedDay; // Номер может быть отрицательным
+      dayInPhase = selectedDay;
     } else if (selectedDate < ramadanStart) {
       // День подготовки
       phase = 'preparation';
       const daysSincePrep = Math.floor((selectedDate.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
       dayInPhase = daysSincePrep + 1;
-    } else {
-      // День Рамадана
+    } else if (selectedDate >= ramadanStart && selectedDate <= ramadanEnd) {
+      // День Рамадана (только 30 дней)
       phase = 'ramadan';
       const daysSinceRamadan = Math.floor((selectedDate.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
       dayInPhase = daysSinceRamadan + 1;
+    } else {
+      // После Рамадана - базовые дни
+      phase = 'basic';
+      dayInPhase = selectedDay;
     }
     
     return { phase, dayInPhase, selectedDate };
