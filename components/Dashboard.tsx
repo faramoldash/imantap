@@ -846,12 +846,57 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div>
               <p className="text-5xl font-black leading-none">
                 {(() => {
-                  const keys = selectedDayInfo.phase === 'ramadan' ? TRACKER_KEYS : PREPARATION_TRACKER_KEYS;
+                  // Используем ту же логику что и в calculateProgress
+                  let keys: string[];
+                  
+                  if (selectedDayInfo.phase === 'ramadan') {
+                    keys = [...TRACKER_KEYS];
+                  } else {
+                    keys = [...PREPARATION_TRACKER_KEYS];
+                    
+                    const dayOfWeek = selectedDayInfo.selectedDate.getDay();
+                    const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
+                    
+                    const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
+                    const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
+                    
+                    const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
+                    const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
+                    
+                    if (isMondayOrThursday) keys.push('fasting');
+                    if (isFirstTaraweehDay) keys.push('taraweeh');
+                    if (isEidDay) keys.push('eidPrayer');
+                  }
+                  
                   return keys.filter(k => displayedData[k as keyof DayProgress]).length;
                 })()}
               </p>
               <p className="text-sm font-bold text-white/60 mt-1">
-                / {selectedDayInfo.phase === 'ramadan' ? TRACKER_KEYS.length : PREPARATION_TRACKER_KEYS.length} {language === 'kk' ? 'тапсырма' : 'задач'}
+                / {(() => {
+                  // Считаем общее количество задач
+                  let keys: string[];
+                  
+                  if (selectedDayInfo.phase === 'ramadan') {
+                    keys = [...TRACKER_KEYS];
+                  } else {
+                    keys = [...PREPARATION_TRACKER_KEYS];
+                    
+                    const dayOfWeek = selectedDayInfo.selectedDate.getDay();
+                    const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
+                    
+                    const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
+                    const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
+                    
+                    const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
+                    const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
+                    
+                    if (isMondayOrThursday) keys.push('fasting');
+                    if (isFirstTaraweehDay) keys.push('taraweeh');
+                    if (isEidDay) keys.push('eidPrayer');
+                  }
+                  
+                  return keys.length;
+                })()} {language === 'kk' ? 'тапсырма' : 'задач'}
               </p>
             </div>
             
