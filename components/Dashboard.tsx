@@ -615,7 +615,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* ✅ Индикатор для прошлых дней */}
       {!isToday && !isFutureDay && (
-        <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 flex items-center space-x-3">
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-[2.5rem] p-6 flex items-center space-x-3 shadow-sm">
           <span className="text-2xl">ℹ️</span>
           <div className="flex-1">
             <p className="text-xs font-black text-amber-900 mb-1">
