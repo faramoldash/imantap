@@ -1070,13 +1070,13 @@ const Dashboard: React.FC<DashboardProps> = ({
         {xpNotifications.map((notification) => (
           <div
             key={notification.id}
-            className="animate-xp-float bg-white/20 backdrop-blur-md text-white px-5 py-2.5 rounded-2xl shadow-lg font-black text-sm border border-white/30"
+            className="animate-xp-float text-white px-5 py-2.5 rounded-2xl shadow-lg font-black text-sm border border-white/20"
             style={{
               animation: 'xpFloat 2s ease-out forwards',
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.15))',
+              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.85))',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)'
+              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)'
             }}
           >
             +{notification.amount} XP ✨
