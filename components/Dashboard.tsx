@@ -670,10 +670,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                       <span className="text-2xl">🎉</span>
                     </div>
                     <p className="text-sm font-bold text-white/90">
-                      {language === 'kk' ? 'Ораза айт мерекесі' : 'Праздник Ораза айт'}
-                    </p>
-                    <p className="text-xs font-bold text-white/80 mt-1">
-                      {language === 'kk' ? 'Рамазан аяқталды! Құтты болсын!' : 'Рамадан завершён! Поздравляем!'}
+                      {language === 'kk' ? 'Ораза айт мерекесі құтты болсын' : 'С праздником Ораза айт'}
                     </p>
                   </div>
                 </div>
