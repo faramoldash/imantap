@@ -1,7 +1,7 @@
 
 import { DayProgress, Language } from './src/types/types';
 
-export const TOTAL_DAYS = 30;
+export const TOTAL_DAYS = 29; // 29 дней Рамадана
 
 // подготовка начинается с 9 февраля (10 дней)
 export const PREPARATION_START_DATE = '2026-02-09'; // 9 февраля

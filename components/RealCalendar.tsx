@@ -77,7 +77,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   ramadanStart.setHours(0, 0, 0, 0);
   
   const ramadanEnd = new Date(ramadanStart);
-  ramadanEnd.setDate(ramadanEnd.getDate() + 29);
+  ramadanEnd.setDate(ramadanEnd.getDate() + 28); // 29 дней Рамадана
   
   const prepStart = new Date(preparationStartDate);
   prepStart.setHours(0, 0, 0, 0);

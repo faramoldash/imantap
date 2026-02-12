@@ -74,7 +74,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
     const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
     const ramadanEnd = new Date(ramadanStart);
-    ramadanEnd.setDate(ramadanEnd.getDate() + 29); // 30-й день (индекс 29)
+    ramadanEnd.setDate(ramadanEnd.getDate() + 28); // 29-й день (индекс 29)
     ramadanEnd.setHours(23, 59, 59, 999); // Конец дня
     
     // Вычисляем абсолютный номер дня относительно начала подготовки
@@ -159,7 +159,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
     const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
     const ramadanEnd = new Date(ramadanStart);
-    ramadanEnd.setDate(ramadanEnd.getDate() + 29); // 30-й день Рамадана
+    ramadanEnd.setDate(ramadanEnd.getDate() + 28); // 29-й день Рамадана
     
     const nextDay = new Date(selectedDayInfo.selectedDate);
     nextDay.setDate(nextDay.getDate() + 1);
