@@ -216,22 +216,41 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
     
     const isCompleted = displayedData[key];
+    const newValue = !isCompleted;
+    
     if (isCompleted) {
       haptics.light();
     } else {
       haptics.success();
+      
+      // ✅ Показываем XP анимацию только при отметке галочки в текущем дне
+      if (isToday && newValue) {
+        const xpAmount = XP_VALUES[key as string] || 10;
+        const notificationId = `${Date.now()}-${Math.random()}`;
+        
+        setXpNotifications(prev => [...prev, {
+          id: notificationId,
+          amount: xpAmount,
+          timestamp: Date.now()
+        }]);
+        
+        // Убираем уведомление через 2 секунды
+        setTimeout(() => {
+          setXpNotifications(prev => prev.filter(n => n.id !== notificationId));
+        }, 2000);
+      }
     }
     
     // ✅ Используем правильную функцию в зависимости от фазы
     if (selectedDayInfo.phase === 'ramadan') {
-      updateProgress(selectedDayInfo.dayInPhase, { [key]: !displayedData[key] });
+      updateProgress(selectedDayInfo.dayInPhase, { [key]: newValue });
     } else if (selectedDayInfo.phase === 'preparation') {
-      updatePreparationProgress(selectedDayInfo.dayInPhase, { [key]: !displayedData[key] });
+      updatePreparationProgress(selectedDayInfo.dayInPhase, { [key]: newValue });
     } else {
       // Базовый день - используем дату
       const dateKey = selectedDayInfo.selectedDate.toISOString().split('T')[0];
       if (updateBasicProgress) {
-        updateBasicProgress(dateKey, { [key]: !displayedData[key] });
+        updateBasicProgress(dateKey, { [key]: newValue });
       }
     }
   };
@@ -344,6 +363,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [visibleNames, setVisibleNames] = useState<typeof NAMES_99>([]);
   const [fadingOutId, setFadingOutId] = useState<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // ✅ Состояние для анимации XP
+  const [xpNotifications, setXpNotifications] = useState<Array<{id: string, amount: number, timestamp: number}>>([]);
 
   // ✅ Инициализация имен - только один раз!
   useEffect(() => {
@@ -1042,6 +1064,21 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </section>
       )}
+
+      {/* ✅ XP NOTIFICATIONS - Анимация начисления XP */}
+      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center space-y-2">
+        {xpNotifications.map((notification) => (
+          <div
+            key={notification.id}
+            className="animate-xp-float bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-3 rounded-2xl shadow-2xl font-black text-lg border-2 border-amber-300"
+            style={{
+              animation: 'xpFloat 2s ease-out forwards'
+            }}
+          >
+            +{notification.amount} XP 🌟
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
