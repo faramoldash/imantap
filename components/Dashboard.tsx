@@ -649,6 +649,9 @@ const Dashboard: React.FC<DashboardProps> = ({
           <ItemButton id="salawat" icon={<span className="text-2xl">☪️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
           <ItemButton id="hadith" icon={<span className="text-2xl">📜</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
           <ItemButton id="charity" icon={<span className="text-2xl">💝</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="names99" icon={<span className="text-2xl">📿</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="lessons" icon={<span className="text-2xl">🎓</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="book" icon={<span className="text-2xl">📚</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
         </div>
       </div>
 
