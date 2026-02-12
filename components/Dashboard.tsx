@@ -645,6 +645,63 @@ const Dashboard: React.FC<DashboardProps> = ({
         );
       })()}
 
+      {/* Айт намазы - 20 марта */}
+      {(() => {
+        const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
+        const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
+        
+        if (!isEidDay) return null;
+        
+        return (
+          <div className="bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 p-6 rounded-[2.5rem] shadow-xl border-2 border-amber-200 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-20 text-9xl">🎉</div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-16 h-16 bg-white/30 backdrop-blur-sm rounded-[2rem] flex items-center justify-center text-3xl border-2 border-white/40">
+                    🕌
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className="font-black text-white text-lg">
+                        {language === 'kk' ? 'Айт намазы' : 'Айт намаз'}
+                      </h3>
+                      <span className="text-2xl">🎉</span>
+                    </div>
+                    <p className="text-sm font-bold text-white/90">
+                      {language === 'kk' ? 'Ораза айт мерекесі' : 'Праздник Ораза айт'}
+                    </p>
+                    <p className="text-xs font-bold text-white/80 mt-1">
+                      {language === 'kk' ? 'Рамазан аяқталды! Құтты болсын!' : 'Рамадан завершён! Поздравляем!'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => !isFutureDay && toggleItem('eidPrayer')}
+                  disabled={isFutureDay}
+                  className={`w-14 h-14 rounded-2xl transition-all shadow-lg flex items-center justify-center ${
+                    isFutureDay
+                      ? 'cursor-not-allowed opacity-40 bg-white/20 text-white/50'
+                      : displayedData.eidPrayer
+                      ? 'bg-white text-amber-600 scale-110 active:scale-105'
+                      : 'bg-white/30 text-white backdrop-blur-sm active:scale-95'
+                  }`}
+                >
+                  {isFutureDay ? (
+                    <span className="text-xl">🔒</span>
+                  ) : displayedData.eidPrayer ? (
+                    <span className="text-2xl font-black">✓</span>
+                  ) : (
+                    <span className="text-xl">🕌</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Намазы */}
       <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-sky-100">
         <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
@@ -667,18 +724,10 @@ const Dashboard: React.FC<DashboardProps> = ({
           {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
             const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
             const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
-            const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
-            const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
             
-            if (isFirstTaraweehDay) {
-              return <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />;
-            }
-            
-            if (isEidDay) {
-              return <ItemButton id="eidPrayer" icon={<span className="text-2xl">🎉</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />;
-            }
-            
-            return null;
+            return isFirstTaraweehDay ? (
+              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+            ) : null;
           })()}
         </div>
       </div>
