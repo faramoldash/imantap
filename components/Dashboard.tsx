@@ -237,13 +237,38 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const calculateProgress = () => {
-    let keys;
+    let keys: string[];
     
     if (selectedDayInfo.phase === 'ramadan') {
-      keys = TRACKER_KEYS;
+      keys = [...TRACKER_KEYS];
     } else {
-      // Подготовка и базовые дни используют одинаковый набор задач
-      keys = PREPARATION_TRACKER_KEYS;
+      // Подготовка и базовые дни - базовый набор задач
+      keys = [...PREPARATION_TRACKER_KEYS];
+      
+      // Добавляем дополнительные задачи в зависимости от дня
+      const dayOfWeek = selectedDayInfo.selectedDate.getDay();
+      const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
+      
+      const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
+      const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
+      
+      const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
+      const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
+      
+      // Добавляем оразу в пн/чт
+      if (isMondayOrThursday) {
+        keys.push('fasting');
+      }
+      
+      // Добавляем таравих 18 февраля
+      if (isFirstTaraweehDay) {
+        keys.push('taraweeh');
+      }
+      
+      // Добавляем Айт намаз 20 марта
+      if (isEidDay) {
+        keys.push('eidPrayer');
+      }
     }
     
     if (!displayedData) return 0;
