@@ -244,13 +244,17 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
                   : bgColor
               }}
             >
-              {/* Внутренний белый круг для радиального прогресса */}
+              {/* Внутренний круг для радиального прогресса */}
               {(ramadanDay || prepDay) && !isLocked && progress > 0 && progress < 100 && (
-                <div className="absolute inset-1 rounded-lg bg-white flex items-center justify-center">
+                <div className={`absolute inset-1 rounded-lg flex items-center justify-center ${
+                  isTodayDate ? 'bg-emerald-500' : 'bg-white'
+                }`}>
                   <div className="flex flex-col items-center">
-                    <span className="text-sm font-bold text-slate-800">{date.getDate()}</span>
+                    <span className={`text-sm font-bold ${isTodayDate ? 'text-white' : 'text-slate-800'}`}>
+                      {date.getDate()}
+                    </span>
                     <span className={`text-[8px] font-black mt-0.5 ${
-                      isTaraweeh ? 'text-amber-600' : isRamadan ? 'text-emerald-600' : 'text-sky-600'
+                      isTodayDate ? 'text-white' : isTaraweeh ? 'text-amber-600' : isRamadan ? 'text-emerald-600' : 'text-sky-600'
                     }`}>
                       {isTaraweeh ? '⭐' : ramadanDay || (prepDay && '📝')}
                     </span>
