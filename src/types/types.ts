@@ -65,6 +65,13 @@ export interface UserData {
   currentStreak: number;      // Текущая серия дней подряд
   longestStreak: number;      // Лучшая серия за всё время
   lastActiveDate: string;     // Дата последней активности (для отслеживания перерывов в серии)
+  dailyReferrals?: Record<string, number>; // Количество рефералов по датам для бонусных множителей
+  invitedCount?: number;      // Общее количество приглашенных друзей
+  referredBy?: string;        // Промокод реферала (кто пригласил)
+  usedPromoCode?: string;     // Использованный промокод при регистрации
+  hasDiscount?: boolean;      // Есть ли скидка
+  paymentStatus?: string;     // Статус оплаты (paid, unpaid, demo и т.д.)
+  accessType?: string;        // Тип доступа (demo, paid и т.д.)
   _lastUpdate?: number;
   subscriptionExpiresAt?: string | null;
   daysLeft?: number | null;
