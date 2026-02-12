@@ -7,6 +7,7 @@ export const TOTAL_DAYS = 30;
 export const PREPARATION_START_DATE = '2026-02-09'; // 9 февраля
 export const PREPARATION_DAYS = 10; // 9-18 февраля (10 дней)
 export const FIRST_TARAWEEH_DATE = '2026-02-18'; // 18 февраля - первый день таравих намаза
+export const EID_AL_FITR_DATE = '2026-03-20'; // 20 марта - Ораза айт
 
 // Ramadan 2026 start date
 export const RAMADAN_START_DATE = '2026-02-19';
@@ -42,6 +43,7 @@ export const INITIAL_DAY_PROGRESS = (day: number): DayProgress => ({
   isha: false,
   taraweeh: false,
   witr: false,
+  eidPrayer: false,
   quranPages: 0,
   date: new Date().toISOString(),
 });
@@ -141,7 +143,8 @@ export const TRANSLATIONS: Record<Language, any> = {
       maghrib: "Магриб (Шам) намаз",
       isha: "Иша (Құптан) намаз",
       taraweeh: "Таравих намаз",
-      witr: "Витр намаз"
+      witr: "Витр намаз",
+      eidPrayer: "Айт намаз"
     },
     navHome: "Главная",
     navDays: "Дни",
@@ -269,7 +272,8 @@ export const TRANSLATIONS: Record<Language, any> = {
       maghrib: "Шам намазы",
       isha: "Құптан намазы",
       taraweeh: "Тарауық намазы",
-      witr: "Үтір намазы"
+      witr: "Үтір намазы",
+      eidPrayer: "Айт намазы"
     },
     navHome: "Басты",
     navDays: "Күндер",

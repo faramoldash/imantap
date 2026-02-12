@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DayProgress, Language, UserData, ViewType } from '../src/types/types';
-import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, TOTAL_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE } from '../constants';
+import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, TOTAL_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE, EID_AL_FITR_DATE } from '../constants';
 import { haptics } from '../src/utils/haptics';
 import RealCalendar from './RealCalendar';
 import SubscriptionStatus from '../components/SubscriptionStatus';
@@ -537,8 +537,10 @@ const Dashboard: React.FC<DashboardProps> = ({
               const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
               const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
               const isFirstTaraweehDay = selectedDayInfo.selectedDate.getTime() === firstTaraweehDate.getTime();
+              const eidDate = new Date(EID_AL_FITR_DATE);
+              const isEidDay = selectedDayInfo.selectedDate.getTime() === eidDate.getTime();
               
-              if (!isMondayOrThursday && !isFirstTaraweehDay) return null;
+              if (!isMondayOrThursday && !isFirstTaraweehDay && !isEidDay) return null;
               
               return (
                 <div className="flex justify-center gap-2 flex-wrap mt-3">
@@ -550,6 +552,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                   {isFirstTaraweehDay && (
                     <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/30">
                       <p className="text-xs font-bold">⭐ {language === 'kk' ? 'Бірінші таравих!' : 'Первый таравих!'}</p>
+                    </div>
+                  )}
+                  {isEidDay && (
+                    <div className="bg-gradient-to-r from-amber-400 to-orange-400 backdrop-blur-sm rounded-full px-4 py-2 border-2 border-amber-200 shadow-lg">
+                      <p className="text-sm font-black text-white">🎉 {language === 'kk' ? 'ОРАЗА АЙТ!' : 'ОРАЗА АЙТ!'}</p>
                     </div>
                   )}
                 </div>
@@ -635,10 +642,18 @@ const Dashboard: React.FC<DashboardProps> = ({
           {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
             const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
             const isFirstTaraweehDay = selectedDayInfo.selectedDate.getTime() === firstTaraweehDate.getTime();
+            const eidDate = new Date(EID_AL_FITR_DATE);
+            const isEidDay = selectedDayInfo.selectedDate.getTime() === eidDate.getTime();
             
-            return isFirstTaraweehDay ? (
-              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-            ) : null;
+            if (isFirstTaraweehDay) {
+              return <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />;
+            }
+            
+            if (isEidDay) {
+              return <ItemButton id="eidPrayer" icon={<span className="text-2xl">🎉</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />;
+            }
+            
+            return null;
           })()}
         </div>
       </div>
@@ -771,6 +786,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         ramadanStartDate={RAMADAN_START_DATE}
         preparationStartDate={PREPARATION_START_DATE}
         firstTaraweehDate={FIRST_TARAWEEH_DATE}
+        eidAlFitrDate={EID_AL_FITR_DATE}
         allProgress={allProgress}
         preparationProgress={userData?.preparationProgress || {}}
         selectedDay={selectedDay}

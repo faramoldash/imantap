@@ -6,6 +6,7 @@ interface RealCalendarProps {
   ramadanStartDate: string;
   preparationStartDate: string;
   firstTaraweehDate: string;
+  eidAlFitrDate: string;
   allProgress: Record<number, DayProgress>;
   preparationProgress: Record<number, DayProgress>;
   selectedDay: number;
@@ -22,6 +23,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   ramadanStartDate,
   preparationStartDate,
   firstTaraweehDate,
+  eidAlFitrDate,
   allProgress,
   preparationProgress,
   selectedDay,
@@ -82,6 +84,9 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   
   const firstTaraweeh = new Date(firstTaraweehDate);
   firstTaraweeh.setHours(0, 0, 0, 0);
+
+  const eidDate = new Date(eidAlFitrDate);
+  eidDate.setHours(0, 0, 0, 0);
   
   const isToday = (date: Date | null) => {
     if (!date) return false;
@@ -103,6 +108,11 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   const isFirstTaraweehDay = (date: Date | null) => {
     if (!date) return false;
     return date.getTime() === firstTaraweeh.getTime();
+  };
+
+  const isEidDay = (date: Date | null) => {
+    if (!date) return false;
+    return date.getTime() === eidDate.getTime();
   };
   
   const getRamadanDayNumber = (date: Date) => {
@@ -188,6 +198,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
           const isRamadan = isRamadanDay(date);
           const isPrep = isPreparationDay(date);
           const isTaraweeh = isFirstTaraweehDay(date);
+          const isEid = isEidDay(date);
           
           const ramadanDay = isRamadan ? getRamadanDayNumber(date) : null;
           const prepDay = isPrep ? getPreparationDayNumber(date) : null;
@@ -205,6 +216,9 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
 
           if (isTodayDate) {
             bgColor = 'rgb(16 185 129)'; // зелёный
+            textColor = 'text-white';
+          } else if (isEid) {
+            bgColor = 'rgb(251 146 60)'; // яркий оранжевый - Ораза айт
             textColor = 'text-white';
           } else if (isTaraweeh) {
             bgColor = 'rgb(251 191 36)'; // золотой - первый таравих
@@ -321,7 +335,11 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
         </div>
         <div className="flex items-center space-x-1.5">
           <div className="w-3 h-3 bg-amber-400 rounded flex items-center justify-center text-[6px]">⭐</div>
-          <span className="text-slate-600">{language === 'kk' ? '1-ші таравих' : '1-й таравих'}</span>
+          <span className="text-slate-600">{language === 'kk' ? '1-ші тарауық' : '1-й таравих'}</span>
+        </div>
+        <div className="flex items-center space-x-1.5">
+          <div className="w-3 h-3 bg-orange-500 rounded flex items-center justify-center text-[6px]">🎉</div>
+          <span className="text-slate-600">{language === 'kk' ? 'Ораза айт' : 'Ораза айт'}</span>
         </div>
       </div>
     </div>

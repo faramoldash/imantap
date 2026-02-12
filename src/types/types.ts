@@ -32,6 +32,7 @@ export interface DayProgress {
   isha: boolean;
   taraweeh: boolean;
   witr: boolean;
+  eidPrayer?: boolean;
   quranPages: number;
   date: string;
 }
