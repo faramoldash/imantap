@@ -883,8 +883,15 @@ const Dashboard: React.FC<DashboardProps> = ({
                 ? (language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс')
                 : (language === 'kk' ? 'Прогресс' : 'Прогресс')}
             </h4>
-            <span className="text-xs font-black text-white/40">
-              {language === 'kk' ? `${selectedDay}-күн` : `День ${selectedDay}`}
+            <span className="text-xs font-bold text-white/60">
+              {(() => {
+                const date = selectedDayInfo.selectedDate;
+                const day = date.getDate();
+                const monthNames = language === 'kk' 
+                  ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
+                  : ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+                return `${day} ${monthNames[date.getMonth()]}`;
+              })()}
             </span>
           </div>
           
