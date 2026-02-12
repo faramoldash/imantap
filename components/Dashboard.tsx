@@ -613,6 +613,53 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </section>
 
+      {/* ✅ Индикатор для прошлых дней */}
+      {!isToday && !isFutureDay && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 flex items-center space-x-3">
+          <span className="text-2xl">ℹ️</span>
+          <div className="flex-1">
+            <p className="text-xs font-black text-amber-900 mb-1">
+              {language === 'kk' ? 'Өткен күн' : 'Прошедший день'}
+            </p>
+            <p className="text-[10px] font-bold text-amber-700">
+              {language === 'kk' 
+                ? 'XP тек бүгінгі күн үшін есептеледі ⚡' 
+                : 'XP начисляется только за сегодняшний день ⚡'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ СЧЁТЧИК STREAK с множителем - для текущего дня */}
+      {isToday && userData?.currentStreak && userData.currentStreak > 0 && (
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 rounded-2xl shadow-lg text-white flex items-center justify-between relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-6 opacity-10 text-6xl">🔥</div>
+          
+          <div className="relative z-10 flex items-center space-x-3">
+            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
+              <span className="text-2xl">🔥</span>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider opacity-90">
+                {language === 'kk' ? 'Белсенділік серияңыз' : 'Серия активности'}
+              </p>
+              <p className="text-2xl font-black leading-none mt-0.5">
+                {userData.currentStreak} {language === 'kk' ? 'күн' : 'дней'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="relative z-10 text-right bg-white/20 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/30">
+            <p className="text-[9px] font-black uppercase opacity-80 leading-tight">
+              {language === 'kk' ? 'XP бонусы' : 'Бонус XP'}
+            </p>
+            <p className="text-xl font-black leading-none mt-0.5">
+              x{Math.min(1 + (userData.currentStreak * 0.1), 3.0).toFixed(1)}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Ораза */}
       {(() => {
         let showFasting = false;
@@ -1012,58 +1059,6 @@ const Dashboard: React.FC<DashboardProps> = ({
           )}
         </div>
       </div>
-
-      {/* ✅ STREAK CARD - только для текущего дня */}
-      {isToday && (
-        <section className="bg-gradient-to-br from-orange-500 to-red-600 p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-20 text-9xl">🔥</div>
-          
-          <div className="relative z-10 flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-[10px] font-black text-white/80 uppercase tracking-widest mb-1">
-                {language === 'kk' ? 'Қатарынан' : 'Подряд'}
-              </p>
-              <div className="flex items-baseline space-x-2">
-                <h3 className="text-5xl font-black text-white leading-none">
-                  {userData?.currentStreak || 0}
-                </h3>
-                <span className="text-xl font-black text-white/80">
-                  {language === 'kk' ? 'күн' : 'дней'}
-                </span>
-              </div>
-              
-              {(userData?.currentStreak || 0) > 0 && (
-                <p className="text-xs font-bold text-white/90 mt-2">
-                  {language === 'kk' ? '🔥 Жалғастырыңыз! МашаАллаһ!' : '🔥 Продолжайте! МашаАллаһ!'}
-                </p>
-              )}
-              
-              {(userData?.currentStreak || 0) === 0 && (
-                <p className="text-xs font-bold text-white/90 mt-2">
-                  {language === 'kk' ? 'Бүгін белгілеп қатарды бастаңыз! 💪' : 'Начните серию сегодня! 💪'}
-                </p>
-              )}
-            </div>
-            
-            <div className="flex flex-col items-center">
-              <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-5xl mb-2 backdrop-blur-sm">
-                🔥
-              </div>
-              <div className="text-center">
-                <p className="text-[8px] font-black text-white/70 uppercase tracking-wider">
-                  {language === 'kk' ? 'Максимум' : 'Максимум'}
-                </p>
-                <p className="text-xs font-black text-white leading-tight">
-                  {userData?.longestStreak || 0} {language === 'kk' ? 'күн' : 'дней'}
-                </p>
-                <p className="text-[7px] font-bold text-white/70">
-                  {language === 'kk' ? 'қатарынан' : 'подряд'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ✅ XP NOTIFICATIONS - Анимация начисления XP */}
       <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center space-y-2">
