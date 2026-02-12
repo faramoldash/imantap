@@ -632,28 +632,28 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* ✅ СЧЁТЧИК STREAK с множителем - для текущего дня */}
       {isToday && userData?.currentStreak && userData.currentStreak > 0 && (
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 p-4 rounded-2xl shadow-lg text-white flex items-center justify-between relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-6 opacity-10 text-6xl">🔥</div>
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 rounded-[2.5rem] shadow-xl text-white flex items-center justify-between relative overflow-hidden border border-orange-300">
+          <div className="absolute top-0 right-0 p-8 opacity-10 text-7xl">🔥</div>
           
-          <div className="relative z-10 flex items-center space-x-3">
-            <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30">
-              <span className="text-2xl">🔥</span>
+          <div className="relative z-10 flex items-center space-x-4">
+            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-[2rem] flex items-center justify-center border border-white/30">
+              <span className="text-3xl">🔥</span>
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-wider opacity-90">
                 {language === 'kk' ? 'Белсенділік серияңыз' : 'Серия активности'}
               </p>
-              <p className="text-2xl font-black leading-none mt-0.5">
+              <p className="text-2xl font-black leading-none mt-1">
                 {userData.currentStreak} {language === 'kk' ? 'күн' : 'дней'}
               </p>
             </div>
           </div>
           
-          <div className="relative z-10 text-right bg-white/20 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/30">
+          <div className="relative z-10 text-right bg-white/20 backdrop-blur-sm rounded-[1.5rem] px-4 py-2.5 border border-white/30">
             <p className="text-[9px] font-black uppercase opacity-80 leading-tight">
               {language === 'kk' ? 'XP бонусы' : 'Бонус XP'}
             </p>
-            <p className="text-xl font-black leading-none mt-0.5">
+            <p className="text-xl font-black leading-none mt-1">
               x{Math.min(1 + (userData.currentStreak * 0.1), 3.0).toFixed(1)}
             </p>
           </div>
