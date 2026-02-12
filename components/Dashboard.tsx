@@ -535,10 +535,10 @@ const Dashboard: React.FC<DashboardProps> = ({
             {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
               const dayOfWeek = selectedDayInfo.selectedDate.getDay();
               const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
-              const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
-              const isFirstTaraweehDay = selectedDayInfo.selectedDate.getTime() === firstTaraweehDate.getTime();
-              const eidDate = new Date(EID_AL_FITR_DATE);
-              const isEidDay = selectedDayInfo.selectedDate.getTime() === eidDate.getTime();
+              const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
+              const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
+              const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
+              const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
               
               if (!isMondayOrThursday && !isFirstTaraweehDay && !isEidDay) return null;
               
@@ -640,10 +640,10 @@ const Dashboard: React.FC<DashboardProps> = ({
             </>
           )}
           {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
-            const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE);
-            const isFirstTaraweehDay = selectedDayInfo.selectedDate.getTime() === firstTaraweehDate.getTime();
-            const eidDate = new Date(EID_AL_FITR_DATE);
-            const isEidDay = selectedDayInfo.selectedDate.getTime() === eidDate.getTime();
+            const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
+            const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
+            const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
+            const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
             
             if (isFirstTaraweehDay) {
               return <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />;
