@@ -222,24 +222,9 @@ const Dashboard: React.FC<DashboardProps> = ({
       haptics.light();
     } else {
       haptics.success();
-      
-      // ✅ Показываем XP анимацию только при отметке галочки в текущем дне
-      if (isToday && newValue) {
-        const xpAmount = XP_VALUES[key as string] || 10;
-        const notificationId = `${Date.now()}-${Math.random()}`;
-        
-        setXpNotifications(prev => [...prev, {
-          id: notificationId,
-          amount: xpAmount,
-          timestamp: Date.now()
-        }]);
-        
-        // Убираем уведомление через 2 секунды
-        setTimeout(() => {
-          setXpNotifications(prev => prev.filter(n => n.id !== notificationId));
-        }, 2000);
-      }
     }
+    
+    // ✅ УБРАЛИ ЛОКАЛЬНОЕ НАЧИСЛЕНИЕ XP - теперь только с бэкенда!
     
     // ✅ Используем правильную функцию в зависимости от фазы
     if (selectedDayInfo.phase === 'ramadan') {

@@ -422,7 +422,26 @@ const App: React.FC = () => {
       );
       
       if (response.ok) {
-        console.log('✅ Synced to server');
+        // ✅ Парсим ответ от бэкенда
+        const data = await response.json();
+        
+        console.log('✅ Synced to server', {
+          xpAdded: data.xpAdded,
+          streakMultiplier: data.streakMultiplier
+        });
+        
+        // ✅ Обновляем userData с актуальными данными от бэкенда
+        if (data.success && data.data) {
+          setUserData(data.data);
+        }
+        
+        // ✅ Показываем XP анимацию ТОЛЬКО если бэкенд начислил
+        if (data.xpAdded && data.xpAdded > 0) {
+          if ((window as any).showXPNotification) {
+            (window as any).showXPNotification(data.xpAdded, data.streakMultiplier || 1.0);
+          }
+        }
+        
         setSyncStatus('success');
         return true;
       } else {
