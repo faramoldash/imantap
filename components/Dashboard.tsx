@@ -350,7 +350,35 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [isInitialized, setIsInitialized] = useState(false);
 
   // ✅ Состояние для анимации XP
-  const [xpNotifications, setXpNotifications] = useState<Array<{id: string, amount: number, timestamp: number}>>([]);
+  const [xpNotifications, setXpNotifications] = useState<Array<{
+    id: string, 
+    amount: number, 
+    multiplier?: number,
+    timestamp: number
+  }>>([]);
+
+  // ✅ Регистрируем глобальный колбэк для показа XP с бэкенда
+  useEffect(() => {
+    (window as any).showXPNotification = (xpAmount: number, multiplier: number) => {
+      const notificationId = `${Date.now()}-${Math.random()}`;
+      
+      setXpNotifications(prev => [...prev, {
+        id: notificationId,
+        amount: xpAmount,
+        multiplier: multiplier,
+        timestamp: Date.now()
+      }]);
+      
+      // Убираем уведомление через 2 секунды
+      setTimeout(() => {
+        setXpNotifications(prev => prev.filter(n => n.id !== notificationId));
+      }, 2000);
+    };
+    
+    return () => {
+      delete (window as any).showXPNotification;
+    };
+  }, []);
 
   // ✅ Инициализация имен - только один раз!
   useEffect(() => {
@@ -1056,6 +1084,11 @@ const Dashboard: React.FC<DashboardProps> = ({
             }}
           >
             +{notification.amount} XP ✨
+            {notification.multiplier && notification.multiplier > 1.0 && (
+              <span className="text-xs opacity-90 ml-1">
+                (x{notification.multiplier.toFixed(1)} 🔥)
+              </span>
+            )}
           </div>
         ))}
       </div>
