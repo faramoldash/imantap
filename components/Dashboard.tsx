@@ -299,12 +299,12 @@ const Dashboard: React.FC<DashboardProps> = ({
     
     // Добавляем в выученные
     const next = [...current, id];
-    const nameXp = XP_VALUES['name'] || 15;
-    
+
+    // ✅ НЕ начисляем XP локально - бэкенд сделает это при синхронизации
     setUserData({ 
       ...userData, 
-      memorizedNames: next,
-      xp: userData.xp + nameXp
+      memorizedNames: next
+      // xp НЕ трогаем! Бэкенд начислит при sync
     });
     
     // Анимация исчезновения
