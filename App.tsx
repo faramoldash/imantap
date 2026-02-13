@@ -432,7 +432,16 @@ const App: React.FC = () => {
         
         // ✅ Обновляем userData с актуальными данными от бэкенда
         if (data.success && data.data) {
-          setUserData(data.data);
+          // ✅ ВАЛИДАЦИЯ ДАТ перед установкой
+          const validatedData = {
+            ...data.data,
+            lastActiveDate: data.data.lastActiveDate || '',
+            subscriptionExpiresAt: data.data.subscriptionExpiresAt || null,
+            registrationDate: data.data.registrationDate || new Date().toISOString(),
+            startDate: data.data.startDate || RAMADAN_START_DATE
+          };
+          
+          setUserData(validatedData);
         }
         
         // ✅ Показываем XP анимацию ТОЛЬКО если бэкенд начислил
