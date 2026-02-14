@@ -22,6 +22,43 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
   const currentDay = Math.max(1, Math.min(30, diffDays));
   const dayData = userData.progress[currentDay] || INITIAL_DAY_PROGRESS(currentDay);
 
+  const getTotalQuranPages = () => {
+    let total = 0;
+    // Считаем из basicProgress (все даты)
+    if (userData.basicProgress) {
+      Object.values(userData.basicProgress).forEach((day: any) => {
+        total += day.quranPages || 0;
+      });
+    }
+    // Также считаем из progress (Рамадан дни)
+    if (userData.progress) {
+      Object.values(userData.progress).forEach((day: any) => {
+        total += day.quranPages || 0;
+      });
+    }
+    return total;
+  };
+
+  const getTotalCharity = () => {
+    let total = 0;
+    // Считаем из basicProgress (все даты)
+    if (userData.basicProgress) {
+      Object.values(userData.basicProgress).forEach((day: any) => {
+        total += day.charityAmount || 0;
+      });
+    }
+    // Также считаем из progress (Рамадан дни)
+    if (userData.progress) {
+      Object.values(userData.progress).forEach((day: any) => {
+        total += day.charityAmount || 0;
+      });
+    }
+    return total;
+  };
+
+  const totalQuranPages = getTotalQuranPages();
+  const totalCharity = getTotalCharity();
+
   const [quranPagesInput, setQuranPagesInput] = useState(
     dayData.quranPages && dayData.quranPages > 0 ? dayData.quranPages.toString() : ''
   );
@@ -182,6 +219,11 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
               <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
                  <div className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000" style={{ width: `${quranGoalPercent}%` }}></div>
               </div>
+              {/* ✅ ДОБАВИТЬ: Общее количество */}
+              <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+                <span className="text-[10px] font-black text-slate-400 uppercase">Барлығы:</span>
+                <span className="text-[11px] font-black text-emerald-600">{totalQuranPages} бет</span>
+              </div>
            </div>
 
            <div className="space-y-3">
@@ -208,6 +250,11 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
             </div>
             <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-1000" style={{ width: `${charityGoalPercent}%` }}></div>
+            </div>
+            {/* ✅ ДОБАВИТЬ: Общее количество */}
+            <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+              <span className="text-[10px] font-black text-slate-400 uppercase">Барлығы:</span>
+              <span className="text-[11px] font-black text-amber-600">{totalCharity.toLocaleString()} ₸</span>
             </div>
           </div>
         </div>
