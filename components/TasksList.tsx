@@ -22,8 +22,12 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
   const currentDay = Math.max(1, Math.min(30, diffDays));
   const dayData = userData.progress[currentDay] || INITIAL_DAY_PROGRESS(currentDay);
 
-  const [quranPagesInput, setQuranPagesInput] = useState(dayData.quranPages?.toString() || '');
-  const [charityInput, setCharityInput] = useState(dayData.charityAmount?.toString() || '');
+  const [quranPagesInput, setQuranPagesInput] = useState(
+    dayData.quranPages && dayData.quranPages > 0 ? dayData.quranPages.toString() : ''
+  );
+  const [charityInput, setCharityInput] = useState(
+    dayData.charityAmount && dayData.charityAmount > 0 ? dayData.charityAmount.toString() : ''
+  );
 
   const updateProgress = (day: number, updates: Partial<DayProgress>) => {
     const existing = userData.progress[day] || INITIAL_DAY_PROGRESS(day);
@@ -43,15 +47,19 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
 
   const handleQuranPagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/[^0-9]/g, '');
-    setQuranPagesInput(val);
-    const pages = parseInt(val) || 0;
+    // ✅ Убираем ведущие нули
+    const cleaned = val.replace(/^0+/, '') || '';
+    setQuranPagesInput(cleaned);
+    const pages = parseInt(cleaned) || 0;
     updateProgress(currentDay, { quranPages: pages, quranRead: pages > 0 });
   };
 
   const handleCharityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/[^0-9]/g, '');
-    setCharityInput(val);
-    const amount = parseInt(val) || 0;
+    // ✅ Убираем ведущие нули
+    const cleaned = val.replace(/^0+/, '') || '';
+    setCharityInput(cleaned);
+    const amount = parseInt(cleaned) || 0;
     updateProgress(currentDay, { charityAmount: amount, charity: amount > 0 });
   };
 
