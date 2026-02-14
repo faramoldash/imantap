@@ -23,6 +23,7 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
   const dayData = userData.progress[currentDay] || INITIAL_DAY_PROGRESS(currentDay);
 
   const [quranPagesInput, setQuranPagesInput] = useState(dayData.quranPages?.toString() || '');
+  const [charityInput, setCharityInput] = useState(dayData.charityAmount?.toString() || '');
 
   const updateProgress = (day: number, updates: Partial<DayProgress>) => {
     const existing = userData.progress[day] || INITIAL_DAY_PROGRESS(day);
@@ -45,6 +46,13 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
     setQuranPagesInput(val);
     const pages = parseInt(val) || 0;
     updateProgress(currentDay, { quranPages: pages, quranRead: pages > 0 });
+  };
+
+  const handleCharityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    setCharityInput(val);
+    const amount = parseInt(val) || 0;
+    updateProgress(currentDay, { charityAmount: amount, charity: amount > 0 });
   };
 
   const addCustomGoal = () => {
@@ -169,23 +177,31 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
            </div>
 
            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                 <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center text-xl">💎</div>
-                    <div>
-                      <span className="text-[11px] font-black text-slate-800 uppercase block mb-1">{t.goalsCharity}</span>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">{charityGoalPercent}% ОРЫНДАЛДЫ</span>
-                    </div>
+             <div className="flex justify-between items-center">
+               <div className="flex items-center space-x-3">
+                 <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center text-xl">💎</div>
+                 <div>
+                   <span className="text-[11px] font-black text-slate-800 uppercase block mb-1">{t.goalsCharity}</span>
+                   <span className="text-[9px] font-bold text-slate-400 uppercase">{charityGoalPercent}% ОРЫНДАЛДЫ</span>
                  </div>
-                 <div className="text-right">
-                    <span className="text-[12px] font-black text-emerald-600 block mb-1">{dayData.charityAmount || 0} ₸</span>
-                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-tighter">лимит: {userData?.dailyCharityGoal} ₸</span>
-                 </div>
+               </div>
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="text" 
+                  inputMode="numeric"
+                  value={charityInput} 
+                  onChange={handleCharityChange}
+                  onFocus={handleInputFocus}
+                  placeholder="0"
+                  className="w-16 bg-slate-50 border border-slate-100 rounded-xl py-2 px-2 text-xs font-black text-center outline-none"
+                />
+                <span className="text-[10px] font-black text-slate-300">/ {userData?.dailyCharityGoal} ₸</span>
               </div>
-              <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
-                 <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-1000" style={{ width: `${charityGoalPercent}%` }}></div>
-              </div>
-           </div>
+            </div>
+            <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-1000" style={{ width: `${charityGoalPercent}%` }}></div>
+            </div>
+          </div>
         </div>
       </section>
 
