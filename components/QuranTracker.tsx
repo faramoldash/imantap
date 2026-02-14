@@ -40,7 +40,6 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
       ...userData,
       completedJuzs: [],
       quranKhatams: (userData.quranKhatams || 0) + 1,
-      xp: userData.xp + (XP_VALUES.khatam || 1000)
     });
   };
 
@@ -57,7 +56,7 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
               </div>
               <h2 className="text-2xl font-black text-emerald-700 mb-2 leading-tight">{t.quranKhatamCompleted}</h2>
               <p className="text-sm text-slate-500 mb-6 px-4">
-                 МашаАлла! Сіз Құранды толық оқып шықтыңыз. +1000 XP
+                 МашаАлла! Сіз Құранды толық оқып шықтыңыз. Жаңа хатым бастаңыз!
               </p>
               <button 
                 onClick={handleKhatamFinish}
