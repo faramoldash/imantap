@@ -6,7 +6,8 @@ import { getUserCircles, getCircleDetails, createCircle, inviteToCircle } from '
 interface CirclesViewProps {
   userData: UserData;
   language: Language;
-  onNavigate?: (view: string) => void;
+  onNavigate?: (view: string, data?: any) => void;
+  navigationData?: { from?: string; circleId?: string; action?: string };
 }
 
 // CSS для вращения против часовой стрелки
@@ -17,7 +18,7 @@ const spinReverseStyle = `
   }
 `;
 
-const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigate }) => {
+const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigate, navigationData }) => {
   const t = TRANSLATIONS[language];
   
   const [circles, setCircles] = useState<any[]>([]);
@@ -41,6 +42,24 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   const [inviteUsername, setInviteUsername] = useState('');
   const [inviteError, setInviteError] = useState('');
   const [inviteSuccess, setInviteSuccess] = useState('');
+
+  // ✅ Автооткрытие круга если передан circleId
+  useEffect(() => {
+    if (navigationData?.circleId && circles.length > 0) {
+      const circle = circles.find(c => c._id === navigationData.circleId);
+      if (circle) {
+        setSelectedCircle(circle);
+        setShowDetails(true);
+      }
+    }
+  }, [navigationData?.circleId, circles]);
+
+  // ✅ Автооткрытие формы создания
+  useEffect(() => {
+    if (navigationData?.action === 'create') {
+      setShowCreateModal(true);
+    }
+  }, [navigationData?.action]);
 
   useEffect(() => {
     loadCircles();
@@ -289,7 +308,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
           <div className="bg-gradient-to-br from-emerald-600 to-teal-600 p-6 rounded-[3rem] text-white shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10 text-8xl">🤝</div>
             <div className="relative z-10">
-              <button onClick={() => onNavigate && onNavigate('profile')} className="text-white/80 hover:text-white font-bold text-sm mb-4 transition-colors">
+              <button onClick={() => onNavigate?.(navigationData?.from || 'rewards')}>
                 ← {language === 'kk' ? 'Артқа' : 'Назад'}
               </button>
               <h2 className="text-2xl font-black mb-6">{language === 'kk' ? 'Менің топтарым' : 'Мои круги'}</h2>

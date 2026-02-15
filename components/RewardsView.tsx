@@ -232,22 +232,30 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
     }
   };
 
-  // ===== ОБРАБОТЧИКИ КРУГОВ =====
+  //  ОБРАБОТЧИКИ КРУГОВ 
   const handleCreateCircle = () => {
     if (onNavigate) {
-      onNavigate('circles');
+      onNavigate('circles', { 
+        from: 'rewards', 
+        action: 'create' 
+      });
     }
   };
 
   const handleOpenCircle = (circleId: string) => {
     if (onNavigate) {
-      onNavigate('circles');
+      onNavigate('circles', { 
+        from: 'rewards', 
+        circleId: circleId 
+      });
     }
   };
 
   const handleViewAllCircles = () => {
     if (onNavigate) {
-      onNavigate('circles');
+      onNavigate('circles', { 
+        from: 'rewards' 
+      });
     }
   };
 

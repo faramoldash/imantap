@@ -202,12 +202,19 @@ const App: React.FC = () => {
   }, [calculateRamadanStatus]);
 
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
+  const [navigationData, setNavigationData] = useState<any>(null);
   const [selectedDay, setSelectedDay] = useState<number>(1);
   const [realTodayDay, setRealTodayDay] = useState<number>(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
   const [selectedBasicDate, setSelectedBasicDate] = useState<Date | null>(null);
   const [selectedPreparationDay, setSelectedPreparationDay] = useState<number | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [userCircles, setUserCircles] = useState<any[]>([]);
+
+  // ✅ Функция навигации с передачей данных
+  const handleNavigation = useCallback((view: ViewType, data?: any) => {
+    setCurrentView(view);
+    setNavigationData(data);
+  }, []);
 
   // SCROLL LOGIC - с сохранением позиций
   const scrollMemory = useRef<Record<string, number>>({});
@@ -989,16 +996,16 @@ const App: React.FC = () => {
         return <TasksList language={userData.language} userData={userData} setUserData={handleUserDataUpdate} />;
         
       case 'profile':
-        return <ProfileView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} onNavigate={setCurrentView} />;
+        return <ProfileView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} onNavigate={handleNavigation} />;
         
       case 'names-99':
         return <NamesMemorizer language={userData.language} userData={userData} setUserData={handleUserDataUpdate} />;
         
       case 'rewards':
-        return <RewardsView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} onNavigate={setCurrentView} />;
+        return <RewardsView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} onNavigate={handleNavigation} />;
 
       case 'circles':
-        return <CirclesView userData={userData} language={userData.language} onNavigate={setCurrentView} />;
+        return <CirclesView userData={userData} language={userData.language} onNavigate={handleNavigation} navigationData={navigationData} />;
         
       default:
         return null;
