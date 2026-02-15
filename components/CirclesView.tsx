@@ -327,14 +327,14 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                   className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3.5 rounded-2xl text-sm font-black uppercase tracking-wider active:scale-95 transition-all border border-white/20"
                 >
                   <div className="text-lg mb-1">🔗</div>
-                  <div className="text-[10px]">{language === 'kk' ? 'Қосылу' : 'По коду'}</div>
+                  <div className="text-[10px]">{language === 'kk' ? 'Кодпен қосылу' : 'По коду'}</div>
                 </button>
                 <button 
                   onClick={() => setShowCreateForm(true)} 
                   className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-3.5 rounded-2xl text-sm font-black uppercase tracking-wider active:scale-95 transition-all shadow-lg border border-emerald-400/30"
                 >
                   <div className="text-lg mb-1">+</div>
-                  <div className="text-[10px]">{language === 'kk' ? 'Құру' : 'Создать'}</div>
+                  <div className="text-[10px]">{language === 'kk' ? 'Топ ашу' : 'Создать'}</div>
                 </button>
               </div>
             </div>
@@ -370,13 +370,6 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 
                 <div className="grid grid-cols-2 gap-3">
                   <button 
-                    onClick={handleCreateCircle} 
-                    disabled={!circleName.trim()} 
-                    className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-2xl font-black text-sm uppercase tracking-wider disabled:opacity-30 active:scale-95 transition-all shadow-lg border border-emerald-400/30"
-                  >
-                    {language === 'kk' ? 'Құру' : 'Создать'}
-                  </button>
-                  <button 
                     onClick={() => { 
                       setShowCreateForm(false); 
                       setCircleName(''); 
@@ -385,6 +378,13 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                     className="bg-white/10 backdrop-blur-sm text-white/90 py-3 rounded-2xl font-black text-sm uppercase tracking-wider active:scale-95 transition-all border border-white/20"
                   >
                     {language === 'kk' ? 'Болдырмау' : 'Отмена'}
+                  </button>
+                  <button 
+                    onClick={handleCreateCircle} 
+                    disabled={!circleName.trim()} 
+                    className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-2xl font-black text-sm uppercase tracking-wider disabled:opacity-30 active:scale-95 transition-all shadow-lg border border-emerald-400/30"
+                  >
+                    {language === 'kk' ? 'Құру' : 'Создать'}
                   </button>
                 </div>
               </div>
@@ -417,13 +417,6 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 
                 <div className="grid grid-cols-2 gap-3">
                   <button 
-                    onClick={handleJoinByCode} 
-                    disabled={joinCode.trim().length !== 6 || isJoining} 
-                    className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white py-3 rounded-2xl font-black text-sm uppercase tracking-wider disabled:opacity-30 active:scale-95 transition-all shadow-lg border border-teal-400/30"
-                  >
-                    {isJoining ? '...' : (language === 'kk' ? 'Қосылу' : 'Войти')}
-                  </button>
-                  <button 
                     onClick={() => { 
                       setShowJoinForm(false); 
                       setJoinCode(''); 
@@ -432,6 +425,13 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                     className="bg-white/10 backdrop-blur-sm text-white/90 py-3 rounded-2xl font-black text-sm uppercase tracking-wider active:scale-95 transition-all border border-white/20"
                   >
                     {language === 'kk' ? 'Болдырмау' : 'Отмена'}
+                  </button>
+                  <button 
+                    onClick={handleJoinByCode} 
+                    disabled={joinCode.trim().length !== 6 || isJoining} 
+                    className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white py-3 rounded-2xl font-black text-sm uppercase tracking-wider disabled:opacity-30 active:scale-95 transition-all shadow-lg border border-teal-400/30"
+                  >
+                    {isJoining ? '...' : (language === 'kk' ? 'Қосылу' : 'Войти')}
                   </button>
                 </div>
               </div>
@@ -470,27 +470,27 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                   <div 
                     key={circle.circleId} 
                     onClick={() => loadCircleDetails(circle.circleId)} 
-                    className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm p-5 rounded-[2.5rem] shadow-lg active:scale-[0.98] transition-all cursor-pointer overflow-hidden border border-white/10 group hover:border-emerald-500/30"
+                    className="relative bg-white p-5 rounded-[2.5rem] shadow-sm active:scale-[0.98] transition-all cursor-pointer overflow-hidden border border-slate-100 group hover:border-emerald-500 hover:shadow-lg"
                   >
                     {/* Декоративный эмодзи */}
                     <div className="absolute -right-6 -bottom-6 text-[100px] opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
                       {isOwner ? '👑' : '🤝'}
                     </div>
-                    
+
                     <div className="relative z-10">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="text-white font-black text-base mb-1 leading-tight">
+                          <h3 className="text-slate-800 font-black text-base mb-1 leading-tight">
                             {circle.name}
                           </h3>
                           {circle.description && (
-                            <p className="text-white/50 text-xs line-clamp-1 font-medium">
+                            <p className="text-slate-400 text-xs line-clamp-1 font-medium">
                               {circle.description}
                             </p>
                           )}
                         </div>
                         {isOwner && (
-                          <span className="bg-amber-500/20 text-amber-300 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border border-amber-500/30 flex-shrink-0 ml-2">
+                          <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border border-amber-300 flex-shrink-0 ml-2">
                             {language === 'kk' ? 'Иесі' : 'Владелец'}
                           </span>
                         )}
@@ -498,14 +498,14 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                       
                       <div className="flex items-center space-x-4 text-[11px] font-bold">
                         <div className="flex items-center space-x-1.5">
-                          <span className="text-white/40">👥</span>
-                          <span className="text-emerald-400">{activeCount}</span>
-                          <span className="text-white/40">{language === 'kk' ? 'адам' : 'чел.'}</span>
+                          <span className="text-slate-400">👥</span>
+                          <span className="text-emerald-600">{activeCount}</span>
+                          <span className="text-slate-400">{language === 'kk' ? 'адам' : 'чел.'}</span>
                         </div>
-                        <div className="w-px h-3 bg-white/10"></div>
+                        <div className="w-px h-3 bg-slate-200"></div>
                         <div className="flex items-center space-x-1.5">
-                          <span className="text-white/40">🔑</span>
-                          <span className="text-white/60 font-black tracking-wider">{circle.inviteCode}</span>
+                          <span className="text-slate-400">🔑</span>
+                          <span className="text-slate-600 font-black tracking-wider">{circle.inviteCode}</span>
                         </div>
                       </div>
                     </div>
@@ -677,17 +677,17 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               
               <div className="grid grid-cols-2 gap-3">
                 <button 
+                  onClick={handleDeclineInvite} 
+                  className="bg-white/10 backdrop-blur-sm text-white/90 py-3 rounded-2xl font-black text-sm uppercase tracking-wider active:scale-95 transition-all border border-white/20"
+                >
+                  ❌ {language === 'kk' ? 'Бас тарту' : 'Отклонить'}
+                </button>
+                <button 
                   onClick={handleAcceptInvite} 
                   disabled={isAcceptingInvite}
                   className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-2xl font-black text-sm uppercase tracking-wider active:scale-95 transition-all shadow-lg border border-emerald-400/30 disabled:opacity-50"
                 >
                   ✅ {language === 'kk' ? 'Қабылдау' : 'Принять'}
-                </button>
-                <button 
-                  onClick={handleDeclineInvite} 
-                  className="bg-white/10 backdrop-blur-sm text-white/90 py-3 rounded-2xl font-black text-sm uppercase tracking-wider active:scale-95 transition-all border border-white/20"
-                >
-                  ❌ {language === 'kk' ? 'Бас тарту' : 'Отклонить'}
                 </button>
               </div>
             </div>
@@ -696,11 +696,11 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
 
         {/* 👥 УЧАСТНИКИ */}
         {!isPending && (
-          <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm p-6 rounded-[2.5rem] shadow-xl overflow-hidden border border-white/10">
+          <div className="relative bg-white p-6 rounded-[2.5rem] shadow-sm overflow-hidden border border-slate-100">
             <div className="absolute -bottom-8 -right-8 text-[140px] opacity-5 pointer-events-none">👥</div>
             
             <div className="relative z-10">
-              <h3 className="text-white font-black uppercase tracking-widest text-[10px] mb-5">
+              <h3 className="text-slate-800 font-black uppercase tracking-widest text-[10px] mb-5">
                 👥 {language === 'kk' ? 'ҚАТЫСУШЫЛАР' : 'УЧАСТНИКИ'}
               </h3>
               
@@ -715,25 +715,25 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                       key={member.userId} 
                       className={`relative p-4 rounded-[2rem] transition-all border ${
                         isCurrentUser 
-                          ? 'bg-emerald-600/20 border-emerald-500/40' 
-                          : 'bg-white/5 border-white/10'
+                          ? 'bg-emerald-50 border-emerald-200' 
+                          : 'bg-slate-50 border-slate-100'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
-                          <div className="w-11 h-11 bg-gradient-to-br from-slate-700 to-slate-800 rounded-2xl flex items-center justify-center text-base font-black text-white flex-shrink-0 border border-white/10">
+                          <div className="w-11 h-11 bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl flex items-center justify-center text-base font-black text-slate-700 flex-shrink-0 border border-slate-300">
                             {medal || member.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-white font-black text-sm truncate">
+                            <p className="text-slate-800 font-black text-sm truncate">
                               {member.name}
                               {isCurrentUser && (
-                                <span className="ml-2 text-[8px] bg-emerald-500 text-white px-2 py-0.5 rounded-lg font-black uppercase tracking-wider">
+                                <span className="ml-2 text-[8px] bg-emerald-600 text-white px-2 py-0.5 rounded-lg font-black uppercase tracking-wider">
                                   {language === 'kk' ? 'СІЗ' : 'ВЫ'}
                                 </span>
                               )}
                             </p>
-                            <p className="text-white/40 text-[10px] font-bold">
+                            <p className="text-slate-400 text-[10px] font-bold">
                               {member.todayProgress.completed}/{member.todayProgress.total} {language === 'kk' ? 'тапсырма' : 'задач'}
                             </p>
                           </div>
@@ -756,7 +756,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                       </div>
                       
                       {/* Прогресс-бар */}
-                      <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500 rounded-full" 
                           style={{ width: `${member.todayProgress.percent}%` }}
