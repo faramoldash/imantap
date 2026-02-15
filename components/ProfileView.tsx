@@ -278,10 +278,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     }
     
     // ✅ Рассчитываем XP за сегодня с учётом streak multiplier
-    const streakMultiplier = userData.currentStreak >= 21 ? 2 
-      : userData.currentStreak >= 14 ? 1.5 
-      : userData.currentStreak >= 7 ? 1.2 
-      : 1;
+    // Формула: 1 + (streak * 0.1), максимум 3.0
+    const streakMultiplier = Math.min(1 + (userData.currentStreak * 0.1), 3.0);
 
     const todayXP = Math.round(todayTasks * 50 * streakMultiplier);
 
@@ -419,36 +417,57 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
 
       {/* ✅ HERO METRICS */}
       <div className="bg-gradient-to-br from-emerald-600 to-teal-600 p-6 rounded-[3rem] text-white shadow-xl">
-        <div className="flex items-center justify-between mb-4">
-          <div>
+        <div className="text-center mb-4">
+          <div className="inline-block">
             <p className="text-emerald-200 text-[10px] font-black uppercase tracking-wider mb-1">
-              {language === 'kk' ? 'Streak' : 'Серия'}
+              {language === 'kk' ? 'ЖАЛПЫ XP' : 'ВСЕГО XP'}
             </p>
-            <div className="flex items-center space-x-2">
-              <span className="text-4xl font-black">{userData.currentStreak || 0}</span>
-              <span className="text-lg font-bold text-emerald-200">{language === 'kk' ? 'күн' : 'дней'}</span>
-              <span className="text-3xl animate-bounce">🔥</span>
+            <div className="flex items-center space-x-2 justify-center">
+              <span className="text-5xl font-black">{userData.xp.toLocaleString()}</span>
             </div>
-            <p className="text-[9px] text-emerald-200 mt-1">
-              {language === 'kk' ? 'Рекорд' : 'Рекорд'}: {userData.bestStreak || 0} {language === 'kk' ? 'күн' : 'дней'}
-            </p>
-          </div>
-          
-          <div className="text-right">
-            <p className="text-emerald-200 text-[10px] font-black uppercase tracking-wider mb-1">XP</p>
-            <div className="flex items-center space-x-2 justify-end">
-              <span className="text-4xl font-black">{userData.xp.toLocaleString()}</span>
-            </div>
-            <p className="text-[9px] text-emerald-200 mt-1">
-              {language === 'kk' ? 'Бүгін' : 'Сегодня'}: +{stats.todayXP} XP
+            <p className="text-[9px] text-emerald-200 mt-2 flex items-center justify-center space-x-1">
+              <span>{language === 'kk' ? 'Бүгін' : 'Сегодня'}: +{stats.todayXP} XP</span>
               {stats.streakMultiplier > 1 && (
-                <span className="ml-1 text-amber-300 font-black">
-                  (×{stats.streakMultiplier})
+                <span className="bg-orange-500/30 text-orange-200 px-1.5 py-0.5 rounded-md font-black border border-orange-400/40 text-[8px]">
+                  ×{stats.streakMultiplier.toFixed(1)}
                 </span>
               )}
             </p>
           </div>
         </div>
+
+        {/* ✅ СЧЁТЧИК STREAK с множителем - красивая карточка */}
+        {userData.currentStreak > 0 && (
+          <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 rounded-[3rem] shadow-xl text-white flex items-center justify-between relative overflow-hidden border border-orange-300">
+            <div className="absolute top-0 right-0 p-8 opacity-10 text-7xl pointer-events-none">🔥</div>
+            
+            <div className="relative z-10 flex items-center space-x-4">
+              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-[2rem] flex items-center justify-center border border-white/30">
+                <span className="text-3xl">🔥</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider opacity-90">
+                  {language === 'kk' ? 'Белсенділік серияңыз' : 'Серия активности'}
+                </p>
+                <p className="text-2xl font-black leading-none mt-1">
+                  {userData.currentStreak} {language === 'kk' ? 'күн' : 'дней'}
+                </p>
+                <p className="text-[8px] opacity-75 mt-1">
+                  {language === 'kk' ? 'Рекорд' : 'Рекорд'}: {Math.max(userData.currentStreak || 0, userData.bestStreak || 0)} {language === 'kk' ? 'күн' : 'дней'}
+                </p>
+              </div>
+            </div>
+            
+            <div className="relative z-10 text-right bg-white/20 backdrop-blur-sm rounded-[1.5rem] px-4 py-2.5 border border-white/30">
+              <p className="text-[9px] font-black uppercase opacity-80 leading-tight">
+                {language === 'kk' ? 'XP бонусы' : 'Бонус XP'}
+              </p>
+              <p className="text-xl font-black leading-none mt-1">
+                ×{Math.min(1 + (userData.currentStreak * 0.1), 3.0).toFixed(1)}
+              </p>
+            </div>
+          </div>
+        )}
         
         {/* Сегодняшний прогресс */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
