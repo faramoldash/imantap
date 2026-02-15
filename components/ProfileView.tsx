@@ -153,6 +153,15 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   // ===== СТАТИСТИКА =====
   const stats = useMemo(() => {
     const progressValues = getFilteredProgress();
+
+    // ✅ ОТЛАДКА
+    console.log('📊 ProfileView stats:', {
+      periodFilter,
+      totalProgressKeys: Object.keys(userData.progress).length,
+      filteredCount: progressValues.length,
+      sampleProgress: progressValues[0],
+      allProgressSample: Object.values(userData.progress)[0]
+    });
     
     const totalFasts = progressValues.filter(p => p.fasting).length;
     const totalQuran = progressValues.reduce((acc, curr) => acc + (curr.quranPages || 0), 0);
