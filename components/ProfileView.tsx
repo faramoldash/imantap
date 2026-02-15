@@ -152,15 +152,26 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
 
   // ===== СТАТИСТИКА =====
   const stats = useMemo(() => {
+    // ✅ ОТЛАДКА
+    console.log('🔍 DEBUG ProfileView:', {
+      periodFilter,
+      hasProgress: !!userData.progress,
+      hasBasicProgress: !!userData.basicProgress,
+      progressKeys: Object.keys(userData.progress || {}),
+      basicProgressKeys: Object.keys(userData.basicProgress || {}),
+      sampleProgress: userData.progress ? Object.values(userData.progress)[0] : null,
+      sampleBasicProgress: userData.basicProgress ? Object.values(userData.basicProgress)[0] : null
+    });
+    
     const progressValues = getFilteredProgress();
 
-    // ✅ ОТЛАДКА
     console.log('📊 ProfileView stats:', {
       periodFilter,
-      totalProgressKeys: Object.keys(userData.progress).length,
+      totalProgressKeys: Object.keys(userData.progress || {}).length,
+      totalBasicKeys: Object.keys(userData.basicProgress || {}).length,
       filteredCount: progressValues.length,
       sampleProgress: progressValues[0],
-      allProgressSample: Object.values(userData.progress)[0]
+      allProgressSample: userData.progress
     });
     
     const totalFasts = progressValues.filter(p => p.fasting).length;
