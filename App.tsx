@@ -995,7 +995,7 @@ const App: React.FC = () => {
         return <NamesMemorizer language={userData.language} userData={userData} setUserData={handleUserDataUpdate} />;
         
       case 'rewards':
-        return <RewardsView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} />;
+        return <RewardsView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} onNavigate={setCurrentView} />;
 
       case 'circles':
         return <CirclesView userData={userData} language={userData.language} onNavigate={setCurrentView} />;
