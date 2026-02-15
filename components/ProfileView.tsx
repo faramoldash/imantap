@@ -68,7 +68,22 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
 
   // ===== ФИЛЬТРАЦИЯ ПО ПЕРИОДАМ =====
   const getFilteredProgress = (): DayProgress[] => {
-    const progressArray = Object.values(userData.progress) as DayProgress[];
+    // ✅ Определяем источник данных в зависимости от периода
+    const ramadanStartDate = new Date('2026-02-19T00:00:00+05:00');
+    const isRamadanStarted = new Date() >= ramadanStartDate;
+    
+    // До Рамадана читаем из basicProgress, после - из progress
+    const progressArray = isRamadanStarted 
+      ? (Object.values(userData.progress || {}) as DayProgress[])
+      : (Object.values(userData.basicProgress || {}) as DayProgress[]);
+    
+    console.log('🔍 getFilteredProgress:', {
+      isRamadanStarted,
+      source: isRamadanStarted ? 'progress' : 'basicProgress',
+      totalItems: progressArray.length,
+      periodFilter,
+      sampleItem: progressArray[0]
+    });
     
     // Если прогресс пустой - возвращаем пустой массив
     if (progressArray.length === 0) {
@@ -98,7 +113,18 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     switch (periodFilter) {
       case 'today':
         const todayStr = now.toISOString().split('T')[0];
-        const todayData = progressArray.filter(p => p.date?.startsWith(todayStr));
+        const todayData = progressArray.filter(p => {
+          if (!p.date) return false;
+          const itemDate = p.date.split('T')[0];
+          return itemDate === todayStr;
+        });
+        
+        console.log('📅 TODAY filter:', {
+          todayStr,
+          totalItems: progressArray.length,
+          filtered: todayData.length,
+          dates: progressArray.map(p => p.date?.split('T')[0])
+        });
         
         // Если сегодня нет данных, берём последний день с данными
         if (todayData.length === 0) {
