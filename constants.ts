@@ -80,6 +80,28 @@ export const XP_VALUES: Record<string, number> = {
   khatam: 1000, // Bonus for finishing Quran
 };
 
+// ✅ НОВАЯ СИСТЕМА УРОВНЕЙ
+export const LEVEL_SYSTEM = [
+  { level: 1, name_kk: 'Бастаушы', name_ru: 'Начинающий', icon: '🌱', minXP: 0, maxXP: 999 },
+  { level: 2, name_kk: 'Үйренуші', name_ru: 'Ученик', icon: '🌿', minXP: 1000, maxXP: 2499 },
+  { level: 3, name_kk: 'Белсенді', name_ru: 'Активный', icon: '🍃', minXP: 2500, maxXP: 4999 },
+  { level: 4, name_kk: 'Тұрақты', name_ru: 'Постоянный', icon: '⭐', minXP: 5000, maxXP: 7999 },
+  { level: 5, name_kk: 'Күшті', name_ru: 'Сильный', icon: '💪', minXP: 8000, maxXP: 11499 },
+  { level: 6, name_kk: 'Табанды', name_ru: 'Упорный', icon: '🔥', minXP: 11500, maxXP: 15499 },
+  { level: 7, name_kk: 'Шебер', name_ru: 'Мастер', icon: '💎', minXP: 15500, maxXP: 19999 },
+  { level: 8, name_kk: 'Чемпион', name_ru: 'Чемпион', icon: '👑', minXP: 20000, maxXP: 24999 },
+  { level: 9, name_kk: 'Аса жоғары', name_ru: 'Превосходный', icon: '🌟', minXP: 25000, maxXP: 49999 },
+  { level: 10, name_kk: 'Нұрлы жан', name_ru: 'Светлая душа', icon: '🕌', minXP: 50000, maxXP: Infinity }
+];
+
+export function getUserLevel(xp: number) {
+  return LEVEL_SYSTEM.find(l => xp >= l.minXP && xp <= l.maxXP) || LEVEL_SYSTEM[0];
+}
+
+export function getNextLevel(currentLevel: number) {
+  return LEVEL_SYSTEM[currentLevel] || null;
+}
+
 export const DEFAULT_GOALS: Record<Language, string[]> = {
   kk: [
     "Құранды бастан-аяқ толық оқып шығу",
@@ -158,11 +180,6 @@ export const TRANSLATIONS: Record<Language, any> = {
     rewardsLeaderboard: "Топ праведников",
     rewardsXP: "Духовный опыт",
     rewardsLevelName: "Ваш статус",
-    level1: "Начинающий",
-    level2: "Старательный",
-    level3: "Искренний",
-    level4: "Салиха",
-    level5: "Мухсин",
     usefulTitle: "Полезное",
     namesTitle: "99 Имен Аллаха",
     calendarTitle: "Күнтізбе",
@@ -287,11 +304,6 @@ export const TRANSLATIONS: Record<Language, any> = {
     rewardsLeaderboard: "Жақсылық жаршылары",
     rewardsXP: "Рухани тәжірибе",
     rewardsLevelName: "Дәрежеңіз",
-    level1: "Жаңа бастаушы",
-    level2: "Ықыласты",
-    level3: "Салиқалы",
-    level4: "Тақуа",
-    level5: "Мұхсин",
     usefulTitle: "Мәлімет",
     namesTitle: "Алланың 99 есімі",
     calendarTitle: "Күнтізбе",

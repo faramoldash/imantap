@@ -3,6 +3,7 @@ import { UserData, Language } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
 import { getGlobalLeaderboard, getFriendsLeaderboard, getCountries, getCities } from '../src/services/api';
 import { translateName } from '../src/utils/translations';
+import { getUserLevelInfo } from '../src/utils/levelHelper';
 
 interface RewardsViewProps {
   userData: UserData;
@@ -14,11 +15,14 @@ type FilterType = 'global' | 'country' | 'city' | 'friends';
 
 const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
   const t = TRANSLATIONS[language];
-  const level = Math.floor(userData.xp / 1000) + 1;
-  const levelName = t[`level${Math.min(level, 5)}`];
+
+  // ✅ Используем новую систему уровней
+  const levelInfo = getUserLevelInfo(userData.xp, language);
   
   // Состояния
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [userRank, setUserRank] = useState<number | null>(null);
+  const [totalUsers, setTotalUsers] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [filterType, setFilterType] = useState<FilterType>('global');
@@ -52,10 +56,19 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
       if (filterType === 'friends') {
         data = await getFriendsLeaderboard(userData.userId, 20);
         if (data) {
-          const withMe = data.map((user: any) => ({
+          const withMe = data.map((user: any, idx: number) => ({
             ...user,
-            isMe: user.userId === userData.userId
+            isMe: user.userId === userData.userId,
+            rank: idx + 1 // ← ДОБАВИТЬ ранг
           }));
+          
+          // ✅ Находим позицию пользователя среди друзей
+          const myPosition = withMe.findIndex((u: any) => u.isMe);
+          if (myPosition !== -1) {
+            setUserRank(myPosition + 1);
+            setTotalUsers(withMe.length);
+          }
+          
           setLeaderboard(withMe);
           setHasMore(false);
         }
@@ -67,11 +80,27 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
           city: filterType === 'city' ? selectedCity : null
         });
 
-        if (result && result.data) {  // ✅ ПРОВЕРЯЕМ result.data
-          const withMe = result.data.map((user: any) => ({  // ✅ result.data вместо result.leaderboard
+        if (result && result.data) {
+          const withMe = result.data.map((user: any, idx: number) => ({
             ...user,
-            isMe: user.userId === userData.userId
+            isMe: user.userId === userData.userId,
+            rank: currentOffset + idx + 1 // ← ДОБАВИТЬ ранг
           }));
+
+          // ✅ Получаем место пользователя
+          if (result.userRank !== undefined) {
+            setUserRank(result.userRank);
+          } else {
+            // Если API не возвращает userRank, ищем в списке
+            const myPosition = withMe.findIndex((u: any) => u.isMe);
+            if (myPosition !== -1) {
+              setUserRank(currentOffset + myPosition + 1);
+            }
+          }
+          
+          if (result.total !== undefined) {
+            setTotalUsers(result.total);
+          }
 
           if (reset) {
             setLeaderboard(withMe);
@@ -79,7 +108,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
             setLeaderboard(prev => [...prev, ...withMe]);
           }
 
-          setHasMore(result.hasMore ?? false);  // ✅ result.hasMore вместо result.pagination.hasMore
+          setHasMore(result.hasMore ?? false);
           setOffset(currentOffset + 20);
         }
       }
@@ -175,6 +204,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
   const handleFilterChange = (type: FilterType) => {
     setFilterType(type);
     setOffset(0);
+    setUserRank(null); // ← ДОБАВИТЬ: сброс ранга при смене фильтра
     if (type === 'global' || type === 'friends') {
       setSelectedCountry(null);
       setSelectedCity(null);
@@ -183,24 +213,75 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
 
   return (
     <div className="space-y-6 pb-8 pt-4">
-      {/* Карточка уровня - НЕ скроллится */}
+      {/* ✅ Карточка уровня - ОБНОВЛЕНА */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
-          <span className="text-9xl">🏆</span>
+          <span className="text-9xl">{levelInfo.icon}</span>
         </div>
         <div className="relative z-10">
-          <p className="text-emerald-400 font-black tracking-widest text-[10px] uppercase mb-2">{t.rewardsLevelName}</p>
-          <h2 className="text-3xl font-black mb-6">{levelName}</h2>
+          <p className="text-emerald-400 font-black tracking-widest text-[10px] uppercase mb-2">
+            {language === 'kk' ? 'ДӘРЕЖЕҢІЗ' : 'ВАШ УРОВЕНЬ'}
+          </p>
+          <div className="flex items-center space-x-3 mb-2">
+            <span className="text-4xl">{levelInfo.icon}</span>
+            <h2 className="text-3xl font-black">{levelInfo.name}</h2>
+          </div>
+          <p className="text-emerald-300 text-sm font-bold mb-6">
+            {language === 'kk' ? 'Деңгей' : 'Уровень'} {levelInfo.level}
+          </p>
           
+          {/* ✅ МЕСТО В РЕЙТИНГЕ */}
+          {userRank !== null && (
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-6 border border-white/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="text-3xl">🏆</span>
+                  <div>
+                    <p className="text-[9px] font-black text-emerald-300 uppercase tracking-wider">
+                      {language === 'kk' ? 'Сіздің орныңыз' : 'Ваше место'}
+                    </p>
+                    <p className="text-2xl font-black text-white">
+                      #{userRank}
+                      {totalUsers > 0 && (
+                        <span className="text-sm font-medium text-slate-300 ml-2">
+                          / {totalUsers}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                {userRank <= 3 && (
+                  <span className="text-4xl animate-bounce">
+                    {userRank === 1 ? '🥇' : userRank === 2 ? '🥈' : '🥉'}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* ✅ ПРОГРЕСС ДО СЛЕДУЮЩЕГО УРОВНЯ */}
           <div className="space-y-2">
             <div className="flex justify-between items-center text-[10px] font-black uppercase">
-              <span className="text-slate-400">{t.rewardsXP}</span>
-              <span className="text-emerald-400">{userData.xp} XP</span>
+              <span className="text-slate-400">XP</span>
+              <span className="text-emerald-400">{userData.xp.toLocaleString()} XP</span>
             </div>
             <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${(userData.xp % 1000) / 10}%` }}></div>
+              <div 
+                className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500" 
+                style={{ width: `${levelInfo.progressPercent}%` }}
+              ></div>
             </div>
-            <p className="text-[9px] text-slate-400 italic">Келесі деңгейге: {1000 - (userData.xp % 1000)} XP қалды</p>
+            {levelInfo.hasNextLevel ? (
+              <p className="text-[9px] text-slate-400 italic">
+                {language === 'kk' 
+                  ? `Келесі деңгейге: ${levelInfo.xpToNextLevel.toLocaleString()} XP қалды` 
+                  : `До следующего уровня: ${levelInfo.xpToNextLevel.toLocaleString()} XP`}
+              </p>
+            ) : (
+              <p className="text-[9px] text-emerald-400 italic font-bold">
+                {language === 'kk' ? '🎉 Максималды деңгей!' : '🎉 Максимальный уровень!'}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -323,8 +404,8 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
                 >
                   <div className="flex items-center space-x-4">
                     <span className={`w-6 text-xs font-black transition-all ${
-                      idx === 0 ? 'text-amber-500 text-xl' : idx === 1 ? 'text-slate-400 text-lg' : idx === 2 ? 'text-amber-700 text-lg' : 'text-slate-300'
-                    }`}>{idx + 1}.</span>
+                      user.rank === 1 ? 'text-amber-500 text-xl' : user.rank === 2 ? 'text-slate-400 text-lg' : user.rank === 3 ? 'text-amber-700 text-lg' : 'text-slate-300'
+                    }`}>{user.rank}.</span>
                     <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black transition-all ${
                       user.isMe ? 'bg-emerald-600 text-white scale-110' : 'bg-slate-100 text-slate-600'
                     }`}>
@@ -349,9 +430,9 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
                       </div>
                     </div>
                   </div>
-                  {idx < 3 && (
-                    <span className="text-2xl animate-bounce" style={{ animationDelay: `${idx * 100}ms` }}>
-                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}
+                  {user.rank <= 3 && (
+                    <span className="text-2xl animate-bounce" style={{ animationDelay: `${(user.rank - 1) * 100}ms` }}>
+                      {user.rank === 1 ? '🥇' : user.rank === 2 ? '🥈' : '🥉'}
                     </span>
                   )}
                 </div>
