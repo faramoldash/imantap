@@ -415,94 +415,73 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         </div>
       </div>
 
-      {/* ✅ XP CARD */}
+      {/* ✅ ЕДИНАЯ HERO CARD - XP + Streak + Прогресс */}
       <div className="bg-gradient-to-br from-emerald-600 to-teal-600 p-6 rounded-[3rem] text-white shadow-xl relative overflow-hidden">
         <div className="absolute -top-8 -right-8 text-[160px] opacity-5 pointer-events-none">⭐</div>
         
         <div className="relative z-10">
-          <p className="text-emerald-200 text-[10px] font-black uppercase tracking-widest mb-2">
-            {language === 'kk' ? '✨ Жалпы тәжірибе' : '✨ Всего опыта'}
-          </p>
-          
-          <div className="flex items-baseline space-x-2 mb-3">
-            <span className="text-5xl font-black leading-none">{userData.xp.toLocaleString()}</span>
-            <span className="text-lg text-emerald-200 font-bold">XP</span>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-1.5 border border-white/20">
-              <span className="text-[10px] font-bold text-emerald-100">
-                {language === 'kk' ? 'Бүгін' : 'Сегодня'}:
-              </span>
-              <span className="text-sm font-black ml-1">+{stats.todayXP}</span>
+          {/* Верхняя часть: XP и Streak рядом */}
+          <div className="flex items-start justify-between mb-4">
+            {/* XP (слева) */}
+            <div className="flex-1">
+              <p className="text-emerald-200 text-[10px] font-black uppercase tracking-widest mb-1">
+                {language === 'kk' ? '✨ Тәжірибе' : '✨ Опыт'}
+              </p>
+              <div className="flex items-baseline space-x-2 mb-1">
+                <span className="text-4xl font-black leading-none">{userData.xp.toLocaleString()}</span>
+                <span className="text-sm text-emerald-200 font-bold">XP</span>
+              </div>
+              <div className="flex items-center space-x-1.5">
+                <span className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1 text-[10px] font-bold border border-white/20">
+                  {language === 'kk' ? 'Бүгін' : 'Сегодня'}: +{stats.todayXP}
+                </span>
+                {stats.streakMultiplier > 1 && (
+                  <span className="bg-orange-500/30 backdrop-blur-sm rounded-lg px-2 py-1 text-[10px] font-black border border-orange-400/40">
+                    ×{stats.streakMultiplier.toFixed(1)}
+                  </span>
+                )}
+              </div>
             </div>
             
-            {stats.streakMultiplier > 1 && (
-              <div className="bg-orange-500/20 backdrop-blur-sm rounded-xl px-3 py-1.5 border border-orange-400/30">
-                <span className="text-[10px] font-bold text-orange-200">
-                  ×{stats.streakMultiplier.toFixed(1)}
-                </span>
+            {/* Streak (справа) */}
+            {userData.currentStreak > 0 && (
+              <div className="text-right bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/20 ml-3">
+                <p className="text-emerald-200 text-[9px] font-black uppercase tracking-wider mb-1">
+                  🔥 {language === 'kk' ? 'Серия' : 'Streak'}
+                </p>
+                <div className="flex items-baseline justify-end space-x-1.5">
+                  <span className="text-3xl font-black leading-none">{userData.currentStreak}</span>
+                  <span className="text-xs text-emerald-200 font-bold">
+                    {language === 'kk' ? 'күн' : 'дней'}
+                  </span>
+                </div>
+                <p className="text-[8px] text-emerald-100 mt-1 opacity-80">
+                  {language === 'kk' ? 'Рекорд' : 'Рекорд'}: {Math.max(userData.currentStreak || 0, userData.bestStreak || 0)}
+                </p>
               </div>
             )}
           </div>
           
-          {/* Сегодняшний прогресс */}
-          <div className="mt-4 bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+          {/* Прогресс за сегодня (внизу на всю ширину) */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-emerald-100">
-                {language === 'kk' ? 'Бүгінгі прогресс' : 'Прогресс сегодня'}
+                {language === 'kk' ? '📊 Бүгінгі прогресс' : '📊 Прогресс сегодня'}
               </span>
               <span className="text-sm font-black">{stats.todayTasks} / {stats.totalTodayTasks}</span>
             </div>
-            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="w-full h-2.5 bg-white/10 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-white transition-all duration-500 rounded-full" 
+                className="h-full bg-gradient-to-r from-white to-emerald-100 transition-all duration-500 rounded-full shadow-lg" 
                 style={{ width: `${stats.totalTodayTasks > 0 ? (stats.todayTasks / stats.totalTodayTasks) * 100 : 0}%` }}
               ></div>
             </div>
+            <p className="text-[9px] text-emerald-100 text-center mt-2">
+              {Math.round(stats.totalTodayTasks > 0 ? (stats.todayTasks / stats.totalTodayTasks) * 100 : 0)}% {language === 'kk' ? 'аяқталды' : 'выполнено'}
+            </p>
           </div>
         </div>
       </div>
-
-      {/* ✅ STREAK CARD */}
-      {userData.currentStreak > 0 && (
-        <div className="bg-gradient-to-br from-orange-500 to-red-500 p-6 rounded-[3rem] text-white shadow-xl relative overflow-hidden">
-          <div className="absolute -top-8 -right-8 text-[160px] opacity-10 pointer-events-none">🔥</div>
-          
-          <div className="relative z-10">
-            <p className="text-orange-100 text-[10px] font-black uppercase tracking-widest mb-2">
-              {language === 'kk' ? '🔥 Белсенділік серияңыз' : '🔥 Серия активности'}
-            </p>
-            
-            <div className="flex items-baseline space-x-2 mb-3">
-              <span className="text-5xl font-black leading-none">{userData.currentStreak}</span>
-              <span className="text-lg text-orange-100 font-bold">
-                {language === 'kk' ? 'күн' : 'дней'}
-              </span>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-1.5 border border-white/20">
-                <span className="text-[10px] font-bold text-orange-100">
-                  {language === 'kk' ? 'Рекорд' : 'Рекорд'}:
-                </span>
-                <span className="text-sm font-black ml-1">
-                  {Math.max(userData.currentStreak || 0, userData.bestStreak || 0)} {language === 'kk' ? 'күн' : 'дней'}
-                </span>
-              </div>
-              
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/30">
-                <p className="text-[8px] font-black uppercase text-orange-100 leading-tight mb-0.5">
-                  {language === 'kk' ? 'Бонус' : 'Бонус'}
-                </p>
-                <p className="text-2xl font-black leading-none">
-                  ×{Math.min(1 + (userData.currentStreak * 0.1), 3.0).toFixed(1)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ✅ ВРЕМЕННЫЕ ФИЛЬТРЫ */}
       <div>
