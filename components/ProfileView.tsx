@@ -222,18 +222,77 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     // Сегодняшний прогресс
     const today = new Date().toISOString().split('T')[0];
     const todayProgress = progressValues.find(p => p.date?.startsWith(today));
-    const todayTasks = todayProgress ? [
-      todayProgress.fajr,
-      todayProgress.dhuhr,
-      todayProgress.asr,
-      todayProgress.maghrib,
-      todayProgress.isha,
-      todayProgress.quranRead,
-      todayProgress.charity,
-      todayProgress.morningDhikr,
-      todayProgress.eveningDhikr
-    ].filter(Boolean).length : 0;
+
+    // ✅ Считаем количество выполненных задач
+    let todayTasks = 0;
+    let totalTodayTasks = 0;
+
+    if (todayProgress) {
+      // Определяем список задач в зависимости от периода
+      const now = new Date();
+      const isRamadanStarted = now >= new Date('2026-02-19T00:00:00+05:00');
+      
+      if (isRamadanStarted) {
+        // РАМАДАН: 10 задач
+        const ramadanTasks = [
+          'fasting', 'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
+          'quranRead', 'morningDhikr', 'eveningDhikr'
+        ];
+        todayTasks = ramadanTasks.filter(task => todayProgress[task as keyof typeof todayProgress]).length;
+        totalTodayTasks = ramadanTasks.length;
+      } else {
+        // ПОДГОТОВКА: базовые 12 задач + условные
+        const baseTasks = [
+          'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
+          'morningDhikr', 'eveningDhikr', 'quranRead',
+          'salawat', 'hadith', 'charity'
+        ];
+        
+        todayTasks = baseTasks.filter(task => todayProgress[task as keyof typeof todayProgress]).length;
+        totalTodayTasks = baseTasks.length;
+        
+        // Добавляем условные задачи
+        const dayOfWeek = now.getDay();
+        const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
+        
+        const firstTaraweehDate = new Date('2026-02-18T00:00:00+05:00');
+        const isFirstTaraweehDay = now.toDateString() === firstTaraweehDate.toDateString();
+        
+        if (isMondayOrThursday) {
+          totalTodayTasks++;
+          if (todayProgress.fasting) todayTasks++;
+        }
+        
+        if (isFirstTaraweehDay) {
+          totalTodayTasks++;
+          if (todayProgress.taraweeh) todayTasks++;
+        }
+      }
+      
+      console.log('📊 Today tasks:', {
+        todayTasks,
+        totalTodayTasks,
+        isRamadanStarted,
+        dayOfWeek: now.getDay()
+      });
+    }
     
+    // ✅ Рассчитываем XP за сегодня с учётом streak multiplier
+    const streakMultiplier = userData.currentStreak >= 21 ? 2 
+      : userData.currentStreak >= 14 ? 1.5 
+      : userData.currentStreak >= 7 ? 1.2 
+      : 1;
+
+    const todayXP = Math.round(todayTasks * 50 * streakMultiplier);
+
+    console.log('💰 XP calculation:', {
+      todayTasks,
+      streak: userData.currentStreak,
+      multiplier: streakMultiplier,
+      baseXP: todayTasks * 50,
+      totalXP: todayXP
+    });
+
     return { 
       totalFasts, 
       totalQuran, 
@@ -242,7 +301,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       totalPrayers,
       prayerPercent,
       daysInPeriod: progressValues.length,
-      todayTasks
+      todayTasks,
+      totalTodayTasks,
+      todayXP,
+      streakMultiplier
     };
   }, [userData.progress, periodFilter]);
 
@@ -378,7 +440,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
               <span className="text-4xl font-black">{userData.xp.toLocaleString()}</span>
             </div>
             <p className="text-[9px] text-emerald-200 mt-1">
-              {language === 'kk' ? 'Бүгін' : 'Сегодня'}: +{stats.todayTasks * 50} XP
+              {language === 'kk' ? 'Бүгін' : 'Сегодня'}: +{stats.todayXP} XP
+              {stats.streakMultiplier > 1 && (
+                <span className="ml-1 text-amber-300 font-black">
+                  (×{stats.streakMultiplier})
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -389,12 +456,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
             <span className="text-[10px] font-black uppercase tracking-wider text-emerald-100">
               {language === 'kk' ? 'Бүгінгі прогресс' : 'Прогресс сегодня'}
             </span>
-            <span className="text-sm font-black">{stats.todayTasks} / 9</span>
+            <span className="text-sm font-black">{stats.todayTasks} / {stats.totalTodayTasks}</span>
           </div>
           <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
             <div 
               className="h-full bg-white transition-all duration-500" 
-              style={{ width: `${(stats.todayTasks / 9) * 100}%` }}
+              style={{ width: `${stats.totalTodayTasks > 0 ? (stats.todayTasks / stats.totalTodayTasks) * 100 : 0}%` }}
             ></div>
           </div>
         </div>
