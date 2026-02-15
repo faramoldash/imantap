@@ -10,11 +10,12 @@ interface RewardsViewProps {
   userData: UserData;
   language: Language;
   setUserData?: (data: UserData) => void;
+  onNavigate?: (view: string, data?: any) => void;
 }
 
 type FilterType = 'global' | 'country' | 'city' | 'friends';
 
-const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
+const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigate }) => {
   const t = TRANSLATIONS[language];
 
   // ✅ Используем новую систему уровней
@@ -231,6 +232,25 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
     }
   };
 
+  // ===== ОБРАБОТЧИКИ КРУГОВ =====
+  const handleCreateCircle = () => {
+    if (onNavigate) {
+      onNavigate('circles');
+    }
+  };
+
+  const handleOpenCircle = (circleId: string) => {
+    if (onNavigate) {
+      onNavigate('circles');
+    }
+  };
+
+  const handleViewAllCircles = () => {
+    if (onNavigate) {
+      onNavigate('circles');
+    }
+  };
+
   return (
     <div className="space-y-6 pb-8 pt-4">
       {/* ✅ Карточка уровня - ОБНОВЛЕНА */}
@@ -362,7 +382,8 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
                 return (
                   <div 
                     key={circle._id} 
-                    className="bg-slate-50 rounded-2xl p-3 flex items-center justify-between hover:bg-slate-100 transition-colors"
+                    onClick={() => handleOpenCircle(circle.circleId || circle._id)}
+                    className="bg-slate-50 rounded-2xl p-3 flex items-center justify-between hover:bg-slate-100 transition-colors cursor-pointer active:scale-95"
                   >
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-xl flex items-center justify-center text-white text-sm font-black">
@@ -384,15 +405,19 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
             {/* Кнопка "Все круги" если больше 3 */}
             {userCircles.length > 3 && (
               <button 
-                className="w-full py-3 rounded-2xl bg-slate-100 text-slate-600 text-xs font-black hover:bg-slate-200 transition-colors"
+                onClick={handleViewAllCircles}
+                className="w-full py-3 rounded-2xl bg-slate-100 text-slate-600 text-xs font-black hover:bg-slate-200 transition-colors active:opacity-80"
               >
                 {language === 'kk' ? 'Барлық топтар' : 'Все круги'} ({userCircles.length})
               </button>
             )}
             
             {/* Кнопка создать круг */}
-            <button className="w-full py-3 rounded-2xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition-colors shadow-lg">
-              {language === 'kk' ? '+ Жаңа топ жасау' : '+ Создать круг'}
+            <button 
+              onClick={handleCreateCircle}
+              className="w-full py-3 rounded-2xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition-colors shadow-lg active:opacity-90"
+            >
+              {language === 'kk' ? '+ Жаңа топ қосу' : '+ Создать круг'}
             </button>
           </div>
         ) : (
@@ -403,8 +428,11 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
                 ? 'Әзірше топтар жоқ' 
                 : 'Пока нет кругов'}
             </p>
-            <button className="px-6 py-3 rounded-2xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition-colors shadow-lg">
-              {language === 'kk' ? 'Алғашқы топ жасау' : 'Создать первый круг'}
+            <button 
+              onClick={handleCreateCircle}
+              className="px-6 py-3 rounded-2xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition-colors shadow-lg active:opacity-90"
+            >
+              {language === 'kk' ? 'Алғашқы топ қосу' : 'Создать первый круг'}
             </button>
           </div>
         )}
