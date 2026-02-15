@@ -289,7 +289,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
                       {language === 'kk' ? 'Сіздің орныңыз' : 'Ваше место'}
                     </p>
                     <p className="text-2xl font-black text-white">
-                      #{userRank}
+                      {userRank}
                       {totalUsers > 0 && (
                         <span className="text-sm font-medium text-slate-300 ml-2">
                           / {totalUsers}
