@@ -310,14 +310,14 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 className="text-white/60 hover:text-white font-bold text-sm transition-colors mb-4 flex items-center space-x-1"
               >
                 <span>←</span>
-                <span>{language === 'kk' ? 'Артқа' : 'Назад'} ({language === 'kk' ? 'Рейтинг' : 'Рейтинг'})</span>
+                <span>{language === 'kk' ? 'Артқа' : 'Назад'}</span>
               </button>
               
               <h2 className="text-white font-black uppercase tracking-widest text-[11px] mb-1">
-                🤝 {language === 'kk' ? 'МЕНІҢ ТОПТАРЫМ' : 'МОИ КРУГИ'}
+                {language === 'kk' ? 'МЕНІҢ ТОПТАРЫМ' : 'МОИ КРУГИ'}
               </h2>
               <p className="text-white/40 text-[10px] mb-6">
-                {language === 'kk' ? 'Достармен бірге жарысыңыз' : 'Соревнуйтесь с друзьями'}
+                {language === 'kk' ? 'Жақындарыңызбен бірге жарысыңыз' : 'Соревнуйтесь с близкими'}
               </p>
               
               {/* Кнопки действий */}
@@ -347,7 +347,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               
               <div className="relative z-10">
                 <h3 className="text-white font-black uppercase tracking-widest text-[10px] mb-5">
-                  ✨ {language === 'kk' ? 'ЖАҢА ТОП ҚҰРУ' : 'СОЗДАТЬ КРУГ'}
+                  ✨ {language === 'kk' ? 'ЖАҢА ТОП АШУ' : 'СОЗДАТЬ НОВЫЙ КРУГ'}
                 </h3>
                 
                 <input 
@@ -384,7 +384,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                     disabled={!circleName.trim()} 
                     className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-2xl font-black text-sm uppercase tracking-wider disabled:opacity-30 active:scale-95 transition-all shadow-lg border border-emerald-400/30"
                   >
-                    {language === 'kk' ? 'Құру' : 'Создать'}
+                    {language === 'kk' ? 'Ашу' : 'Создать'}
                   </button>
                 </div>
               </div>
