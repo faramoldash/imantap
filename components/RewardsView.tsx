@@ -334,7 +334,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
         </div>
       </div>
 
-      {/* ✅ МОИ КРУГИ - НОВАЯ КАРТОЧКА */}
+      {/* ✅ МОИ КРУГИ - КОМПАКТНАЯ КАРТОЧКА (ВАРИАНТ А) */}
       <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-600">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
@@ -354,94 +354,132 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           </div>
         </div>
         
-        {/* Статистика */}
+        {/* Контент */}
         {isLoadingCircles ? (
           <div className="text-center py-6">
             <div className="inline-block w-6 h-6 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
             <p className="text-slate-400 text-xs mt-2">{language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}</p>
           </div>
         ) : userCircles.length > 0 ? (
-          <div className="space-y-3">
-            {/* Общая статистика */}
-            <div className="flex items-center space-x-4 bg-emerald-50 rounded-2xl p-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-emerald-600 font-black text-2xl">
+          <div className="space-y-4">
+            {/* 📊 МЕТРИКИ В 3 КОЛОНКИ */}
+            <div className="grid grid-cols-3 gap-3">
+              {/* Всего кругов */}
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-4 text-center">
+                <div className="text-3xl font-black text-emerald-600 mb-1">
                   {userCircles.length}
-                </span>
-                <span className="text-slate-600 text-xs font-bold">
-                  {language === 'kk' ? 'топ' : userCircles.length === 1 ? 'круг' : 'кругов'}
-                </span>
+                </div>
+                <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+                  {language === 'kk' ? 'Топтар' : 'Кругов'}
+                </div>
+                <div className="text-[10px] text-slate-400">
+                  {language === 'kk' ? 'барлығы' : 'всего'}
+                </div>
               </div>
-              <div className="w-px h-8 bg-emerald-200"></div>
-              <div className="flex items-center space-x-2">
-                <span className="text-emerald-600 font-black text-2xl">
-                  {userCircles.reduce((sum, c) => sum + (c.members?.filter((m: any) => m.status === 'active').length || 0), 0)}
-                </span>
-                <span className="text-slate-600 text-xs font-bold">
-                  {language === 'kk' ? 'қатысушы' : 'участников'}
-                </span>
+              
+              {/* Активные */}
+              <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-4 text-center">
+                <div className="text-3xl font-black text-orange-600 mb-1">
+                  {userCircles.filter((c: any) => {
+                    const activeMember = c.members?.find((m: any) => m.userId === userData.userId);
+                    return activeMember?.status === 'active';
+                  }).length}
+                </div>
+                <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+                  {language === 'kk' ? 'Белсенді' : 'Активные'}
+                </div>
+                <div className="text-[10px] text-slate-400">
+                  {language === 'kk' ? 'топтар' : 'круги'}
+                </div>
+              </div>
+              
+              {/* Средний прогресс */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 text-center">
+                <div className="text-3xl font-black text-blue-600 mb-1">
+                  {(() => {
+                    const totalMembers = userCircles.reduce((sum: number, c: any) => 
+                      sum + (c.members?.filter((m: any) => m.status === 'active').length || 0), 0
+                    );
+                    const avgMembers = userCircles.length > 0 ? Math.round(totalMembers / userCircles.length) : 0;
+                    return avgMembers;
+                  })()}
+                </div>
+                <div className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+                  {language === 'kk' ? 'Орташа' : 'Средний'}
+                </div>
+                <div className="text-[10px] text-slate-400">
+                  {language === 'kk' ? 'адам' : 'человек'}
+                </div>
               </div>
             </div>
             
-            {/* Список кругов */}
-            <div className="space-y-2">
-              {userCircles.slice(0, 3).map((circle: any) => {
-                const activeMembers = circle.members?.filter((m: any) => m.status === 'active').length || 0;
-                return (
-                  <div 
-                    key={circle._id} 
-                    onClick={() => handleOpenCircle(circle.circleId || circle._id)}
-                    className="bg-slate-50 rounded-2xl p-3 flex items-center justify-between hover:bg-slate-100 transition-colors cursor-pointer active:scale-95"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-xl flex items-center justify-center text-white text-sm font-black">
-                        {circle.name?.charAt(0).toUpperCase() || '🤝'}
-                      </div>
-                      <div>
-                        <p className="text-xs font-black text-slate-800">{circle.name || 'Circle'}</p>
-                        <p className="text-[9px] text-slate-400">
-                          {activeMembers} {language === 'kk' ? 'қатысушы' : 'участников'}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-black text-emerald-600">→</span>
-                  </div>
-                );
-              })}
+            {/* 💡 ИНСАЙТ */}
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-3 text-center">
+              <p className="text-sm font-bold text-emerald-700">
+                {(() => {
+                  const leaderCount = userCircles.filter((c: any) => {
+                    const members = c.members || [];
+                    if (members.length === 0) return false;
+                    const sorted = [...members].sort((a: any, b: any) => (b.xp || 0) - (a.xp || 0));
+                    return sorted[0]?.userId === userData.userId;
+                  }).length;
+                  
+                  if (leaderCount > 0) {
+                    return language === 'kk' 
+                      ? `📈 Сіз ${leaderCount} топта жетекшісіз!`
+                      : `📈 Вы лидер в ${leaderCount} кругах!`;
+                  } else {
+                    return language === 'kk'
+                      ? '💪 Жалғастырыңыз! Сіз дұрыс жолдасыз!'
+                      : '💪 Продолжайте! Вы на верном пути!';
+                  }
+                })()}
+              </p>
             </div>
             
-            {/* Кнопка "Все круги" если больше 3 */}
-            {userCircles.length > 3 && (
-              <button 
-                onClick={handleViewAllCircles}
-                className="w-full py-3 rounded-2xl bg-slate-100 text-slate-600 text-xs font-black hover:bg-slate-200 transition-colors active:opacity-80"
-              >
-                {language === 'kk' ? 'Барлық топтар' : 'Все круги'} ({userCircles.length})
-              </button>
-            )}
-            
-            {/* Кнопка создать круг */}
+            {/* 🔘 КНОПКА ОТКРЫТЬ */}
             <button 
-              onClick={handleCreateCircle}
-              className="w-full py-3 rounded-2xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition-colors shadow-lg active:opacity-90"
+              onClick={handleViewAllCircles}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-black hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg active:scale-[0.98] flex items-center justify-center space-x-2"
             >
-              {language === 'kk' ? '+ Жаңа топ қосу' : '+ Создать круг'}
+              <span>{language === 'kk' ? 'Ашу' : 'Открыть'}</span>
+              <span className="text-lg">→</span>
             </button>
           </div>
         ) : (
+          /* 🌟 ПУСТОЕ СОСТОЯНИЕ */
           <div className="text-center py-8">
-            <span className="text-6xl mb-4 block">🤝</span>
-            <p className="text-slate-400 text-sm mb-4">
+            <div className="relative inline-block mb-4">
+              <span className="text-6xl">🌟</span>
+              <div className="absolute -top-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center animate-bounce">
+                <span className="text-white text-xs font-black">+</span>
+              </div>
+            </div>
+            <h4 className="text-base font-black text-slate-800 mb-2">
+              {language === 'kk' ? 'Әлі топтар жоқ' : 'Пока нет кругов'}
+            </h4>
+            <p className="text-xs text-slate-400 mb-6 max-w-[200px] mx-auto">
               {language === 'kk' 
-                ? 'Әзірше топтар жоқ' 
-                : 'Пока нет кругов'}
+                ? 'Досыңызбен бірге жарысыңыз және прогресс жасаңыз!' 
+                : 'Соревнуйтесь с друзьями и достигайте прогресса вместе!'}
             </p>
-            <button 
-              onClick={handleCreateCircle}
-              className="px-6 py-3 rounded-2xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition-colors shadow-lg active:opacity-90"
-            >
-              {language === 'kk' ? 'Алғашқы топ қосу' : 'Создать первый круг'}
-            </button>
+            <div className="space-y-2">
+              <button 
+                onClick={handleCreateCircle}
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-black hover:from-emerald-700 hover:to-teal-700 transition-all shadow-lg active:scale-[0.98]"
+              >
+                {language === 'kk' ? '+ Жаңа топ құру' : '+ Создать круг'}
+              </button>
+              <button 
+                onClick={() => {
+                  // TODO: Открыть форму присоединения по коду
+                  handleViewAllCircles();
+                }}
+                className="w-full py-3 rounded-2xl bg-slate-100 text-slate-600 text-sm font-black hover:bg-slate-200 transition-colors active:scale-[0.98]"
+              >
+                {language === 'kk' ? '📥 Кодпен қосылу' : '📥 Присоединиться по коду'}
+              </button>
+            </div>
           </div>
         )}
       </div>
