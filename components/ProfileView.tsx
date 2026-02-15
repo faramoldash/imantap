@@ -233,10 +233,11 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       const isRamadanStarted = now >= new Date('2026-02-19T00:00:00+05:00');
       
       if (isRamadanStarted) {
-        // РАМАДАН: 10 задач
+        // РАМАДАН: 19 задач (10 намазов + 9 духовных)
         const ramadanTasks = [
-          'fasting', 'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
-          'quranRead', 'morningDhikr', 'eveningDhikr'
+          'fasting', 
+          'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha', 'taraweeh', 'tahajjud', 'witr',
+          'quranRead', 'morningDhikr', 'eveningDhikr', 'salawat', 'hadith', 'charity', 'names99', 'lessons', 'book'
         ];
         todayTasks = ramadanTasks.filter(task => todayProgress[task as keyof typeof todayProgress]).length;
         totalTodayTasks = ramadanTasks.length;
@@ -245,7 +246,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         const baseTasks = [
           'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
           'morningDhikr', 'eveningDhikr', 'quranRead',
-          'salawat', 'hadith', 'charity'
+          'salawat', 'charity', 'book'
         ];
         
         todayTasks = baseTasks.filter(task => todayProgress[task as keyof typeof todayProgress]).length;
