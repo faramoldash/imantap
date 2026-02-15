@@ -49,7 +49,6 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
       const circle = circles.find(c => c._id === navigationData.circleId);
       if (circle) {
         setSelectedCircle(circle);
-        setShowDetails(true);
       }
     }
   }, [navigationData?.circleId, circles]);
@@ -57,7 +56,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   // ✅ Автооткрытие формы создания
   useEffect(() => {
     if (navigationData?.action === 'create') {
-      setShowCreateModal(true);
+      setShowCreateForm(true);  // ← ПРАВИЛЬНО
     }
   }, [navigationData?.action]);
 
