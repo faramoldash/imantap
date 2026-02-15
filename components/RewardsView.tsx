@@ -4,6 +4,7 @@ import { TRANSLATIONS } from '../constants';
 import { getGlobalLeaderboard, getFriendsLeaderboard, getCountries, getCities } from '../src/services/api';
 import { translateName } from '../src/utils/translations';
 import { getUserLevelInfo } from '../src/utils/levelHelper';
+import { getUserCircles } from '../src/services/api';
 
 interface RewardsViewProps {
   userData: UserData;
@@ -23,6 +24,8 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [userCircles, setUserCircles] = useState<any[]>([]);
+  const [isLoadingCircles, setIsLoadingCircles] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [filterType, setFilterType] = useState<FilterType>('global');
@@ -163,6 +166,23 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
     };
   }, [loadLeaderboard]);
 
+  // Загрузка кругов пользователя
+  useEffect(() => {
+    const loadCircles = async () => {
+      setIsLoadingCircles(true);
+      try {
+        const circles = await getUserCircles(userData.userId);
+        setUserCircles(circles || []);
+      } catch (error) {
+        console.error('❌ Ошибка загрузки кругов:', error);
+      } finally {
+        setIsLoadingCircles(false);
+      }
+    };
+    
+    loadCircles();
+  }, [userData.userId]);
+
   // Pull-to-refresh для карточки лидерборда
   const handleTouchStart = (e: React.TouchEvent) => {
     if (leaderboardRef.current && leaderboardRef.current.scrollTop === 0) {
@@ -284,6 +304,110 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language }) => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* ✅ МОИ КРУГИ - НОВАЯ КАРТОЧКА */}
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-600">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-2xl">🤝</span>
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-800">
+                {language === 'kk' ? 'Менің топтарым' : 'Мои круги'}
+              </h3>
+              <p className="text-xs text-slate-400">
+                {language === 'kk' 
+                  ? 'Достармен бірге прогресс' 
+                  : 'Прогресс вместе с друзьями'}
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Статистика */}
+        {isLoadingCircles ? (
+          <div className="text-center py-6">
+            <div className="inline-block w-6 h-6 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-slate-400 text-xs mt-2">{language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}</p>
+          </div>
+        ) : userCircles.length > 0 ? (
+          <div className="space-y-3">
+            {/* Общая статистика */}
+            <div className="flex items-center space-x-4 bg-emerald-50 rounded-2xl p-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-emerald-600 font-black text-2xl">
+                  {userCircles.length}
+                </span>
+                <span className="text-slate-600 text-xs font-bold">
+                  {language === 'kk' ? 'топ' : userCircles.length === 1 ? 'круг' : 'кругов'}
+                </span>
+              </div>
+              <div className="w-px h-8 bg-emerald-200"></div>
+              <div className="flex items-center space-x-2">
+                <span className="text-emerald-600 font-black text-2xl">
+                  {userCircles.reduce((sum, c) => sum + (c.members?.filter((m: any) => m.status === 'active').length || 0), 0)}
+                </span>
+                <span className="text-slate-600 text-xs font-bold">
+                  {language === 'kk' ? 'қатысушы' : 'участников'}
+                </span>
+              </div>
+            </div>
+            
+            {/* Список кругов */}
+            <div className="space-y-2">
+              {userCircles.slice(0, 3).map((circle: any) => {
+                const activeMembers = circle.members?.filter((m: any) => m.status === 'active').length || 0;
+                return (
+                  <div 
+                    key={circle._id} 
+                    className="bg-slate-50 rounded-2xl p-3 flex items-center justify-between hover:bg-slate-100 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-400 rounded-xl flex items-center justify-center text-white text-sm font-black">
+                        {circle.name?.charAt(0).toUpperCase() || '🤝'}
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-slate-800">{circle.name || 'Circle'}</p>
+                        <p className="text-[9px] text-slate-400">
+                          {activeMembers} {language === 'kk' ? 'қатысушы' : 'участников'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-black text-emerald-600">→</span>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Кнопка "Все круги" если больше 3 */}
+            {userCircles.length > 3 && (
+              <button 
+                className="w-full py-3 rounded-2xl bg-slate-100 text-slate-600 text-xs font-black hover:bg-slate-200 transition-colors"
+              >
+                {language === 'kk' ? 'Барлық топтар' : 'Все круги'} ({userCircles.length})
+              </button>
+            )}
+            
+            {/* Кнопка создать круг */}
+            <button className="w-full py-3 rounded-2xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition-colors shadow-lg">
+              {language === 'kk' ? '+ Жаңа топ жасау' : '+ Создать круг'}
+            </button>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <span className="text-6xl mb-4 block">🤝</span>
+            <p className="text-slate-400 text-sm mb-4">
+              {language === 'kk' 
+                ? 'Әзірше топтар жоқ' 
+                : 'Пока нет кругов'}
+            </p>
+            <button className="px-6 py-3 rounded-2xl bg-emerald-600 text-white text-xs font-black hover:bg-emerald-700 transition-colors shadow-lg">
+              {language === 'kk' ? 'Алғашқы топ жасау' : 'Создать первый круг'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Карточка лидерборда - ТОЛЬКО ОНА скроллится */}
