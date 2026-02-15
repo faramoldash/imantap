@@ -68,29 +68,80 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
 
   // ===== ФИЛЬТРАЦИЯ ПО ПЕРИОДАМ =====
   const getFilteredProgress = (): DayProgress[] => {
-    const now = new Date();
     const progressArray = Object.values(userData.progress) as DayProgress[];
+    
+    // Если прогресс пустой - возвращаем пустой массив
+    if (progressArray.length === 0) {
+      console.warn('⚠️ Progress пуст');
+      return [];
+    }
+    
+    // Проверяем есть ли поле date хотя бы у одного элемента
+    const hasDateField = progressArray.some(p => p.date);
+    
+    if (!hasDateField) {
+      // Fallback: если нет дат, используем все данные
+      console.warn('⚠️ Progress не содержит поле date, показываем все данные');
+      
+      // Для фильтра "today" берём последний день
+      if (periodFilter === 'today') {
+        const lastDay = progressArray[progressArray.length - 1];
+        return lastDay ? [lastDay] : [];
+      }
+      
+      // Для остальных фильтров показываем все
+      return progressArray;
+    }
+    
+    const now = new Date();
     
     switch (periodFilter) {
       case 'today':
         const todayStr = now.toISOString().split('T')[0];
-        return progressArray.filter(p => p.date?.startsWith(todayStr));
+        const todayData = progressArray.filter(p => p.date?.startsWith(todayStr));
+        
+        // Если сегодня нет данных, берём последний день с данными
+        if (todayData.length === 0) {
+          const sortedByDate = progressArray
+            .filter(p => p.date)
+            .sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime());
+          return sortedByDate.length > 0 ? [sortedByDate[0]] : [];
+        }
+        return todayData;
       
       case 'week':
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        return progressArray.filter(p => p.date && new Date(p.date) >= weekAgo);
+        return progressArray.filter(p => {
+          if (!p.date) return false;
+          try {
+            return new Date(p.date) >= weekAgo;
+          } catch {
+            return false;
+          }
+        });
       
       case 'month':
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        return progressArray.filter(p => p.date && new Date(p.date) >= monthAgo);
+        return progressArray.filter(p => {
+          if (!p.date) return false;
+          try {
+            return new Date(p.date) >= monthAgo;
+          } catch {
+            return false;
+          }
+        });
       
       case 'ramadan':
         const ramadanStart = new Date('2026-02-19');
         const ramadanEnd = new Date('2026-03-20');
         return progressArray.filter(p => {
           if (!p.date) return false;
-          const date = new Date(p.date);
-          return date >= ramadanStart && date <= ramadanEnd;
+          try {
+            const date = new Date(p.date);
+            return date >= ramadanStart && date <= ramadanEnd;
+          } catch {
+            return false;
+          }
         });
       
       case 'all':
