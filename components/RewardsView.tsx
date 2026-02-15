@@ -344,7 +344,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
         {/* Заголовок */}
         <div className="relative z-10 mb-6">
           <h3 className="text-white font-black uppercase tracking-widest text-[10px] mb-1">
-            🤝 {language === 'kk' ? 'МЕНІҢ ТОПТАРЫМ' : 'МОИ КРУГИ'}
+            {language === 'kk' ? 'МЕНІҢ ТОПТАРЫМ' : 'МОИ КРУГИ'}
           </h3>
           <p className="text-white/40 text-[10px]">
             {language === 'kk' 
@@ -412,30 +412,6 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
                   {language === 'kk' ? 'орташа прогресс' : 'средний прогресс'}
                 </div>
               </div>
-            </div>
-            
-            {/* 💡 ИНСАЙТ */}
-            <div className="bg-gradient-to-r from-emerald-600/20 to-teal-600/20 backdrop-blur-sm rounded-2xl p-4 text-center border border-emerald-500/30">
-              <p className="text-sm font-bold text-emerald-300">
-                {(() => {
-                  const leaderCount = userCircles.filter((c: any) => {
-                    const members = c.members || [];
-                    if (members.length === 0) return false;
-                    const sorted = [...members].sort((a: any, b: any) => (b.xp || 0) - (a.xp || 0));
-                    return sorted[0]?.userId === userData.userId;
-                  }).length;
-                  
-                  if (leaderCount > 0) {
-                    return language === 'kk' 
-                      ? `📈 Сіз ${leaderCount} топта жетекшісіз!`
-                      : `📈 Вы лидер в ${leaderCount} ${leaderCount === 1 ? 'круге' : 'кругах'}!`;
-                  } else {
-                    return language === 'kk'
-                      ? '💪 Жалғастырыңыз! Сіз дұрыс жолдасыз!'
-                      : '💪 Продолжайте! Вы на верном пути!';
-                  }
-                })()}
-              </p>
             </div>
             
             {/* 🔘 КНОПКА ОТКРЫТЬ */}
