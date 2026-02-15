@@ -16,23 +16,18 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
 
-  const now = new Date();
-  const start = new Date(userData.startDate);
-  const diffDays = Math.floor((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-  const currentDay = Math.max(1, Math.min(30, diffDays));
-  const dayData = userData.progress[currentDay] || INITIAL_DAY_PROGRESS(currentDay);
+  // ✅ Используем реальную дату вместо Ramadan day
+  const todayDateStr = new Date().toISOString().split('T')[0]; // "2026-02-15"
+  const dayData = userData.basicProgress?.[todayDateStr] || { 
+    quranPages: 0, 
+    charityAmount: 0 
+  };
 
   const getTotalQuranPages = () => {
     let total = 0;
-    // Считаем из basicProgress (все даты)
+    // ✅ Только из basicProgress (универсальные цели)
     if (userData.basicProgress) {
       Object.values(userData.basicProgress).forEach((day: any) => {
-        total += day.quranPages || 0;
-      });
-    }
-    // Также считаем из progress (Рамадан дни)
-    if (userData.progress) {
-      Object.values(userData.progress).forEach((day: any) => {
         total += day.quranPages || 0;
       });
     }
@@ -41,15 +36,9 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
 
   const getTotalCharity = () => {
     let total = 0;
-    // Считаем из basicProgress (все даты)
+    // ✅ Только из basicProgress (универсальные цели)
     if (userData.basicProgress) {
       Object.values(userData.basicProgress).forEach((day: any) => {
-        total += day.charityAmount || 0;
-      });
-    }
-    // Также считаем из progress (Рамадан дни)
-    if (userData.progress) {
-      Object.values(userData.progress).forEach((day: any) => {
         total += day.charityAmount || 0;
       });
     }
@@ -66,13 +55,15 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
     dayData.charityAmount && dayData.charityAmount > 0 ? dayData.charityAmount.toString() : ''
   );
 
-  const updateProgress = (day: number, updates: Partial<DayProgress>) => {
-    const existing = userData.progress[day] || INITIAL_DAY_PROGRESS(day);
+  const updateProgress = (updates: { quranPages?: number; charityAmount?: number; quranRead?: boolean; charity?: boolean }) => {
+    const todayDateStr = new Date().toISOString().split('T')[0];
+    const existing = userData.basicProgress?.[todayDateStr] || { quranPages: 0, charityAmount: 0 };
+    
     setUserData({
       ...userData,
-      progress: {
-        ...userData.progress,
-        [day]: { ...existing, ...updates }
+      basicProgress: {
+        ...userData.basicProgress,
+        [todayDateStr]: { ...existing, ...updates }
       }
     });
   };
@@ -84,20 +75,18 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
 
   const handleQuranPagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/[^0-9]/g, '');
-    // ✅ Убираем ведущие нули
     const cleaned = val.replace(/^0+/, '') || '';
     setQuranPagesInput(cleaned);
     const pages = parseInt(cleaned) || 0;
-    updateProgress(currentDay, { quranPages: pages, quranRead: pages > 0 });
+    updateProgress({ quranPages: pages, quranRead: pages > 0 });
   };
 
   const handleCharityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/[^0-9]/g, '');
-    // ✅ Убираем ведущие нули
     const cleaned = val.replace(/^0+/, '') || '';
     setCharityInput(cleaned);
     const amount = parseInt(cleaned) || 0;
-    updateProgress(currentDay, { charityAmount: amount, charity: amount > 0 });
+    updateProgress({ charityAmount: amount, charity: amount > 0 });
   };
 
   const addCustomGoal = () => {
