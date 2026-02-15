@@ -74,15 +74,16 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     
     // До Рамадана читаем из basicProgress, после - из progress
     const progressArray = isRamadanStarted 
-      ? (Object.values(userData.progress || {}) as DayProgress[])
-      : (Object.values(userData.basicProgress || {}) as DayProgress[]);
+    ? (Object.values(userData.progress || {}) as DayProgress[])
+    : (Object.values(userData.preparationProgress || {}) as DayProgress[]);
     
     console.log('🔍 getFilteredProgress:', {
       isRamadanStarted,
-      source: isRamadanStarted ? 'progress' : 'basicProgress',
+      source: isRamadanStarted ? 'progress (Ramadan)' : 'preparationProgress (Preparation)',
       totalItems: progressArray.length,
       periodFilter,
-      sampleItem: progressArray[0]
+      sampleItem: progressArray[0],
+      allDates: progressArray.map(p => p.date)
     });
     
     // Если прогресс пустой - возвращаем пустой массив
