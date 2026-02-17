@@ -129,15 +129,6 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
     }
   }, [filterType, selectedCountry, selectedCity, userData.userId, offset]);
 
-  // Загрузка списков для фильтров
-  useEffect(() => {
-    const loadFilters = async () => {
-      const countriesList = await getCountries();
-      setCountries(countriesList);
-    };
-    loadFilters();
-  }, []);
-
   // Загрузка городов при выборе страны
   useEffect(() => {
     if (selectedCountry) {
@@ -507,16 +498,12 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           {(filterType === 'country' || filterType === 'city') && (
             <div className="space-y-2 mt-3">
               <select
-                value={selectedCountry || ''}
-                onChange={(e) => setSelectedCountry(e.target.value || null)}
-                className="w-full px-4 py-2 rounded-xl text-xs font-bold bg-slate-50 border border-slate-200"
+                value="Kazakhstan"
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="..."
+                disabled
               >
-                <option value="">{language === 'kk' ? 'Елді таңдаңыз' : 'Выберите страну'}</option>
-                {countries.map(country => (
-                  <option key={country} value={country}>
-                    {translateName(country, language, 'country')}
-                  </option>
-                ))}
+                <option value="Kazakhstan">🇰🇿 {language === 'kk' ? 'Қазақстан' : 'Казахстан'}</option>
               </select>
 
               {filterType === 'city' && selectedCountry && (

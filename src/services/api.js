@@ -132,7 +132,7 @@ export async function getFriendsLeaderboard(userId, limit = 20) {
  */
 export async function getCountries() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/countries`);  // ✅ ИСПРАВЛЕНО
+    const response = await fetch(`${API_BASE_URL}/api/leaderboard/countries`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -160,7 +160,7 @@ export async function getCities(country) {
       return [];
     }
     
-    const response = await fetch(`${API_BASE_URL}/api/cities/${encodeURIComponent(country)}`);  // ✅ ИСПРАВЛЕНО
+    const response = await fetch(`${API_BASE_URL}/api/leaderboard/cities?country=${encodeURIComponent(country)}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
