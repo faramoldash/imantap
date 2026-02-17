@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Language, UserData } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
 import { getUserCircles, getCircleDetails, createCircle, inviteToCircle } from '../src/services/api';
+import { useUserCircles } from '../src/hooks/useUserCircles';
+
 
 interface CirclesViewProps {
   userData: UserData;
@@ -19,28 +21,32 @@ const spinReverseStyle = `
 
 const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigate, navigationData }) => {
   const t = TRANSLATIONS[language];
-  
-  const [circles, setCircles] = useState<any[]>([]);
-  const [selectedCircle, setSelectedCircle] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showInviteForm, setShowInviteForm] = useState(false);
-  const [showInviteMenu, setShowInviteMenu] = useState(false);
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteModalStep, setInviteModalStep] = useState<'choice' | 'username'>('choice');
+  const {
+    circles,
+    selectedCircle,
+    setSelectedCircle,
+    isLoadingCircles,
+    isRefreshingCircle,
+    loadCircles,
+    loadCircleDetails,
+  } = useUserCircles(userData.userId);
   const [isAcceptingInvite, setIsAcceptingInvite] = useState(false);
-  const [showJoinForm, setShowJoinForm] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [joinError, setJoinError] = useState('');
   const [isJoining, setIsJoining] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  
   const [circleName, setCircleName] = useState('');
   const [circleDescription, setCircleDescription] = useState('');
-  
   const [inviteUsername, setInviteUsername] = useState('');
   const [inviteError, setInviteError] = useState('');
   const [inviteSuccess, setInviteSuccess] = useState('');
+  type CirclesModal =
+    | { type: 'none' }
+    | { type: 'create' }
+    | { type: 'join' }
+    | { type: 'invite-choice' }
+    | { type: 'invite-username' };
+
+  const [modal, setModal] = useState<CirclesModal>({ type: 'none' });
 
   useEffect(() => {
     if (navigationData?.circleId && circles.length > 0) {
@@ -53,65 +59,15 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
 
   useEffect(() => {
     if (navigationData?.action === 'create') {
-      setShowCreateForm(true);
+      setModal({ type: 'create' });
     }
-  }, [navigationData?.action]);
-
-  useEffect(() => {
-    loadCircles();
-  }, [userData.userId]);
-
-  useEffect(() => {
-    if (!selectedCircle) return;
-    const intervalId = setInterval(() => {
-      refreshCircleDetails(selectedCircle.circleId);
-    }, 30000);
-    return () => clearInterval(intervalId);
-  }, [selectedCircle?.circleId]);
-
-  useEffect(() => {
-    const handleClickOutside = () => {
-      if (showInviteMenu) {
-        setShowInviteMenu(false);
-      }
-    };
-    if (showInviteMenu) {
-      document.addEventListener('click', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [showInviteMenu]);
-
-  const loadCircles = async () => {
-    setIsLoading(true);
-    const userCircles = await getUserCircles(userData.userId);
-    setCircles(userCircles || []);
-    setIsLoading(false);
-  };
-
-  const loadCircleDetails = async (circleId: string) => {
-    const details = await getCircleDetails(circleId, userData.userId);
-    setSelectedCircle(details);
-  };
-
-  const refreshCircleDetails = async (circleId: string) => {
-    try {
-      setIsRefreshing(true);
-      const details = await getCircleDetails(circleId, userData.userId);
-      setSelectedCircle(details);
-    } catch (error) {
-      console.error('❌ Ошибка обновления:', error);
-    } finally {
-      setTimeout(() => setIsRefreshing(false), 500);
-    }
-  };
+  }, [navigationData?.action, setModal]);
 
   const handleCreateCircle = async () => {
     if (!circleName.trim()) return;
     const newCircle = await createCircle(userData.userId, circleName, circleDescription);
     if (newCircle) {
-      setShowCreateForm(false);
+      setModal({ type: 'none' });
       setCircleName('');
       setCircleDescription('');
       loadCircles();
@@ -276,7 +232,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to join circle');
-      setShowJoinForm(false);
+      setModal({ type: 'none' });
       setJoinCode('');
       await loadCircles();
       if (data.circle?.circleId) {
@@ -323,14 +279,14 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               {/* Кнопки действий */}
               <div className="grid grid-cols-2 gap-3">
                 <button 
-                  onClick={() => setShowJoinForm(true)} 
+                  onClick={() => setModal({ type: 'join' })}
                   className="bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-4 py-3.5 rounded-2xl text-sm font-black uppercase tracking-wider active:scale-95 transition-all border border-white/20"
                 >
                   <div className="text-lg mb-1">🔗</div>
                   <div className="text-[10px]">{language === 'kk' ? 'Кодпен қосылу' : 'По коду'}</div>
                 </button>
                 <button 
-                  onClick={() => setShowCreateForm(true)} 
+                  onClick={() => setModal({ type: 'create' })}
                   className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-3.5 rounded-2xl text-sm font-black uppercase tracking-wider active:scale-95 transition-all shadow-lg border border-emerald-400/30"
                 >
                   <div className="text-lg mb-1">+</div>
@@ -341,7 +297,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
           </div>
 
           {/* 📝 ФОРМА СОЗДАНИЯ */}
-          {showCreateForm && (
+          {modal.type === 'create' && (
             <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm p-6 rounded-[2.5rem] shadow-xl overflow-hidden border border-white/10">
               <div className="absolute -bottom-8 -right-8 text-[140px] opacity-5 pointer-events-none">✨</div>
               
@@ -371,10 +327,10 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 <div className="grid grid-cols-2 gap-3">
                   <button 
                     onClick={() => { 
-                      setShowCreateForm(false); 
+                      setModal({ type: 'none' }); 
                       setCircleName(''); 
                       setCircleDescription(''); 
-                    }} 
+                    }}
                     className="bg-white/10 backdrop-blur-sm text-white/90 py-3 rounded-2xl font-black text-sm uppercase tracking-wider active:scale-95 transition-all border border-white/20"
                   >
                     {language === 'kk' ? 'Болдырмау' : 'Отмена'}
@@ -392,7 +348,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
           )}
 
           {/* 🔗 ФОРМА ПРИСОЕДИНЕНИЯ */}
-          {showJoinForm && (
+          {modal.type === 'join' && (
             <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm p-6 rounded-[2.5rem] shadow-xl overflow-hidden border border-white/10">
               <div className="absolute -bottom-8 -right-8 text-[140px] opacity-5 pointer-events-none">🔗</div>
               
@@ -418,10 +374,10 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 <div className="grid grid-cols-2 gap-3">
                   <button 
                     onClick={() => { 
-                      setShowJoinForm(false); 
+                      setModal({ type: 'none' }); 
                       setJoinCode(''); 
                       setJoinError(''); 
-                    }} 
+                    }}
                     className="bg-white/10 backdrop-blur-sm text-white/90 py-3 rounded-2xl font-black text-sm uppercase tracking-wider active:scale-95 transition-all border border-white/20"
                   >
                     {language === 'kk' ? 'Болдырмау' : 'Отмена'}
@@ -439,7 +395,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
           )}
 
           {/* 📋 СПИСОК КРУГОВ */}
-          {isLoading ? (
+          {isLoadingCircles ? (
             <div className="text-center py-16">
               <div className="inline-block w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3"></div>
               <p className="text-white/60 text-sm font-bold">{language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}</p>
@@ -551,8 +507,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                   {isOwner ? (
                     <button
                       onClick={() => {
-                        setShowInviteModal(true);
-                        setInviteModalStep('choice');
+                        setModal({ type: 'invite-choice' });
                       }}
                       className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider active:scale-95 transition-all shadow-lg border border-emerald-400/30"
                     >
@@ -606,8 +561,8 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 </h4>
                 <div className="flex items-center space-x-1.5">
                   <span 
-                    className={`text-xs transition-all duration-300 ${isRefreshing ? 'text-emerald-400' : 'text-white/20'}`} 
-                    style={isRefreshing ? { display: 'inline-block', animation: 'spin-reverse 1s linear infinite' } : {}}
+                    className={`text-xs transition-all duration-300 ${isRefreshingCircle ? 'text-emerald-400' : 'text-white/20'}`} 
+                    style={isRefreshingCircle ? { display: 'inline-block', animation: 'spin-reverse 1s linear infinite' } : {}}
                   >
                     🔄
                   </span>
@@ -772,9 +727,8 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 <div className="space-y-3 pt-2 border-t border-white/10">
                   <button 
                     onClick={() => {
-                      setShowInviteModal(true);
-                      setInviteModalStep('choice');
-                    }} 
+                      setModal({ type: 'invite-choice' });
+                    }}
                     className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-black text-sm uppercase tracking-wider active:scale-95 transition-all shadow-lg border border-emerald-400/30"
                   >
                     + {language === 'kk' ? 'Шақыру' : 'Пригласить'}
@@ -793,12 +747,11 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
         )}
 
         {/* 📤 МОДАЛЬНОЕ ОКНО ПРИГЛАШЕНИЯ */}
-        {showInviteModal && (
+        {(modal.type === 'invite-choice' || modal.type === 'invite-username') && (
           <div 
             className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-200" 
             onClick={() => {
-              setShowInviteModal(false);
-              setInviteModalStep('choice');
+              setModal({ type: 'none' });
               setInviteUsername('');
               setInviteError('');
               setInviteSuccess('');
@@ -809,7 +762,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               onClick={(e) => e.stopPropagation()}
             >
               
-              {inviteModalStep === 'choice' && (
+              {modal.type === 'invite-choice' && (
                 <>
                   <h3 className="text-white font-black text-lg mb-6 text-center">
                     {language === 'kk' ? 'Шақыру жіберу' : 'Отправить приглашение'}
@@ -819,7 +772,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                     <button
                       onClick={() => {
                         handleShareInvite();
-                        setShowInviteModal(false);
+                        setModal({ type: 'none' });
                       }}
                       className="w-full flex items-center space-x-4 p-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg"
                     >
@@ -833,7 +786,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                     </button>
                     
                     <button
-                      onClick={() => setInviteModalStep('username')}
+                      onClick={() => setModal({ type: 'invite-username' })}
                       className="w-full flex items-center space-x-4 p-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg"
                     >
                       <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
@@ -847,7 +800,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                   </div>
                   
                   <button
-                    onClick={() => setShowInviteModal(false)}
+                    onClick={() => setModal({ type: 'none' })}
                     className="w-full mt-4 py-3 bg-white/10 backdrop-blur-sm text-white/90 rounded-2xl font-black text-sm uppercase tracking-wider active:scale-95 transition-all border border-white/20"
                   >
                     {language === 'kk' ? 'Болдырмау' : 'Отмена'}
@@ -855,11 +808,11 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                 </>
               )}
               
-              {inviteModalStep === 'username' && (
+              {modal.type === 'invite-username' && (
                 <>
                   <button
                     onClick={() => {
-                      setInviteModalStep('choice');
+                      setModal({ type: 'invite-choice' });
                       setInviteUsername('');
                       setInviteError('');
                       setInviteSuccess('');

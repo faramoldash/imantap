@@ -5,6 +5,7 @@ import { getGlobalLeaderboard, getFriendsLeaderboard, getCountries, getCities } 
 import { translateName } from '../src/utils/translations';
 import { getUserLevelInfo } from '../src/utils/levelHelper';
 import { getUserCircles } from '../src/services/api';
+import { useUserCircles } from '../src/hooks/useUserCircles';
 
 interface RewardsViewProps {
   userData: UserData;
@@ -25,8 +26,6 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [totalUsers, setTotalUsers] = useState<number>(0);
-  const [userCircles, setUserCircles] = useState<any[]>([]);
-  const [isLoadingCircles, setIsLoadingCircles] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [filterType, setFilterType] = useState<FilterType>('global');
@@ -38,6 +37,10 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
   const [hasMore, setHasMore] = useState(true);
   const [isPulling, setIsPulling] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+  const {
+    circles: userCircles,
+      isLoadingCircles,
+    } = useUserCircles(userData.userId);
   
   const leaderboardRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef<number>(0);
@@ -166,23 +169,6 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
       }
     };
   }, [loadLeaderboard]);
-
-  // Загрузка кругов пользователя
-  useEffect(() => {
-    const loadCircles = async () => {
-      setIsLoadingCircles(true);
-      try {
-        const circles = await getUserCircles(userData.userId);
-        setUserCircles(circles || []);
-      } catch (error) {
-        console.error('❌ Ошибка загрузки кругов:', error);
-      } finally {
-        setIsLoadingCircles(false);
-      }
-    };
-    
-    loadCircles();
-  }, [userData.userId]);
 
   // Pull-to-refresh для карточки лидерборда
   const handleTouchStart = (e: React.TouchEvent) => {
