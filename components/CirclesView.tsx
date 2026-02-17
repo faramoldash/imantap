@@ -60,6 +60,8 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   useEffect(() => {
     if (navigationData?.action === 'create') {
       setModal({ type: 'create' });
+    } else if (navigationData?.action === 'join') {
+      setModal({ type: 'join' });
     }
   }, [navigationData?.action, setModal]);
 

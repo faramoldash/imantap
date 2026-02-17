@@ -228,6 +228,15 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
     }
   };
 
+  const handleJoinByCode = () => {
+    if (onNavigate) {
+      onNavigate('circles', { 
+        from: 'rewards', 
+        action: 'join' 
+      });
+    }
+  };
+
   const handleOpenCircle = (circleId: string) => {
     if (onNavigate) {
       onNavigate('circles', { 
@@ -431,7 +440,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
                 {language === 'kk' ? '+ Жаңа топ құру' : '+ Создать круг'}
               </button>
               <button 
-                onClick={() => handleViewAllCircles()}
+                onClick={handleJoinByCode}
                 className="w-full py-3.5 rounded-2xl bg-white/10 backdrop-blur-sm text-white/90 text-sm font-black uppercase tracking-wider hover:bg-white/20 transition-all active:scale-[0.98] border border-white/20"
               >
                 {language === 'kk' ? '📥 Кодпен қосылу' : '📥 Присоединиться по коду'}
