@@ -30,7 +30,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [filterType, setFilterType] = useState<FilterType>('global');
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [cities, setCities] = useState<string[]>([]);
+  const [cities, setCities] = useState<Array<{ city: string; count: number }>>([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isPulling, setIsPulling] = useState(false);
@@ -497,11 +497,15 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
               <select
                 value={selectedCity || ''}
                 onChange={(e) => setSelectedCity(e.target.value || null)}
-                className="w-full px-4 py-2 rounded-xl text-xs font-bold bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-4 py-3 rounded-xl text-sm font-bold bg-slate-50 border-2 border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
               >
-                <option value="">{language === 'kk' ? 'Барлық қалалар' : 'Все города'}</option>
-                {cities.map(city => (
-                  <option key={city} value={city}>{city}</option>
+                <option value="">
+                  {language === 'kk' ? '🌍 Барлық қалалар' : '🌍 Все города'}
+                </option>
+                {cities.map((item) => (
+                  <option key={item.city} value={item.city}>
+                    {item.city} ({item.count.toLocaleString()} {language === 'kk' ? 'адам' : 'чел.'})
+                  </option>
                 ))}
               </select>
             </div>
