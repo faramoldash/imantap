@@ -29,9 +29,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [filterType, setFilterType] = useState<FilterType>('global');
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [countries, setCountries] = useState<string[]>([]);
   const [cities, setCities] = useState<string[]>([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -83,7 +81,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
         const result = await getGlobalLeaderboard({
           limit: 20,
           offset: currentOffset,
-          country: filterType === 'country' || filterType === 'city' ? selectedCountry : null,
+          country: filterType === 'country' || filterType === 'city' ? 'Kazakhstan' : null,
           city: filterType === 'city' ? selectedCity : null
         });
 
@@ -127,13 +125,13 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
       setIsPulling(false);
       setPullDistance(0);
     }
-  }, [filterType, selectedCountry, selectedCity, userData.userId, offset]);
+  }, [filterType, selectedCity, userData.userId, offset]);
 
-  // Загрузка городов при выборе страны
+  // Загрузка городов только для фильтра "Қала бойынша"
   useEffect(() => {
-    if (selectedCountry) {
+    if (filterType === 'city') {
       const loadCities = async () => {
-        const citiesList = await getCities(selectedCountry);
+        const citiesList = await getCities('Kazakhstan');
         setCities(citiesList);
       };
       loadCities();
@@ -141,12 +139,12 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
       setCities([]);
       setSelectedCity(null);
     }
-  }, [selectedCountry]);
+  }, [filterType]);
 
   // Первоначальная загрузка и при изменении фильтров
   useEffect(() => {
     loadLeaderboard(true);
-  }, [filterType, selectedCountry, selectedCity]);
+  }, [filterType, selectedCity]);
 
   // Автообновление каждые 30 секунд
   useEffect(() => {
@@ -202,9 +200,8 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
   const handleFilterChange = (type: FilterType) => {
     setFilterType(type);
     setOffset(0);
-    setUserRank(null); // ← ДОБАВИТЬ: сброс ранга при смене фильтра
-    if (type === 'global' || type === 'friends') {
-      setSelectedCountry(null);
+    setUserRank(null);
+    if (type === 'global' || type === 'friends' || type === 'country') {
       setSelectedCity(null);
     }
   };
@@ -494,32 +491,19 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
             </button>
           </div>
 
-          {/* Селекторы для страны и города */}
-          {(filterType === 'country' || filterType === 'city') && (
-            <div className="space-y-2 mt-3">
+          {/* Селектор города только для "Қала бойынша" */}
+          {filterType === 'city' && (
+            <div className="mt-3">
               <select
-                value="Kazakhstan"
-                onChange={(e) => setSelectedCountry(e.target.value)}
-                className="..."
-                disabled
+                value={selectedCity || ''}
+                onChange={(e) => setSelectedCity(e.target.value || null)}
+                className="w-full px-4 py-2 rounded-xl text-xs font-bold bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                <option value="Kazakhstan">🇰🇿 {language === 'kk' ? 'Қазақстан' : 'Казахстан'}</option>
+                <option value="">{language === 'kk' ? 'Барлық қалалар' : 'Все города'}</option>
+                {cities.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
               </select>
-
-              {filterType === 'city' && selectedCountry && (
-                <select
-                  value={selectedCity || ''}
-                  onChange={(e) => setSelectedCity(e.target.value || null)}
-                  className="w-full px-4 py-2 rounded-xl text-xs font-bold bg-slate-50 border border-slate-200"
-                >
-                  <option value="">{language === 'kk' ? 'Қаланы таңдаңыз' : 'Выберите город'}</option>
-                  {cities.map(city => (
-                    <option key={city} value={city}>
-                      {translateName(city, language, 'city')}
-                    </option>
-                  ))}
-                </select>
-              )}
             </div>
           )}
         </div>
