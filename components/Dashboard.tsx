@@ -107,15 +107,17 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // ✅ ДАННЫЕ ОТОБРАЖАЕМОГО ДНЯ
   const displayedData = useMemo(() => {
+    let data;
     if (selectedDayInfo.phase === 'ramadan') {
-      return allProgress[selectedDayInfo.dayInPhase] || {};
+      data = allProgress[selectedDayInfo.dayInPhase];
     } else if (selectedDayInfo.phase === 'preparation') {
-      return userData?.preparationProgress?.[selectedDayInfo.dayInPhase] || {};
+      data = userData?.preparationProgress?.[selectedDayInfo.dayInPhase];
     } else {
-      // Базовые дни - используем дату как ключ
       const dateKey = selectedDayInfo.selectedDate.toISOString().split('T')[0];
-      return userData?.basicProgress?.[dateKey] || {};
+      data = userData?.basicProgress?.[dateKey];
     }
+    // ✅ Если день ещё пустой — возвращаем пустой объект, а не undefined
+    return data || {};
   }, [selectedDay, selectedDayInfo, allProgress, userData]);
 
   // ✅ ПРОВЕРКА - СЕГОДНЯШНИЙ ДЕНЬ?
