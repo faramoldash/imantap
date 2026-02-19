@@ -55,44 +55,35 @@ const Dashboard: React.FC<DashboardProps> = ({
     const almatyOffset = 5 * 60;
     const now = new Date();
     const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
-    
-    if (ramadanInfo.isStarted) {
-      // Рамадан
-      const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
-      const daysSinceRamadan = Math.floor((almatyTime.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
-      return Math.max(1, Math.min(daysSinceRamadan + 1, 30));
-    } else {
-      // Подготовка
-      const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
-      const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
-      return Math.max(1, Math.min(daysSincePrep + 1, 10));
-    }
-  }, [ramadanInfo.isStarted]);
+    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+    const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(1, daysSincePrep + 1); // сегодня = 11
+  }, []);
 
   // ✅ ОПРЕДЕЛЯЕМ ФАЗУ И ДАТУ ВЫБРАННОГО ДНЯ
   const selectedDayInfo = useMemo(() => {
-    const prepStart = new Date(`${PREPARATION_START_DATE}T00:00:00+05:00`);
-    const ramadanStart = new Date(`${RAMADAN_START_DATE}T00:00:00+05:00`);
-    const ramadanEnd = new Date(ramadanStart);
-    ramadanEnd.setDate(ramadanEnd.getDate() + 28);
-    ramadanEnd.setHours(23, 59, 59, 999);
+    const prepStartMs = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00').getTime();
+    const ramadanStartMs = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00').getTime();
+
+    const selectedDateMs = prepStartMs + (selectedDay - 1) * 86400000;
 
     let phase: 'basic' | 'preparation' | 'ramadan';
     let dayInPhase: number;
-    let selectedDate: Date;
 
-    if (ramadanInfo.isStarted) {
-      phase = 'ramadan';
-      dayInPhase = selectedDay;
-      selectedDate = new Date(ramadanStart.getTime() + (selectedDay - 1) * 86400000 + 18000000);
-    } else {
+    if (selectedDateMs < ramadanStartMs) {
       phase = 'preparation';
-      dayInPhase = selectedDay;
-      selectedDate = new Date(prepStart.getTime() + (selectedDay - 1) * 86400000 + 18000000);
+      dayInPhase = selectedDay; // 1–10
+    } else {
+      phase = 'ramadan';
+      dayInPhase = Math.floor((selectedDateMs - ramadanStartMs) / 86400000) + 1; // 1–29
     }
 
+    // +18000000 = +5ч чтобы toISOString() давал дату Алматы
+    const selectedDate = new Date(selectedDateMs + 18000000);
+
+    console.log('📅 SELECTED DAY INFO:', { selectedDay, phase, dayInPhase, date: selectedDate.toISOString().split('T')[0] });
     return { phase, dayInPhase, selectedDate };
-  }, [selectedDay, ramadanInfo.isStarted]);
+  }, [selectedDay]);
 
   console.log('📅 SELECTED DAY INFO:', {
     selectedDay,
@@ -121,9 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // ✅ НАВИГАЦИЯ
   const canGoPrev = selectedDay > 1;
-  const canGoNext = ramadanInfo.isStarted
-    ? selectedDay < TOTAL_DAYS        // Рамадан: 1–29
-    : selectedDay < PREPARATION_DAYS;
+  const canGoNext = selectedDay < (PREPARATION_DAYS + TOTAL_DAYS); // 10 + 29 = 39
 
   const goToPrevDay = () => {
     if (canGoPrev) {

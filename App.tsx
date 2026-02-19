@@ -249,20 +249,13 @@ const App: React.FC = () => {
     const now = new Date();
     const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
 
-    let calculatedDay = 1;
-    if (ramadanInfo.isStarted) {
-      const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
-      const daysSinceRamadan = Math.floor((almatyTime.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
-      calculatedDay = Math.max(1, Math.min(daysSinceRamadan + 1, 30));
-    } else {
-      const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
-      const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
-      calculatedDay = Math.max(1, Math.min(daysSincePrep + 1, 10));
-    }
+    // ✅ ВСЕГДА от 9 февраля — единая система
+    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+    const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
+    const calculatedDay = Math.max(1, daysSincePrep + 1); // сегодня = 11
 
     setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
 
-    // ✅ setSelectedDay ТОЛЬКО при первой загрузке — не сбрасывает навигацию при синке
     if (!hasInitializedDay.current) {
       setSelectedDay(calculatedDay);
       hasInitializedDay.current = true;
@@ -273,7 +266,7 @@ const App: React.FC = () => {
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [ramadanInfo.isStarted]); // ✅ убрали calculateRamadanStatus — он был причиной сброса!
+  }, [ramadanInfo.isStarted]);
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {
