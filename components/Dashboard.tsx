@@ -85,14 +85,12 @@ const Dashboard: React.FC<DashboardProps> = ({
       // ✅ Рамадан начался — отсчёт от 19 февраля
       phase = 'ramadan';
       dayInPhase = selectedDay;
-      selectedDate = new Date(ramadanStart);
-      selectedDate.setDate(ramadanStart.getDate() + selectedDay - 1);
+      selectedDate = new Date(ramadanStart.getTime() + (selectedDay - 1) * 24 * 60 * 60 * 1000);
     } else {
       // ✅ Подготовка — отсчёт от 9 февраля
       phase = 'preparation';
       dayInPhase = selectedDay;
-      selectedDate = new Date(prepStart);
-      selectedDate.setDate(prepStart.getDate() + selectedDay - 1);
+      selectedDate = new Date(prepStart.getTime() + (selectedDay - 1) * 24 * 60 * 60 * 1000);
     }
 
     return { phase, dayInPhase, selectedDate };
