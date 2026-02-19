@@ -5,6 +5,12 @@ import { haptics } from '../src/utils/haptics';
 import RealCalendar from './RealCalendar';
 import SubscriptionStatus from '../components/SubscriptionStatus';
 
+// ✅ Хелпер: дата по Алматы времени (UTC+5)
+function toAlmatyDateStr(date: Date): string {
+  const almatyMs = date.getTime() + 5 * 60 * 60 * 1000;
+  return new Date(almatyMs).toISOString().split('T')[0];
+}
+
 interface DashboardProps {
   day: number;
   realTodayDay: number;
@@ -79,9 +85,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
 
     // +18000000 = +5ч чтобы toISOString() давал дату Алматы
-    const selectedDate = new Date(selectedDateMs + 18000000);
+    const selectedDate = new Date(selectedDateMs);
 
-    console.log('📅 SELECTED DAY INFO:', { selectedDay, phase, dayInPhase, date: selectedDate.toISOString().split('T')[0] });
+    console.log('📅 SELECTED DAY INFO:', { selectedDay, phase, dayInPhase, date: toAlmatyDateStr(selectedDate) });
     return { phase, dayInPhase, selectedDate };
   }, [selectedDay]);
 
@@ -89,7 +95,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     selectedDay,
     phase: selectedDayInfo.phase,
     dayInPhase: selectedDayInfo.dayInPhase,
-    date: selectedDayInfo.selectedDate.toISOString().split('T')[0]
+    date: toAlmatyDateStr(selectedDayInfo.selectedDate)
   });
 
   // ✅ ДАННЫЕ ОТОБРАЖАЕМОГО ДНЯ
@@ -100,7 +106,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     } else if (selectedDayInfo.phase === 'preparation') {
       data = userData?.preparationProgress?.[selectedDayInfo.dayInPhase];
     } else {
-      const dateKey = selectedDayInfo.selectedDate.toISOString().split('T')[0];
+      const dateKey = toAlmatyDateStr(selectedDayInfo.selectedDate);
       data = userData?.basicProgress?.[dateKey];
     }
     // ✅ Если день ещё пустой — возвращаем пустой объект, а не undefined
@@ -169,7 +175,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       updatePreparationProgress(selectedDayInfo.dayInPhase, { [key]: newValue });
     } else {
       // Базовый день - используем дату
-      const dateKey = selectedDayInfo.selectedDate.toISOString().split('T')[0];
+      const dateKey = toAlmatyDateStr(selectedDayInfo.selectedDate);
       if (updateBasicProgress) {
         updateBasicProgress(dateKey, { [key]: newValue });
       }
@@ -190,10 +196,10 @@ const Dashboard: React.FC<DashboardProps> = ({
       const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
       
       const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
-      const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
+      const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
       
       const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
-      const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
+      const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
       
       // Добавляем оразу в пн/чт
       if (isMondayOrThursday) {
@@ -532,9 +538,9 @@ const Dashboard: React.FC<DashboardProps> = ({
               const dayOfWeek = selectedDayInfo.selectedDate.getDay();
               const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
               const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
-              const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
+              const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
               const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
-              const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
+              const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
               
               if (!isMondayOrThursday && !isFirstTaraweehDay && !isEidDay) return null;
               
@@ -662,7 +668,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       {/* Айт намазы - 20 марта */}
       {(() => {
         const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
-        const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
+        const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
         
         if (!isEidDay) return null;
         
@@ -734,7 +740,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           )}
           {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
             const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
-            const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
+            const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
             
             return isFirstTaraweehDay ? (
               <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
@@ -925,10 +931,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                     const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
                     
                     const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
-                    const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
+                    const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
                     
                     const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
-                    const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
+                    const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
                     
                     if (isMondayOrThursday) keys.push('fasting');
                     if (isFirstTaraweehDay) keys.push('taraweeh');
@@ -952,10 +958,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                     const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
                     
                     const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
-                    const isFirstTaraweehDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === firstTaraweehDate.toISOString().split('T')[0];
+                    const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
                     
                     const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
-                    const isEidDay = selectedDayInfo.selectedDate.toISOString().split('T')[0] === eidDate.toISOString().split('T')[0];
+                    const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
                     
                     if (isMondayOrThursday) keys.push('fasting');
                     if (isFirstTaraweehDay) keys.push('taraweeh');
