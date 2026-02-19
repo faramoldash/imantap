@@ -71,45 +71,32 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // ✅ ОПРЕДЕЛЯЕМ ФАЗУ И ДАТУ ВЫБРАННОГО ДНЯ
   const selectedDayInfo = useMemo(() => {
-    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
-    const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+    const prepStart = new Date(`${PREPARATION_START_DATE}T00:00:00+05:00`);
+    const ramadanStart = new Date(`${RAMADAN_START_DATE}T00:00:00+05:00`);
     const ramadanEnd = new Date(ramadanStart);
-    ramadanEnd.setDate(ramadanEnd.getDate() + 28); // 29-й день (индекс 29)
-    ramadanEnd.setHours(23, 59, 59, 999); // Конец дня
-    
-    // Вычисляем абсолютный номер дня относительно начала подготовки
-    const daysSincePrepStart = selectedDay;
-    
-    // Вычисляем реальную дату
-    const selectedDate = new Date(prepStart);
-    selectedDate.setDate(prepStart.getDate() + (daysSincePrepStart - 1));
-    
-    // Определяем фазу
+    ramadanEnd.setDate(ramadanEnd.getDate() + 28);
+    ramadanEnd.setHours(23, 59, 59, 999);
+
     let phase: 'basic' | 'preparation' | 'ramadan';
     let dayInPhase: number;
-    
-    if (selectedDate < prepStart) {
-      // Базовый день (до подготовки)
-      phase = 'basic';
-      dayInPhase = selectedDay;
-    } else if (selectedDate < ramadanStart) {
-      // День подготовки
-      phase = 'preparation';
-      const daysSincePrep = Math.floor((selectedDate.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
-      dayInPhase = daysSincePrep + 1;
-    } else if (selectedDate >= ramadanStart && selectedDate <= ramadanEnd) {
-      // День Рамадана (только 30 дней)
+    let selectedDate: Date;
+
+    if (ramadanInfo.isStarted) {
+      // ✅ Рамадан начался — отсчёт от 19 февраля
       phase = 'ramadan';
-      const daysSinceRamadan = Math.floor((selectedDate.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
-      dayInPhase = daysSinceRamadan + 1;
-    } else {
-      // После Рамадана - базовые дни
-      phase = 'basic';
       dayInPhase = selectedDay;
+      selectedDate = new Date(ramadanStart);
+      selectedDate.setDate(ramadanStart.getDate() + selectedDay - 1);
+    } else {
+      // ✅ Подготовка — отсчёт от 9 февраля
+      phase = 'preparation';
+      dayInPhase = selectedDay;
+      selectedDate = new Date(prepStart);
+      selectedDate.setDate(prepStart.getDate() + selectedDay - 1);
     }
-    
+
     return { phase, dayInPhase, selectedDate };
-  }, [selectedDay]);
+  }, [selectedDay, ramadanInfo.isStarted]);
 
   console.log('📅 SELECTED DAY INFO:', {
     selectedDay,
