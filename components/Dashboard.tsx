@@ -142,7 +142,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   }, [selectedDayInfo.selectedDate]);
 
   // ✅ НАВИГАЦИЯ
-  const canGoPrev = true; // Всегда можно листать назад
+  const canGoPrev = selectedDay > 1;
   const canGoNext = useMemo(() => {
     // ✅ Можем листать до конца Рамадана (30 дней)
     const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
