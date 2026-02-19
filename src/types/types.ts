@@ -78,3 +78,4 @@ export interface UserData {
 }
 
 export type ViewType = 'dashboard' | 'calendar' | 'quran' | 'tasks' | 'profile' | 'names-99' | 'rewards' | 'circles';
+export type PhaseType = 'preparation' | 'ramadan' | 'basic';

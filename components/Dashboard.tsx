@@ -88,7 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     const selectedDate = new Date(selectedDateMs);
 
     console.log('📅 SELECTED DAY INFO:', { selectedDay, phase, dayInPhase, date: toAlmatyDateStr(selectedDate) });
-    return { phase, dayInPhase, selectedDate };
+    return { phase: phase as 'basic' | 'preparation' | 'ramadan', dayInPhase, selectedDate };
   }, [selectedDay]);
 
   console.log('📅 SELECTED DAY INFO:', {
@@ -888,7 +888,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         }}
         onPreparationDaySelect={onPreparationDaySelect}
         onBasicDateSelect={onBasicDateSelect}
-        trackerKeys={TRACKER_KEYS}
+        trackerKeys={[...TRACKER_KEYS]}
         preparationTrackerKeys={PREPARATION_TRACKER_KEYS}
       />
 
