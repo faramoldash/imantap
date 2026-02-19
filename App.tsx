@@ -203,6 +203,7 @@ const App: React.FC = () => {
 
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [navigationData, setNavigationData] = useState<any>(null);
+  const hasInitializedDay = useRef(false);
   const [selectedDay, setSelectedDay] = useState<number>(1);
   const [realTodayDay, setRealTodayDay] = useState<number>(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
   const [selectedBasicDate, setSelectedBasicDate] = useState<Date | null>(null);
@@ -244,58 +245,35 @@ const App: React.FC = () => {
   const t = TRANSLATIONS[userData.language];
 
   useEffect(() => {
-    // ✅ Вычисляем текущий день правильно
     const almatyOffset = 5 * 60;
     const now = new Date();
     const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
-    
+
     let calculatedDay = 1;
-    
     if (ramadanInfo.isStarted) {
-      // Рамадан
       const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
       const daysSinceRamadan = Math.floor((almatyTime.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
       calculatedDay = Math.max(1, Math.min(daysSinceRamadan + 1, 30));
     } else {
-      // Подготовка
       const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
       const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
       calculatedDay = Math.max(1, Math.min(daysSincePrep + 1, 10));
     }
-    
-    console.log('📅 CALCULATED DAY:', {
-      isStarted: ramadanInfo.isStarted,
-      calculatedDay,
-      date: almatyTime.toISOString().split('T')[0]
-    });
-    
-    // ✅ Обновляем оба state
+
     setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
-    setSelectedDay(calculatedDay);
-    
-    // ✅ Обновляем каждые 60 секунд
+
+    // ✅ setSelectedDay ТОЛЬКО при первой загрузке — не сбрасывает навигацию при синке
+    if (!hasInitializedDay.current) {
+      setSelectedDay(calculatedDay);
+      hasInitializedDay.current = true;
+    }
+
     const interval = setInterval(() => {
-      const newNow = new Date();
-      const newAlmatyTime = new Date(newNow.getTime() + (almatyOffset + newNow.getTimezoneOffset()) * 60000);
-      
-      let newCalculatedDay = 1;
-      
-      if (ramadanInfo.isStarted) {
-        const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
-        const daysSinceRamadan = Math.floor((newAlmatyTime.getTime() - ramadanStart.getTime()) / (1000 * 60 * 60 * 24));
-        newCalculatedDay = Math.max(1, Math.min(daysSinceRamadan + 1, 30));
-      } else {
-        const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
-        const daysSincePrep = Math.floor((newAlmatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
-        newCalculatedDay = Math.max(1, Math.min(daysSincePrep + 1, 10));
-      }
-      
       setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
-      setSelectedDay(newCalculatedDay);
     }, 60000);
-    
+
     return () => clearInterval(interval);
-  }, [ramadanInfo.isStarted, calculateRamadanStatus]);
+  }, [ramadanInfo.isStarted]); // ✅ убрали calculateRamadanStatus — он был причиной сброса!
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {

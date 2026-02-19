@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DayProgress, Language, UserData, ViewType } from '../src/types/types';
-import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, TOTAL_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE, EID_AL_FITR_DATE } from '../constants';
+import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, TOTAL_DAYS, PREPARATION_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE, EID_AL_FITR_DATE } from '../constants';
 import { haptics } from '../src/utils/haptics';
 import RealCalendar from './RealCalendar';
 import SubscriptionStatus from '../components/SubscriptionStatus';
@@ -82,15 +82,13 @@ const Dashboard: React.FC<DashboardProps> = ({
     let selectedDate: Date;
 
     if (ramadanInfo.isStarted) {
-      // ✅ Рамадан начался — отсчёт от 19 февраля
       phase = 'ramadan';
       dayInPhase = selectedDay;
-      selectedDate = new Date(ramadanStart.getTime() + (selectedDay - 1) * 24 * 60 * 60 * 1000);
+      selectedDate = new Date(ramadanStart.getTime() + (selectedDay - 1) * 86400000 + 18000000);
     } else {
-      // ✅ Подготовка — отсчёт от 9 февраля
       phase = 'preparation';
       dayInPhase = selectedDay;
-      selectedDate = new Date(prepStart.getTime() + (selectedDay - 1) * 24 * 60 * 60 * 1000);
+      selectedDate = new Date(prepStart.getTime() + (selectedDay - 1) * 86400000 + 18000000);
     }
 
     return { phase, dayInPhase, selectedDate };
@@ -118,42 +116,14 @@ const Dashboard: React.FC<DashboardProps> = ({
     return data || {};
   }, [selectedDay, selectedDayInfo, allProgress, userData]);
 
-  // ✅ ПРОВЕРКА - СЕГОДНЯШНИЙ ДЕНЬ?
-  const isToday = useMemo(() => {
-    const almatyOffset = 5 * 60;
-    const now = new Date();
-    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
-    const today = new Date(almatyTime.getFullYear(), almatyTime.getMonth(), almatyTime.getDate());
-    const selected = new Date(selectedDayInfo.selectedDate.getFullYear(), selectedDayInfo.selectedDate.getMonth(), selectedDayInfo.selectedDate.getDate());
-    return today.getTime() === selected.getTime();
-  }, [selectedDayInfo.selectedDate]);
-
-  // ✅ ПРОВЕРКА - БУДУЩИЙ ДЕНЬ? (только для блокировки чекбоксов)
-  const isFutureDay = useMemo(() => {
-    const almatyOffset = 5 * 60;
-    const now = new Date();
-    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
-    const today = new Date(almatyTime.getFullYear(), almatyTime.getMonth(), almatyTime.getDate());
-    const selected = new Date(selectedDayInfo.selectedDate.getFullYear(), selectedDayInfo.selectedDate.getMonth(), selectedDayInfo.selectedDate.getDate());
-    
-    return selected > today;
-  }, [selectedDayInfo.selectedDate]);
+  const isToday = selectedDay === currentDay;
+  const isFutureDay = selectedDay > currentDay;
 
   // ✅ НАВИГАЦИЯ
   const canGoPrev = selectedDay > 1;
-  const canGoNext = useMemo(() => {
-    // ✅ Можем листать до конца Рамадана (30 дней)
-    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
-    const ramadanStart = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
-    const ramadanEnd = new Date(ramadanStart);
-    ramadanEnd.setDate(ramadanEnd.getDate() + 28); // 29-й день Рамадана
-    
-    const nextDay = new Date(selectedDayInfo.selectedDate);
-    nextDay.setDate(nextDay.getDate() + 1);
-    
-    // Можем листать пока не достигли конца Рамадана
-    return nextDay <= ramadanEnd;
-  }, [selectedDayInfo.selectedDate]);
+  const canGoNext = ramadanInfo.isStarted
+    ? selectedDay < TOTAL_DAYS        // Рамадан: 1–29
+    : selectedDay < PREPARATION_DAYS;
 
   const goToPrevDay = () => {
     if (canGoPrev) {
@@ -172,19 +142,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const goToToday = () => {
-    hasNavigated.current = true; // ✅ Устанавливаем флаг
+    hasNavigated.current = true;
     haptics.medium();
-    
-    // Вычисляем номер дня для текущей даты
-    const almatyOffset = 5 * 60;
-    const now = new Date();
-    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
-    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
-    
-    const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
-    const todayDayNumber = daysSincePrep + 1;
-    
-    onDaySelect(todayDayNumber);
+    onDaySelect(currentDay);
   };
 
   console.log('📅 DASHBOARD:', {
