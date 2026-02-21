@@ -310,7 +310,7 @@ const App: React.FC = () => {
   // Save to localStorage AND sync to server whenever userData changes
   // Debounce hook
   const useDebounce = (callback: Function, delay: number) => {
-    const timeoutRef = useRef<NodeJS.Timeout>();
+    const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
     
     return useCallback((...args: any[]) => {
       if (timeoutRef.current) {
@@ -345,6 +345,8 @@ const App: React.FC = () => {
         startDate: currentUserData.startDate,
         registrationDate: currentUserData.registrationDate,
         progress: currentUserData.progress,
+        preparationProgress: currentUserData.preparationProgress,
+        basicProgress: currentUserData.basicProgress,
         memorizedNames: currentUserData.memorizedNames,
         completedJuzs: currentUserData.completedJuzs,
         quranKhatams: currentUserData.quranKhatams,
@@ -682,11 +684,10 @@ const App: React.FC = () => {
 
   // --- STREAK LOGIC ---
   const updateStreak = (data: UserData): UserData => {
-    // ✅ Используем Almaty время (UTC+5)
-    const almatyOffset = 5 * 60;
-    const now = new Date();
-    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
-    const today = almatyTime.toISOString().split('T')[0]; // YYYY-MM-DD
+    const userTimezone = (data as any).location?.timezone 
+    || Intl.DateTimeFormat().resolvedOptions().timeZone 
+    || 'Asia/Almaty';
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: userTimezone });
     const lastActive = data.lastActiveDate || '';
     
     // ✅ Если уже обновляли сегодня - не трогаем
@@ -735,22 +736,39 @@ const App: React.FC = () => {
     };
   };
 
+  // ✅ ПОЛНЫЙ дефолт — все обязательные поля DayProgress
+  const EMPTY_DAY_PROGRESS = (dayOrDate: number | string): DayProgress => ({
+    day: typeof dayOrDate === 'number' ? dayOrDate : 0,
+    fasting: false,
+    tahajjud: false,
+    fajr: false,
+    morningDhikr: false,
+    quranRead: false,
+    names99: false,
+    salawat: false,
+    hadith: false,
+    duha: false,
+    charity: false,
+    charityAmount: 0,
+    charitySadaqah: 0,   // ✅
+    charityZakat: 0,     // ✅
+    charityFitrana: 0,   // ✅
+    dhuhr: false,
+    lessons: false,      // ✅
+    asr: false,
+    book: false,         // ✅
+    eveningDhikr: false,
+    maghrib: false,
+    isha: false,
+    taraweeh: false,
+    witr: false,
+    quranPages: 0,
+    date: typeof dayOrDate === 'string' ? dayOrDate : new Date().toISOString(),
+  });
+
   const updateProgress = useCallback((day: number, updates: Partial<DayProgress>) => {
     setUserData(prev => {
       const existing = prev.progress[day] || INITIAL_DAY_PROGRESS(day);
-      let xpDelta = 0;
-
-      Object.keys(updates).forEach((key) => {
-        const k = key as keyof DayProgress;
-        const newVal = updates[k];
-        const oldVal = existing[k];
-
-        if (newVal !== oldVal) {
-          if (typeof newVal === 'boolean' && XP_VALUES[k]) {
-            xpDelta += newVal ? XP_VALUES[k] : -XP_VALUES[k];
-          }
-        }
-      });
 
       const nextProgress = {
         ...prev.progress,
@@ -759,7 +777,6 @@ const App: React.FC = () => {
 
       let newState = {
         ...prev,
-        xp: Math.max(0, prev.xp + xpDelta),
         progress: nextProgress
       };
 
@@ -772,50 +789,12 @@ const App: React.FC = () => {
       return newState;
     });
     
-    // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ ПРОГРЕССА (без debounce)
-    setTimeout(() => {
-      if (userDataRef.current.xp > 0) {
-        syncToServerFn();
-      }
-    }, 100);
+    setTimeout(() => { syncToServerFn(); }, 100);
   }, [syncToServerFn]);
 
   const updatePreparationProgress = useCallback((day: number, updates: Partial<DayProgress>) => {
     setUserData(prev => {
-      const existing = prev.preparationProgress?.[day] || {
-        day,
-        fasting: false,
-        fajr: false,
-        morningDhikr: false,
-        quranRead: false,
-        salawat: false,
-        hadith: false,
-        duha: false,
-        charity: false,
-        charityAmount: 0,
-        dhuhr: false,
-        asr: false,
-        eveningDhikr: false,
-        maghrib: false,
-        isha: false,
-        taraweeh: false,
-        witr: false,
-        quranPages: 0,
-        date: new Date().toISOString(),
-      };
-
-      let xpDelta = 0;
-      Object.keys(updates).forEach((key) => {
-        const k = key as keyof DayProgress;
-        const newVal = updates[k];
-        const oldVal = existing[k];
-
-        if (newVal !== oldVal) {
-          if (typeof newVal === 'boolean' && XP_VALUES[k]) {
-            xpDelta += newVal ? XP_VALUES[k] : -XP_VALUES[k];
-          }
-        }
-      });
+      const existing = prev.preparationProgress?.[day] || EMPTY_DAY_PROGRESS(day);
 
       const nextPrepProgress = {
         ...prev.preparationProgress,
@@ -824,7 +803,6 @@ const App: React.FC = () => {
 
       let newState = {
         ...prev,
-        xp: Math.max(0, prev.xp + xpDelta),
         preparationProgress: nextPrepProgress
       };
 
@@ -835,38 +813,13 @@ const App: React.FC = () => {
 
       return newState;
     });
-        
-    // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ
-    setTimeout(() => {
-      if (userDataRef.current.xp > 0) {
-        syncToServerFn();
-      }
-    }, 100);
+
+    setTimeout(() => { syncToServerFn(); }, 100);
   }, [syncToServerFn]);
 
   const updateBasicProgress = useCallback((dateStr: string, updates: Partial<DayProgress>) => {
     setUserData(prev => {
-      const existing = prev.basicProgress?.[dateStr] || {
-        day: 0,
-        fasting: false,
-        fajr: false,
-        morningDhikr: false,
-        quranRead: false,
-        salawat: false,
-        hadith: false,
-        duha: false,
-        charity: false,
-        charityAmount: 0,
-        dhuhr: false,
-        asr: false,
-        eveningDhikr: false,
-        maghrib: false,
-        isha: false,
-        taraweeh: false,
-        witr: false,
-        quranPages: 0,
-        date: dateStr,
-      };
+      const existing = prev.basicProgress?.[dateStr] || EMPTY_DAY_PROGRESS(dateStr);
 
       // ❌ НЕТ XP для базовых дней
 
@@ -890,10 +843,7 @@ const App: React.FC = () => {
         
     // ✅ НЕМЕДЛЕННАЯ СИНХРОНИЗАЦИЯ
     setTimeout(() => {
-      const hasData = Object.keys(userDataRef.current.basicProgress || {}).length > 0;
-      if (hasData) {
-        syncToServerFn();
-      }
+      syncToServerFn();
     }, 100);
   }, [syncToServerFn]);
 
@@ -1044,7 +994,7 @@ const App: React.FC = () => {
         <DemoBanner 
           demoExpires={accessData.demoExpires!} 
           language={userData.language}
-          userId={userData?.userId}
+          userId={String(userData.userId)}
         />
       )}
       
