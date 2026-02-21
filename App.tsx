@@ -229,14 +229,19 @@ const App: React.FC = () => {
   const t = TRANSLATIONS[userData.language];
 
   useEffect(() => {
+    const almatyOffset = 5 * 60;
+    const now = new Date();
+    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
+
+    // ✅ ВСЕГДА от 9 февраля — единая система
+    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+    const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
+    const calculatedDay = Math.max(1, daysSincePrep + 1);
+
     setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
 
     if (!hasInitializedDay.current) {
-      if (ramadanInfo.isStarted) {
-        setSelectedDay(ramadanInfo.currentDay);
-      } else {
-        setSelectedDay(1);
-      }
+      setSelectedDay(calculatedDay);
       hasInitializedDay.current = true;
     }
 
@@ -245,7 +250,7 @@ const App: React.FC = () => {
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [ramadanInfo.isStarted, ramadanInfo.currentDay]);
+  }, [ramadanInfo.isStarted]);
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {
