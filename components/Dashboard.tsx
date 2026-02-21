@@ -7,8 +7,7 @@ import SubscriptionStatus from '../components/SubscriptionStatus';
 
 // ✅ Хелпер: дата по Алматы времени (UTC+5)
 function toAlmatyDateStr(date: Date): string {
-  const almatyMs = date.getTime() + 5 * 60 * 60 * 1000;
-  return new Date(almatyMs).toISOString().split('T')[0];
+  return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
 }
 
 interface DashboardProps {
@@ -29,6 +28,27 @@ interface DashboardProps {
   setView: (view: ViewType) => void;
   onPreparationDaySelect: (day: number) => void;
 }
+
+const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t, disabled }: any) => (
+    <button 
+      onClick={(e) => !disabled && toggleItem(id, e)} 
+      disabled={disabled}
+      className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative ${
+        disabled 
+          ? 'cursor-not-allowed opacity-40' 
+          : 'active:scale-95 cursor-pointer'
+      } ${small ? 'h-20' : 'h-24'} ${
+        displayedData[id] 
+          ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' 
+          : 'bg-white border-slate-100 text-slate-600 shadow-sm'
+      }`}
+    >
+      {icon}
+      <span className="text-[11px] font-bold text-center leading-tight">{t.items[id]}</span>
+      {displayedData[id] && <span className="absolute top-1 right-1 text-xs">✓</span>}
+      {disabled && <span className="absolute top-1 right-1 text-xs">🔒</span>}
+    </button>
+  ));
 
 const Dashboard: React.FC<DashboardProps> = ({ 
   day: selectedDay, 
@@ -55,16 +75,32 @@ const Dashboard: React.FC<DashboardProps> = ({
                                    userData.daysLeft > 0;
 
   const t = TRANSLATIONS[language];
+  // ✅ Состояние для управления видимыми именами
+  const [visibleNames, setVisibleNames] = useState<typeof NAMES_99>([]);
+  const [fadingOutId, setFadingOutId] = useState<number | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  // ✅ Состояние для анимации XP
+  const [xpNotifications, setXpNotifications] = useState<Array<{
+    id: string, 
+    amount: number, 
+    multiplier?: number,
+    timestamp: number
+  }>>([]);
+  // Проверяем все ли имена выучены
+  const allNamesLearned = (userData?.memorizedNames?.length || 0) === 99;
+  // ✅ REF для шапки трекера
+  const headerRef = React.useRef<HTMLDivElement>(null);
+  // ✅ Флаг для отслеживания навигации (не скроллим при первом рендере)
+  const hasNavigated = React.useRef(false);
 
   // ✅ ОПРЕДЕЛЯЕМ ТЕКУЩИЙ ДЕНЬ С УЧЕТОМ ФАЗЫ
-  const currentDay = useMemo(() => {
-    const almatyOffset = 5 * 60;
-    const now = new Date();
-    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
+  const currentDay = (() => {
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
+    const todayDate = new Date(todayStr + 'T00:00:00+05:00');
     const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
-    const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
-    return Math.max(1, daysSincePrep + 1); // сегодня = 11
-  }, []);
+    const daysSincePrep = Math.floor((todayDate.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(1, daysSincePrep + 1);
+  })();
 
   // ✅ ОПРЕДЕЛЯЕМ ФАЗУ И ДАТУ ВЫБРАННОГО ДНЯ
   const selectedDayInfo = useMemo(() => {
@@ -90,13 +126,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     console.log('📅 SELECTED DAY INFO:', { selectedDay, phase, dayInPhase, date: toAlmatyDateStr(selectedDate) });
     return { phase: phase as 'basic' | 'preparation' | 'ramadan', dayInPhase, selectedDate };
   }, [selectedDay]);
-
-  console.log('📅 SELECTED DAY INFO:', {
-    selectedDay,
-    phase: selectedDayInfo.phase,
-    dayInPhase: selectedDayInfo.dayInPhase,
-    date: toAlmatyDateStr(selectedDayInfo.selectedDate)
-  });
 
   // ✅ ДАННЫЕ ОТОБРАЖАЕМОГО ДНЯ
   const displayedData = useMemo(() => {
@@ -184,45 +213,24 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const calculateProgress = () => {
     let keys: string[];
-    
     if (selectedDayInfo.phase === 'ramadan') {
       keys = [...TRACKER_KEYS];
     } else {
-      // Подготовка и базовые дни - базовый набор задач
       keys = [...PREPARATION_TRACKER_KEYS];
-      
-      // Добавляем дополнительные задачи в зависимости от дня
-      const dayOfWeek = selectedDayInfo.selectedDate.getDay();
-      const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
-      
-      const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
-      const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
-      
-      const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
-      const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
-      
-      // Добавляем оразу в пн/чт
-      if (isMondayOrThursday) {
-        keys.push('fasting');
-      }
-      
-      // Добавляем таравих 18 февраля
-      if (isFirstTaraweehDay) {
-        keys.push('taraweeh');
-      }
-      
-      // Добавляем Айт намаз 20 марта
-      if (isEidDay) {
-        keys.push('eidPrayer');
-      }
+      const dayOfWeekStr = selectedDayInfo.selectedDate.toLocaleDateString('en-US', {
+        timeZone: 'Asia/Almaty', weekday: 'short'
+      });
+      if (dayOfWeekStr === 'Mon' || dayOfWeekStr === 'Thu') keys.push('fasting');
+      if (toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE) keys.push('taraweeh');
+      if (toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE) keys.push('eidPrayer');
     }
-    
-    if (!displayedData) return 0;
-    const completed = keys.filter(key => displayedData[key as keyof DayProgress]).length;
-    return Math.round((completed / keys.length) * 100);
+    if (!displayedData) return { completed: 0, total: 0, percentage: 0 };
+    const completed = keys.filter(k => displayedData[k as keyof DayProgress]).length;
+    return { completed, total: keys.length, percentage: Math.round((completed / keys.length) * 100) };
   };
 
-  const selectedDayProgress = calculateProgress();
+  // ✅ Деструктуризация:
+  const { completed: completedTasks, total: totalTasks, percentage: selectedDayProgress } = calculateProgress();
 
   const toggleMemorized = (id: number, e?: React.MouseEvent<HTMLElement>) => {
     console.log('🔍 Clicked on:', id);
@@ -286,19 +294,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     }, 1000);
   };
 
-  // ✅ Состояние для управления видимыми именами
-  const [visibleNames, setVisibleNames] = useState<typeof NAMES_99>([]);
-  const [fadingOutId, setFadingOutId] = useState<number | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // ✅ Состояние для анимации XP
-  const [xpNotifications, setXpNotifications] = useState<Array<{
-    id: string, 
-    amount: number, 
-    multiplier?: number,
-    timestamp: number
-  }>>([]);
-
   // ✅ Регистрируем глобальный колбэк для показа XP с бэкенда
   useEffect(() => {
     (window as any).showXPNotification = (xpAmount: number, multiplier: number) => {
@@ -341,15 +336,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   }, [isInitialized]);
 
-  // Проверяем все ли имена выучены
-  const allNamesLearned = (userData?.memorizedNames?.length || 0) === 99;
-
-  // ✅ REF для шапки трекера
-  const headerRef = React.useRef<HTMLDivElement>(null);
-
-  // ✅ Флаг для отслеживания навигации (не скроллим при первом рендере)
-  const hasNavigated = React.useRef(false);
-
   // ✅ Скроллим к шапке только после навигации
   useEffect(() => {
     if (hasNavigated.current && headerRef.current) {
@@ -359,27 +345,6 @@ const Dashboard: React.FC<DashboardProps> = ({
       });
     }
   }, [selectedDay]);
-
-  const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t, disabled }: any) => (
-    <button 
-      onClick={(e) => !disabled && toggleItem(id, e)} 
-      disabled={disabled}
-      className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative ${
-        disabled 
-          ? 'cursor-not-allowed opacity-40' 
-          : 'active:scale-95 cursor-pointer'
-      } ${small ? 'h-20' : 'h-24'} ${
-        displayedData[id] 
-          ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' 
-          : 'bg-white border-slate-100 text-slate-600 shadow-sm'
-      }`}
-    >
-      {icon}
-      <span className="text-[11px] font-bold text-center leading-tight">{t.items[id]}</span>
-      {displayedData[id] && <span className="absolute top-1 right-1 text-xs">✓</span>}
-      {disabled && <span className="absolute top-1 right-1 text-xs">🔒</span>}
-    </button>
-  ));
 
   return (
     <div className="space-y-6 pb-4 relative">
@@ -423,7 +388,13 @@ const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex flex-col items-center justify-center relative z-10">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-3 mb-4 border border-white/20">
               <p className="text-sm font-black text-emerald-300">
-                19 {language === 'kk' ? 'ақпан' : 'февраля'}
+                {(() => {
+                  const d = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+                  const monthNames = language === 'kk'
+                    ? ['қаңтар','ақпан','наурыз','сәуір','мамыр','маусым','шілде','тамыз','қыркүйек','қазан','қараша','желтоқсан']
+                    : ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+                  return `${d.getDate()} ${monthNames[d.getMonth()]}`;
+                })()}
               </p>
               <p className="text-[10px] font-bold text-white/80 mt-1">
                 {language === 'kk' ? 'Рамазанның 1-ші күні' : '1-й день Рамадана'}
@@ -535,11 +506,11 @@ const Dashboard: React.FC<DashboardProps> = ({
             
             {/* Бейджи - для подготовки и базовых дней */}
             {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
-              const dayOfWeek = selectedDayInfo.selectedDate.getDay();
-              const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
-              const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
+              const dayOfWeekStr = selectedDayInfo.selectedDate.toLocaleDateString('en-US', {
+                timeZone: 'Asia/Almaty', weekday: 'short'
+              });
+              const isMondayOrThursday = dayOfWeekStr === 'Mon' || dayOfWeekStr === 'Thu';
               const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
-              const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
               const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
               
               if (!isMondayOrThursday && !isFirstTaraweehDay && !isEidDay) return null;
@@ -620,12 +591,18 @@ const Dashboard: React.FC<DashboardProps> = ({
           showFasting = true;
           fastingType = language === 'kk' ? 'Міндетті ораза' : 'Обязательная ораза';
         } else if (selectedDayInfo.phase === 'preparation') {
-          const dayOfWeek = selectedDayInfo.selectedDate.getDay();
-          showFasting = dayOfWeek === 1 || dayOfWeek === 4;
+          const dayOfWeekStr = selectedDayInfo.selectedDate.toLocaleDateString('en-US', {
+            timeZone: 'Asia/Almaty', weekday: 'short'
+          });
+          const isMondayOrThursday = dayOfWeekStr === 'Mon' || dayOfWeekStr === 'Thu';
+          showFasting = isMondayOrThursday;
           fastingType = language === 'kk' ? 'Сүннет ораза' : 'Сунна ораза';
         } else if (selectedDayInfo.phase === 'basic') {
-          const dayOfWeek = selectedDayInfo.selectedDate.getDay();
-          showFasting = dayOfWeek === 1 || dayOfWeek === 4;
+          const dayOfWeekStr = selectedDayInfo.selectedDate.toLocaleDateString('en-US', {
+            timeZone: 'Asia/Almaty', weekday: 'short'
+          });
+          const isMondayOrThursday = dayOfWeekStr === 'Mon' || dayOfWeekStr === 'Thu';
+          showFasting = isMondayOrThursday;
           fastingType = language === 'kk' ? 'Сүннет ораза (Дүйсенбі/Бейсенбі)' : 'Сунна ораза (пн/чт)';
         }
         
@@ -667,7 +644,6 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Айт намазы - 20 марта */}
       {(() => {
-        const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
         const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
         
         if (!isEidDay) return null;
@@ -739,7 +715,6 @@ const Dashboard: React.FC<DashboardProps> = ({
             </>
           )}
           {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
-            const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
             const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
             
             return isFirstTaraweehDay ? (
@@ -918,58 +893,10 @@ const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex items-end justify-between mb-3">
             <div>
               <p className="text-5xl font-black leading-none">
-                {(() => {
-                  // Используем ту же логику что и в calculateProgress
-                  let keys: string[];
-                  
-                  if (selectedDayInfo.phase === 'ramadan') {
-                    keys = [...TRACKER_KEYS];
-                  } else {
-                    keys = [...PREPARATION_TRACKER_KEYS];
-                    
-                    const dayOfWeek = selectedDayInfo.selectedDate.getDay();
-                    const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
-                    
-                    const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
-                    const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
-                    
-                    const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
-                    const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
-                    
-                    if (isMondayOrThursday) keys.push('fasting');
-                    if (isFirstTaraweehDay) keys.push('taraweeh');
-                    if (isEidDay) keys.push('eidPrayer');
-                  }
-                  
-                  return keys.filter(k => displayedData[k as keyof DayProgress]).length;
-                })()}
+                {completedTasks}
               </p>
               <p className="text-sm font-bold text-white/60 mt-1">
-                / {(() => {
-                  // Считаем общее количество задач
-                  let keys: string[];
-                  
-                  if (selectedDayInfo.phase === 'ramadan') {
-                    keys = [...TRACKER_KEYS];
-                  } else {
-                    keys = [...PREPARATION_TRACKER_KEYS];
-                    
-                    const dayOfWeek = selectedDayInfo.selectedDate.getDay();
-                    const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
-                    
-                    const firstTaraweehDate = new Date(FIRST_TARAWEEH_DATE + 'T00:00:00+05:00');
-                    const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
-                    
-                    const eidDate = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00');
-                    const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
-                    
-                    if (isMondayOrThursday) keys.push('fasting');
-                    if (isFirstTaraweehDay) keys.push('taraweeh');
-                    if (isEidDay) keys.push('eidPrayer');
-                  }
-                  
-                  return keys.length;
-                })()} {language === 'kk' ? 'тапсырма' : 'задач'}
+                / {totalTasks} {language === 'kk' ? 'тапсырма' : 'задач'}
               </p>
             </div>
             

@@ -70,29 +70,18 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
     return days;
   }, [currentMonth]);
   
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const todayAlmatyStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
   
-  const ramadanStart = new Date(ramadanStartDate);
-  ramadanStart.setHours(0, 0, 0, 0);
-  
-  const ramadanEnd = new Date(ramadanStart);
-  ramadanEnd.setDate(ramadanEnd.getDate() + 28); // 29 дней Рамадана
-  
-  const prepStart = new Date(preparationStartDate);
-  prepStart.setHours(0, 0, 0, 0);
-  
-  const firstTaraweeh = new Date(firstTaraweehDate);
-  firstTaraweeh.setHours(0, 0, 0, 0);
-
-  const eidDate = new Date(eidAlFitrDate);
-  eidDate.setHours(0, 0, 0, 0);
+  const ramadanStart = new Date(ramadanStartDate + 'T00:00:00+05:00');
+  const ramadanEnd = new Date(ramadanStart.getTime() + 28 * 86400000);
+  const prepStart = new Date(preparationStartDate + 'T00:00:00+05:00');
+  const firstTaraweeh = new Date(firstTaraweehDate + 'T00:00:00+05:00');
+  const eidDate = new Date(eidAlFitrDate + 'T00:00:00+05:00');
   
   const isToday = (date: Date | null) => {
     if (!date) return false;
-    const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    return dateOnly.getTime() === todayOnly.getTime();
+    const str = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    return str === todayAlmatyStr;
   };
   
   const isRamadanDay = (date: Date | null) => {
@@ -107,12 +96,14 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   
   const isFirstTaraweehDay = (date: Date | null) => {
     if (!date) return false;
-    return date.getTime() === firstTaraweeh.getTime();
+    const str = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    return str === firstTaraweehDate; // ✅ сравниваем строку с пропсом 'YYYY-MM-DD'
   };
 
   const isEidDay = (date: Date | null) => {
     if (!date) return false;
-    return date.getTime() === eidDate.getTime();
+    const str = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+    return str === eidAlFitrDate; // ✅
   };
   
   const getRamadanDayNumber = (date: Date) => {
@@ -146,6 +137,12 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   const goToToday = () => {
     setCurrentMonth(new Date());
   };
+
+  // ✅ Вычисляем строку даты выбранного дня
+  const prepStartMs = new Date(preparationStartDate + 'T00:00:00+05:00').getTime();
+  const selectedDateMs = prepStartMs + (selectedDay - 1) * 86400000;
+  const selectedDateStr = new Date(selectedDateMs)
+    .toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
 
   return (
     <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
@@ -203,10 +200,8 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
           const ramadanDay = isRamadan ? getRamadanDayNumber(date) : null;
           const prepDay = isPrep ? getPreparationDayNumber(date) : null;
           
-          // ✅ Убираем блокировку - все дни доступны
-          const isLocked = false;
-          
-          const isSelected = false; // TODO: добавить логику выбора
+          const calendarDateStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+          const isSelected = calendarDateStr === selectedDateStr;
           const progress = ramadanDay ? calculateProgress(ramadanDay, false) : 
                           prepDay ? calculateProgress(prepDay, true) : 0;
           
@@ -235,21 +230,21 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
             <div
               key={idx}
               onClick={() => {
-                // ✅ УНИВЕРСАЛЬНАЯ ЛОГИКА: вычисляем номер дня относительно начала подготовки
-                const prepStartDate = new Date(preparationStartDate + 'T00:00:00+05:00');
-                const daysSincePrep = Math.floor((date.getTime() - prepStartDate.getTime()) / (1000 * 60 * 60 * 24));
-                const dayNumber = daysSincePrep + 1;
-                
-                // Вызываем только onDaySelect с универсальным номером
+                // ✅ Строим дату кликнутого дня как Алматы полночь
+                const clickedStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+                const clickedMs = new Date(clickedStr + 'T00:00:00+05:00').getTime();
+                const prepStartMs = new Date(preparationStartDate + 'T00:00:00+05:00').getTime();
+                const dayNumber = Math.floor((clickedMs - prepStartMs) / 86400000) + 1;
                 onDaySelect(dayNumber);
               }}
+                
               className={`
                 aspect-square rounded-xl flex flex-col items-center justify-center text-center
                 transition-all relative overflow-hidden cursor-pointer active:scale-95
                 ${isSelected ? 'ring-2 ring-emerald-600 scale-105 z-10' : ''}
               `}
               style={{
-                background: (ramadanDay || prepDay) && !isLocked && progress > 0
+                background: (ramadanDay || prepDay) && progress > 0
                   ? isTaraweeh
                     ? `conic-gradient(rgb(251 191 36) ${progress * 3.6}deg, rgb(254 243 199) ${progress * 3.6}deg)`
                     : isRamadan
@@ -259,7 +254,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               }}
             >
               {/* Внутренний круг для радиального прогресса */}
-              {(ramadanDay || prepDay) && !isLocked && progress > 0 && progress < 100 && (
+              {(ramadanDay || prepDay) && progress > 0 && progress < 100 && (
                 <div className={`absolute inset-1 rounded-lg flex items-center justify-center ${
                   isTodayDate ? 'bg-emerald-500' : 'bg-white'
                 }`}>
@@ -277,7 +272,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               )}
               
               {/* Контент для дней без прогресса или с полным прогрессом */}
-              {((!ramadanDay && !prepDay) || isLocked || progress === 0 || progress === 100) && (
+              {((!ramadanDay && !prepDay) || progress === 0 || progress === 100) && (
                 <>
                   <span className={`text-sm font-bold ${textColor}`}>
                     {date.getDate()}
@@ -307,7 +302,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               )}
               
               {/* Галочка для завершённых дней */}
-              {(ramadanDay || prepDay) && !isLocked && progress === 100 && (
+              {(ramadanDay || prepDay) && progress === 100 && (
                 <div className={`absolute top-0.5 right-0.5 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center ${
                   isTaraweeh ? 'bg-amber-500' : isRamadan ? 'bg-emerald-600' : 'bg-sky-600'
                 }`}>
