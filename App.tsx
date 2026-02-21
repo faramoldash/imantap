@@ -162,36 +162,20 @@ const App: React.FC = () => {
   const [newBadge, setNewBadge] = useState<typeof BADGES[0] | null>(null);
 
   const calculateRamadanStatus = useCallback(() => {
-    const start = new Date(userData.startDate);
+    // ✅ Разбираем строку вручную — без UTC парсинга
+    const [sy, sm, sd] = userData.startDate.split('-').map(Number);
+    const startDate = new Date(sy, sm - 1, sd); // локальная полночь пользователя
+
     const now = new Date();
-    
-    // ✅ Убираем время из обеих дат (обнуляем до полуночи)
-    const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    // ✅ Разница в днях
+
     const diffTime = currentDate.getTime() - startDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    // ✅ Рамадан начался если diffDays >= 0
+
     const isStarted = diffDays >= 0;
-    
-    // ✅ Текущий день: если не начался = 0, если начался = diffDays + 1
     const currentDay = isStarted ? Math.min(diffDays + 1, TOTAL_DAYS) : 0;
-    
-    // ✅ Дней до начала: если не начался = -diffDays, иначе 0
     const daysUntil = !isStarted ? -diffDays : 0;
-    
-    console.log('🌙 RAMADAN STATUS', {
-      userData_startDate: userData.startDate,
-      startDate: startDate.toISOString().split('T')[0],  // ✅ Показываем только дату
-      currentDate: currentDate.toISOString().split('T')[0],
-      diffDays,
-      isStarted,
-      currentDay,
-      daysUntil
-    });
-    
+
     return { isStarted, currentDay, daysUntil };
   }, [userData.startDate]);
 
@@ -245,19 +229,14 @@ const App: React.FC = () => {
   const t = TRANSLATIONS[userData.language];
 
   useEffect(() => {
-    const almatyOffset = 5 * 60;
-    const now = new Date();
-    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
-
-    // ✅ ВСЕГДА от 9 февраля — единая система
-    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
-    const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
-    const calculatedDay = Math.max(1, daysSincePrep + 1); // сегодня = 11
-
     setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
 
     if (!hasInitializedDay.current) {
-      setSelectedDay(calculatedDay);
+      if (ramadanInfo.isStarted) {
+        setSelectedDay(ramadanInfo.currentDay);
+      } else {
+        setSelectedDay(1);
+      }
       hasInitializedDay.current = true;
     }
 
@@ -266,7 +245,7 @@ const App: React.FC = () => {
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [ramadanInfo.isStarted]);
+  }, [ramadanInfo.isStarted, ramadanInfo.currentDay]);
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {
