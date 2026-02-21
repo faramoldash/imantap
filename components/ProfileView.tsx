@@ -286,7 +286,19 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     // Формула: 1 + (streak * 0.1), максимум 3.0
     const streakMultiplier = Math.min(1 + (userData.currentStreak * 0.1), 3.0);
 
-    const todayXP = Math.round(todayTasks * 50 * streakMultiplier);
+    const ramadanTasks = [
+      'fasting', 'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
+      'taraweeh', 'tahajjud', 'witr', 'quranRead', 'morningDhikr',
+      'eveningDhikr', 'salawat', 'hadith', 'charity', 'names99', 'lessons', 'book'
+    ];
+    const todayXP = todayProgress
+      ? Math.round(
+          ramadanTasks
+            .filter(task => todayProgress[task as keyof typeof todayProgress])
+            .reduce((sum, task) => sum + (XP_VALUES[task as keyof typeof XP_VALUES] || 10), 0)
+          * streakMultiplier
+        )
+      : 0;
 
     console.log('💰 XP calculation:', {
       todayTasks,
@@ -309,7 +321,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       todayXP,
       streakMultiplier
     };
-  }, [userData.progress, periodFilter]);
+  }, [userData.progress, userData.preparationProgress, userData.basicProgress, periodFilter]);
 
   const inviteFriend = () => {
     const code = userData.myPromoCode;
