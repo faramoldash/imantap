@@ -104,24 +104,23 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // ✅ ОПРЕДЕЛЯЕМ ФАЗУ И ДАТУ ВЫБРАННОГО ДНЯ
   const selectedDayInfo = useMemo(() => {
-    const prepStartMs = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00').getTime();
     const ramadanStartMs = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00').getTime();
-
-    const selectedDateMs = prepStartMs + (selectedDay - 1) * 86400000;
+    const selectedDateMs = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00').getTime() + (selectedDay - 1) * 86400000;
 
     let phase: 'basic' | 'preparation' | 'ramadan';
     let dayInPhase: number;
 
     if (selectedDateMs < ramadanStartMs) {
       phase = 'preparation';
-      dayInPhase = selectedDay; // 1–10
+      dayInPhase = selectedDay;
     } else {
       phase = 'ramadan';
-      dayInPhase = Math.floor((selectedDateMs - ramadanStartMs) / 86400000) + 1; // 1–29
+      dayInPhase = Math.floor((selectedDateMs - ramadanStartMs) / 86400000) + 1;
     }
 
-    // +18000000 = +5ч чтобы toISOString() давал дату Алматы
-    const selectedDate = new Date(selectedDateMs);
+    // ✅ Создаём локальную дату без UTC смещения
+    const [py, pm, pd] = PREPARATION_START_DATE.split('-').map(Number);
+    const selectedDate = new Date(py, pm - 1, pd + (selectedDay - 1));
 
     console.log('📅 SELECTED DAY INFO:', { selectedDay, phase, dayInPhase, date: toAlmatyDateStr(selectedDate) });
     return { phase: phase as 'basic' | 'preparation' | 'ramadan', dayInPhase, selectedDate };
