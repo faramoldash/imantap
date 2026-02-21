@@ -114,10 +114,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     // ✅ Рамадан прогресс хранится по номеру дня (1-30), без поля date
     // Восстанавливаем дату из номера дня
     const withDates = progressArray.map(p => {
-      if (p.date) return p; // дата уже есть
-      if (p.day && isRamadanStarted) {
-        // день 1 = 19 февраля, день 2 = 20 февраля и т.д.
-        const d = new Date(2026, 1, 19 + (p.day - 1));
+      if (p.date) return p;
+      if (p.day) {
+        const startDay = isRamadanStarted ? 19 : 9;
+        const d = new Date(2026, 1, startDay + (p.day - 1));
         return { ...p, date: d.toISOString() };
       }
       return p;

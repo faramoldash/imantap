@@ -199,14 +199,20 @@ const Dashboard: React.FC<DashboardProps> = ({
     
     // ✅ Используем правильную функцию в зависимости от фазы
     if (selectedDayInfo.phase === 'ramadan') {
-      updateProgress(selectedDayInfo.dayInPhase, { [key]: newValue });
+      updateProgress(selectedDayInfo.dayInPhase, { 
+        [key]: newValue,
+        date: selectedDayInfo.selectedDate.toISOString() // ✅ добавляем дату
+      });
     } else if (selectedDayInfo.phase === 'preparation') {
-      updatePreparationProgress(selectedDayInfo.dayInPhase, { [key]: newValue });
+      updatePreparationProgress(selectedDayInfo.dayInPhase, { 
+        [key]: newValue,
+        date: selectedDayInfo.selectedDate.toISOString() // ✅ добавляем дату
+      });
     } else {
       // Базовый день - используем дату
       const dateKey = toAlmatyDateStr(selectedDayInfo.selectedDate);
       if (updateBasicProgress) {
-        updateBasicProgress(dateKey, { [key]: newValue });
+        updateBasicProgress(dateKey, { [key]: newValue, date: selectedDayInfo.selectedDate.toISOString() });
       }
     }
   };
