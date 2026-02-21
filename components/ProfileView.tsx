@@ -151,11 +151,15 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         return withDates.filter(p => p.date && new Date(p.date) >= monthAgo);
 
       case 'ramadan':
-        const ramadanStart = new Date(2026, 1, 19);
-        const ramadanEnd = new Date(2026, 2, 20);
+        // ✅ Фильтруем по номеру дня (1-30), не по дате
+        // Потому что старые записи могут иметь неверную дату
         return withDates.filter(p => {
+          if (p.day && p.day >= 1 && p.day <= 30) return true;
+          // Fallback по дате если нет номера дня
           if (!p.date) return false;
           const d = new Date(p.date);
+          const ramadanStart = new Date(2026, 1, 19);
+          const ramadanEnd = new Date(2026, 2, 20);
           return d >= ramadanStart && d <= ramadanEnd;
         });
 
