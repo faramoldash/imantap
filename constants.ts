@@ -49,7 +49,7 @@ export const INITIAL_DAY_PROGRESS = (day: number): DayProgress => ({
 });
 
 export const TRACKER_KEYS = [
-  'tahajjud', 'fajr', 'morningDhikr', 'quranRead', 'names99', 'salawat', 
+  'fasting', 'tahajjud', 'fajr', 'morningDhikr', 'quranRead', 'names99', 'salawat', 
   'hadith', 'duha', 'charity', 'dhuhr', 'lessons', 'asr', 'book', 
   'eveningDhikr', 'maghrib', 'isha', 'taraweeh', 'witr'
 ] as const;
