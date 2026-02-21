@@ -111,71 +111,52 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     
     const now = new Date();
     
+    // ✅ Рамадан прогресс хранится по номеру дня (1-30), без поля date
+    // Восстанавливаем дату из номера дня
+    const withDates = progressArray.map(p => {
+      if (p.date) return p; // дата уже есть
+      if (p.day && isRamadanStarted) {
+        // день 1 = 19 февраля, день 2 = 20 февраля и т.д.
+        const d = new Date(2026, 1, 19 + (p.day - 1));
+        return { ...p, date: d.toISOString() };
+      }
+      return p;
+    });
+
     switch (periodFilter) {
       case 'today':
-        const todayStr = now.toLocaleDateString('en-CA', { 
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
+        const todayStr = now.toLocaleDateString('en-CA', {
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
         });
-        const todayData = progressArray.filter(p => {
-          if (!p.date) return false;
-          const itemDate = p.date.split('T')[0];
-          return itemDate === todayStr;
-        });
-        
-        console.log('📅 TODAY filter:', {
-          todayStr,
-          totalItems: progressArray.length,
-          filtered: todayData.length,
-          dates: progressArray.map(p => p.date?.split('T')[0])
-        });
-        
-        // Если сегодня нет данных, берём последний день с данными
+        const todayData = withDates.filter(p => p.date?.split('T')[0] === todayStr);
         if (todayData.length === 0) {
-          const sortedByDate = progressArray
+          const sorted = withDates
             .filter(p => p.date)
             .sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime());
-          return sortedByDate.length > 0 ? [sortedByDate[0]] : [];
+          return sorted.length > 0 ? [sorted[0]] : [];
         }
         return todayData;
-      
+
       case 'week':
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        return progressArray.filter(p => {
-          if (!p.date) return false;
-          try {
-            return new Date(p.date) >= weekAgo;
-          } catch {
-            return false;
-          }
-        });
-      
+        return withDates.filter(p => p.date && new Date(p.date) >= weekAgo);
+
       case 'month':
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        return progressArray.filter(p => {
-          if (!p.date) return false;
-          try {
-            return new Date(p.date) >= monthAgo;
-          } catch {
-            return false;
-          }
-        });
-      
+        return withDates.filter(p => p.date && new Date(p.date) >= monthAgo);
+
       case 'ramadan':
-        const ramadanStart = new Date('2026-02-19');
-        const ramadanEnd = new Date('2026-03-20');
-        return progressArray.filter(p => {
+        const ramadanStart = new Date(2026, 1, 19);
+        const ramadanEnd = new Date(2026, 2, 20);
+        return withDates.filter(p => {
           if (!p.date) return false;
-          try {
-            const date = new Date(p.date);
-            return date >= ramadanStart && date <= ramadanEnd;
-          } catch {
-            return false;
-          }
+          const d = new Date(p.date);
+          return d >= ramadanStart && d <= ramadanEnd;
         });
-      
+
       case 'all':
       default:
-        return progressArray;
+        return withDates;
     }
   };
 
