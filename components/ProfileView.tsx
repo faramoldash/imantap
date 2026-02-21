@@ -225,7 +225,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     const today = new Date().toLocaleDateString('en-CA', {
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
     });
-    const todayProgress = progressValues.find(p => p.date?.startsWith(today));
+
+    // Сначала ищем по date, если нет — берём последний элемент массива
+    const todayProgress = progressValues.find(p => p.date?.startsWith(today)) 
+      || (progressValues.length > 0 ? progressValues[progressValues.length - 1] : undefined);
 
     // ✅ Считаем количество выполненных задач
     let todayTasks = 0;
