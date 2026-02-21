@@ -113,7 +113,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     
     switch (periodFilter) {
       case 'today':
-        const todayStr = now.toISOString().split('T')[0];
+        const todayStr = now.toLocaleDateString('en-CA', { 
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
+        });
         const todayData = progressArray.filter(p => {
           if (!p.date) return false;
           const itemDate = p.date.split('T')[0];
@@ -220,7 +222,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     const prayerPercent = totalPossiblePrayers > 0 ? Math.round((totalPrayers / totalPossiblePrayers) * 100) : 0;
     
     // Сегодняшний прогресс
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('en-CA', {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
     const todayProgress = progressValues.find(p => p.date?.startsWith(today));
 
     // ✅ Считаем количество выполненных задач
@@ -457,7 +461,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
                   </span>
                 </div>
                 <p className="text-[8px] text-emerald-100 mt-1 opacity-80">
-                  {language === 'kk' ? 'Рекорд' : 'Рекорд'}: {Math.max(userData.currentStreak || 0, userData.bestStreak || 0)}
+                  {language === 'kk' ? 'Рекорд' : 'Рекорд'}: {Math.max(userData.currentStreak || 0, userData.longestStreak || 0)} {language === 'kk' ? 'күн' : 'дней'}
                 </p>
               </div>
             )}
