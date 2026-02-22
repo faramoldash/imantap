@@ -23,7 +23,6 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percent / 100) * circumference;
 
-  // ✅ ГЛАВНАЯ ЛОГИКА — XP только за НОВЫЕ джузы
   const toggleJuz = (id: number) => {
     const current = userData.completedJuzs || [];
     const earned = userData.earnedJuzXpIds || [];
@@ -33,19 +32,13 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
     let xpDelta = 0;
 
     if (current.includes(id)) {
-      // ✅ Снимаем галочку — только убираем из UI прогресса
-      // XP НЕ ЗАБИРАЕМ — пользователь уже заработал
       nextCompleted = current.filter(x => x !== id);
     } else {
-      // ✅ Ставим галочку — добавляем в прогресс
       nextCompleted = [...current, id];
-
-      // XP начисляем ТОЛЬКО если этот джуз никогда не был заработан
       if (!earned.includes(id)) {
-        xpDelta = XP_VALUES.juz ?? 150;      // 150 XP
+        xpDelta = XP_VALUES.juz ?? 150;
         nextEarned = [...earned, id];
       }
-      // Если уже в earned — xpDelta остаётся 0, тихо
     }
 
     setUserData({
@@ -56,17 +49,15 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
     });
   };
 
-  // ✅ Хатым — XP ТОЛЬКО за первый (quranKhatams === 0)
   const handleKhatamFinish = () => {
     const isFirstKhatam = (userData.quranKhatams || 0) === 0;
     const khatamBonus = isFirstKhatam ? (XP_VALUES.khatam ?? 1000) : 0;
 
     setUserData({
       ...userData,
-      completedJuzs: [],                                    // ← UI сбрасываем
+      completedJuzs: [],
       quranKhatams: (userData.quranKhatams || 0) + 1,
       xp: (userData.xp || 0) + khatamBonus,
-      // earnedJuzXpIds НЕ ТРОГАЕМ — 30 джузов остаются заработанными
     });
   };
 
@@ -91,7 +82,6 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
                 : 'МашаАлла! Вы полностью прочитали Коран.'}
             </p>
 
-            {/* XP бонус — только при первом хатыме */}
             {isFirstKhatam && (
               <div className="mb-5 bg-amber-50 px-5 py-2.5 rounded-2xl border border-amber-100 flex items-center space-x-2">
                 <span className="text-xl">🏆</span>
@@ -99,7 +89,6 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
               </div>
             )}
 
-            {/* Повторный хатым — без XP, просто инфо */}
             {!isFirstKhatam && (
               <div className="mb-5 bg-slate-50 px-5 py-2.5 rounded-2xl border border-slate-100 flex items-center space-x-2">
                 <span className="text-xl">📿</span>
@@ -148,43 +137,7 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
         )}
       </div>
 
-      {/* 2. XP Ережелер баннері */}
-      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 px-6 py-4 rounded-[2rem]">
-        <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-2">
-          {language === 'kk' ? '💎 XP Ережелері' : '💎 Правила XP'}
-        </p>
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-slate-600">
-              {language === 'kk' ? '📖 Жаңа пара (бір рет)' : '📖 Новая пара (один раз)'}
-            </span>
-            <span className="text-[11px] font-black text-emerald-700">+150 XP</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-slate-600">
-              {language === 'kk' ? '🕋 Алғашқы хатым (бір рет)' : '🕋 Первый хатым (один раз)'}
-            </span>
-            <span className="text-[11px] font-black text-emerald-700">+1000 XP</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-slate-400">
-              {language === 'kk' ? '🔄 Қайта оқу / Келесі хатым' : '🔄 Повторное чтение / хатым'}
-            </span>
-            <span className="text-[11px] font-bold text-slate-400">0 XP</span>
-          </div>
-        </div>
-        {/* Прогресс XP по джузам */}
-        <div className="mt-3 pt-3 border-t border-emerald-100 flex items-center justify-between">
-          <span className="text-[10px] text-slate-500">
-            {language === 'kk' ? 'Жалпы жинаған (пара)' : 'Всего заработано (пара)'}
-          </span>
-          <span className="text-[11px] font-black text-emerald-700">
-            {earnedCount}/30 · {earnedCount * 150} XP
-          </span>
-        </div>
-      </div>
-
-      {/* 3. Хадис */}
+      {/* 2. Хадис */}
       <div className="bg-emerald-900 p-8 rounded-[2.5rem] shadow-2xl text-white relative overflow-hidden text-center">
         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
           <span className="text-8xl font-serif">"</span>
@@ -198,7 +151,7 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
         </div>
       </div>
 
-      {/* 4. Кесте */}
+      {/* 3. Кесте */}
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-slate-50 px-6 py-5 flex items-center justify-between border-b border-slate-100 sticky top-0 z-10">
           <h4 className="text-[12px] font-black text-slate-800 uppercase tracking-widest">{t.quranScheduleTitle}</h4>
@@ -216,21 +169,18 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
                 onClick={() => toggleJuz(item.id)}
                 className={`grid grid-cols-12 gap-3 px-6 py-4 items-center transition-all cursor-pointer active:bg-slate-50 ${isDone ? 'bg-emerald-50/40' : 'bg-white'}`}
               >
-                {/* Номер джуза */}
                 <div className="col-span-2">
                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black transition-all ${isDone ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
                     {item.juz}
                   </div>
                 </div>
 
-                {/* Аят диапазоны + XP статус */}
                 <div className="col-span-8 flex flex-col justify-center">
                   <div className="flex items-center space-x-1.5">
                     <span className={`text-[11px] font-black truncate ${isDone ? 'text-emerald-800' : 'text-slate-700'}`}>{item.start}</span>
                     <span className="text-slate-300 text-[10px]">→</span>
                     <span className={`text-[11px] font-black truncate ${isDone ? 'text-emerald-800' : 'text-slate-700'}`}>{item.end}</span>
                   </div>
-                  {/* XP статусы */}
                   {isEarned ? (
                     <span className="text-[9px] font-black text-emerald-500 mt-0.5">✓ +150 XP {language === 'kk' ? 'алынды' : 'получено'}</span>
                   ) : (
@@ -238,7 +188,6 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
                   )}
                 </div>
 
-                {/* Чекбокс */}
                 <div className="col-span-2 flex justify-end">
                   <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isDone ? 'bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-200' : 'border-slate-100 bg-white'}`}>
                     {isDone && <span className="text-[12px] font-black">✓</span>}
@@ -249,6 +198,65 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
           })}
         </div>
       </div>
+
+      {/* 4. XP Ережелері — информационный блок (всегда внизу) */}
+      <div className="rounded-[2rem] border border-slate-100 bg-slate-50 overflow-hidden">
+        {/* Заголовок */}
+        <div className="px-6 pt-5 pb-3 flex items-center space-x-2 border-b border-slate-100">
+          <span className="text-base">ℹ️</span>
+          <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+            {language === 'kk' ? 'XP Ережелері' : 'Правила начисления XP'}
+          </span>
+        </div>
+
+        {/* Строки правил */}
+        <div className="px-6 py-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <span className="text-sm">📖</span>
+              <span className="text-[12px] text-slate-600">
+                {language === 'kk' ? 'Жаңа пара (бір рет)' : 'Новая пара (один раз)'}
+              </span>
+            </div>
+            <span className="text-[12px] font-black text-emerald-600">+150 XP</span>
+          </div>
+
+          <div className="h-px bg-slate-100" />
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <span className="text-sm">🕋</span>
+              <span className="text-[12px] text-slate-600">
+                {language === 'kk' ? 'Алғашқы хатым (бір рет)' : 'Первый хатым (один раз)'}
+              </span>
+            </div>
+            <span className="text-[12px] font-black text-emerald-600">+1000 XP</span>
+          </div>
+
+          <div className="h-px bg-slate-100" />
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2.5">
+              <span className="text-sm">🔄</span>
+              <span className="text-[12px] text-slate-400">
+                {language === 'kk' ? 'Қайта оқу / Келесі хатым' : 'Повторное чтение / хатым'}
+              </span>
+            </div>
+            <span className="text-[12px] font-bold text-slate-300">0 XP</span>
+          </div>
+        </div>
+
+        {/* Итого заработано */}
+        <div className="px-6 py-3 bg-white border-t border-slate-100 flex items-center justify-between">
+          <span className="text-[11px] text-slate-400">
+            {language === 'kk' ? 'Жалпы жинаған (пара)' : 'Всего заработано (пара)'}
+          </span>
+          <span className="text-[12px] font-black text-slate-600">
+            {earnedCount} / 30 · {earnedCount * 150} XP
+          </span>
+        </div>
+      </div>
+
     </div>
   );
 };
