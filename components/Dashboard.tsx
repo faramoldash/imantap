@@ -6,8 +6,10 @@ import RealCalendar from './RealCalendar';
 import SubscriptionStatus from '../components/SubscriptionStatus';
 
 // ✅ Хелпер: дата по Алматы времени (UTC+5)
-function toAlmatyDateStr(date: Date): string {
-  return date.toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
+function toLocalDateStr(date: Date): string {
+  return date.toLocaleDateString('en-CA', {
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
 }
 
 interface DashboardProps {
@@ -95,7 +97,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // ✅ ОПРЕДЕЛЯЕМ ТЕКУЩИЙ ДЕНЬ С УЧЕТОМ ФАЗЫ
   const currentDay = (() => {
-    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
     const todayDate = new Date(todayStr + 'T00:00:00+05:00');
     const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
     const daysSincePrep = Math.floor((todayDate.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
@@ -122,7 +124,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     const [py, pm, pd] = PREPARATION_START_DATE.split('-').map(Number);
     const selectedDate = new Date(py, pm - 1, pd + (selectedDay - 1));
 
-    console.log('📅 SELECTED DAY INFO:', { selectedDay, phase, dayInPhase, date: toAlmatyDateStr(selectedDate) });
+    console.log('📅 SELECTED DAY INFO:', { selectedDay, phase, dayInPhase, date: toLocalDateStr(selectedDate) });
     return { phase: phase as 'basic' | 'preparation' | 'ramadan', dayInPhase, selectedDate };
   }, [selectedDay]);
 
@@ -134,7 +136,7 @@ const Dashboard: React.FC<DashboardProps> = ({
     } else if (selectedDayInfo.phase === 'preparation') {
       data = userData?.preparationProgress?.[selectedDayInfo.dayInPhase];
     } else {
-      const dateKey = toAlmatyDateStr(selectedDayInfo.selectedDate);
+      const dateKey = toLocalDateStr(selectedDayInfo.selectedDate);
       data = userData?.basicProgress?.[dateKey];
     }
     // ✅ Если день ещё пустой — возвращаем пустой объект, а не undefined
@@ -200,18 +202,18 @@ const Dashboard: React.FC<DashboardProps> = ({
     if (selectedDayInfo.phase === 'ramadan') {
       updateProgress(selectedDayInfo.dayInPhase, { 
         [key]: newValue,
-        date: selectedDayInfo.selectedDate.toISOString() // ✅ добавляем дату
+        date: toLocalDateStr(selectedDayInfo.selectedDate)
       });
     } else if (selectedDayInfo.phase === 'preparation') {
       updatePreparationProgress(selectedDayInfo.dayInPhase, { 
         [key]: newValue,
-        date: selectedDayInfo.selectedDate.toISOString() // ✅ добавляем дату
+        date: toLocalDateStr(selectedDayInfo.selectedDate)
       });
     } else {
       // Базовый день - используем дату
-      const dateKey = toAlmatyDateStr(selectedDayInfo.selectedDate);
+      const dateKey = toLocalDateStr(selectedDayInfo.selectedDate);
       if (updateBasicProgress) {
-        updateBasicProgress(dateKey, { [key]: newValue, date: selectedDayInfo.selectedDate.toISOString() });
+        updateBasicProgress(dateKey, { [key]: newValue, date: toLocalDateStr(selectedDayInfo.selectedDate) });
       }
     }
   };
@@ -223,11 +225,11 @@ const Dashboard: React.FC<DashboardProps> = ({
     } else {
       keys = [...PREPARATION_TRACKER_KEYS];
       const dayOfWeekStr = selectedDayInfo.selectedDate.toLocaleDateString('en-US', {
-        timeZone: 'Asia/Almaty', weekday: 'short'
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, weekday: 'short'
       });
       if (dayOfWeekStr === 'Mon' || dayOfWeekStr === 'Thu') keys.push('fasting');
-      if (toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE) keys.push('taraweeh');
-      if (toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE) keys.push('eidPrayer');
+      if (toLocalDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE) keys.push('taraweeh');
+      if (toLocalDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE) keys.push('eidPrayer');
     }
     if (!displayedData) return { completed: 0, total: 0, percentage: 0 };
     const completed = keys.filter(k => displayedData[k as keyof DayProgress]).length;
@@ -515,8 +517,8 @@ const Dashboard: React.FC<DashboardProps> = ({
                 timeZone: 'Asia/Almaty', weekday: 'short'
               });
               const isMondayOrThursday = dayOfWeekStr === 'Mon' || dayOfWeekStr === 'Thu';
-              const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
-              const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
+              const isFirstTaraweehDay = toLocalDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
+              const isEidDay = toLocalDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
               
               if (!isMondayOrThursday && !isFirstTaraweehDay && !isEidDay) return null;
               
@@ -649,7 +651,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Айт намазы - 20 марта */}
       {(() => {
-        const isEidDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
+        const isEidDay = toLocalDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
         
         if (!isEidDay) return null;
         
@@ -720,7 +722,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             </>
           )}
           {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
-            const isFirstTaraweehDay = toAlmatyDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
+            const isFirstTaraweehDay = toLocalDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
             
             return isFirstTaraweehDay ? (
               <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />

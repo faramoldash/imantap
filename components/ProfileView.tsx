@@ -125,10 +125,15 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
 
     switch (periodFilter) {
       case 'today':
-        const todayStr = now.toLocaleDateString('en-CA', {
-          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
+        const todayData = withDates.filter(p => {
+          if (!p.date) return false;
+          const dateStr = p.date.length === 10
+            ? p.date
+            : new Date(p.date).toLocaleDateString('en-CA', { timeZone: userTZ });
+          return dateStr === todayStr;
         });
-        const todayData = withDates.filter(p => p.date?.split('T')[0] === todayStr);
         if (todayData.length === 0) {
           const sorted = withDates
             .filter(p => p.date)
@@ -206,14 +211,16 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     const totalPrayers = prayerStats.fajr + prayerStats.dhuhr + prayerStats.asr + prayerStats.maghrib + prayerStats.isha;
     const prayerPercent = totalPossiblePrayers > 0 ? Math.round((totalPrayers / totalPossiblePrayers) * 100) : 0;
     
-    // Сегодняшний прогресс
-    const today = new Date().toLocaleDateString('en-CA', {
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-    });
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
 
-    // Сначала ищем по date, если нет — берём последний элемент массива
-    const todayProgress = progressValues.find(p => p.date?.startsWith(today)) 
-      || (progressValues.length > 0 ? progressValues[progressValues.length - 1] : undefined);
+    const todayProgress = progressValues.find(p => {
+      if (!p.date) return false;
+      const dateStr = p.date.length === 10
+        ? p.date
+        : new Date(p.date).toLocaleDateString('en-CA', { timeZone: userTZ });
+      return dateStr === todayStr;
+    }) ?? null;
 
     // ✅ Считаем количество выполненных задач
     let todayTasks = 0;
@@ -245,8 +252,11 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         totalTodayTasks = baseTasks.length;
         
         // Добавляем условные задачи
-        const dayOfWeek = now.getDay();
-        const isMondayOrThursday = dayOfWeek === 1 || dayOfWeek === 4;
+        const weekday = now.toLocaleDateString('en-US', {
+          timeZone: userTZ,
+          weekday: 'short'
+        });
+        const isMondayOrThursday = weekday === 'Mon' || weekday === 'Thu';
         
         const firstTaraweehDate = new Date('2026-02-18T00:00:00+05:00');
         const isFirstTaraweehDay = now.toDateString() === firstTaraweehDate.toDateString();
