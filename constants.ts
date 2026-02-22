@@ -74,7 +74,7 @@ export const XP_VALUES: Record<string, number> = {
   hadith: 30,
   lessons: 30,
   book: 30,
-  juz: 500,
+  juz: 150,
   name: 15,
   referral: 100, // Updated to 100 XP per invited friend
   khatam: 1000, // Bonus for finishing Quran

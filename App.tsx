@@ -56,6 +56,7 @@ const App: React.FC = () => {
       basicProgress: {},
       memorizedNames: [],
       completedJuzs: [],
+      earnedJuzXpIds: [],
       quranKhatams: 0,
       completedTasks: [],
       deletedPredefinedTasks: [],
@@ -114,6 +115,7 @@ const App: React.FC = () => {
     if (initialUserData) {
       const correctedData = {
         ...initialUserData,
+        earnedJuzXpIds: initialUserData.earnedJuzXpIds || [],
         startDate: RAMADAN_START_DATE,
         progress: initialUserData.progress || {},
         preparationProgress: initialUserData.preparationProgress || {},
@@ -333,6 +335,7 @@ const App: React.FC = () => {
         basicProgress: currentUserData.basicProgress,
         memorizedNames: currentUserData.memorizedNames,
         completedJuzs: currentUserData.completedJuzs,
+        earnedJuzXpIds: currentUserData.earnedJuzXpIds || [],
         quranKhatams: currentUserData.quranKhatams,
         completedTasks: currentUserData.completedTasks,
         deletedPredefinedTasks: currentUserData.deletedPredefinedTasks,
@@ -367,6 +370,7 @@ const App: React.FC = () => {
             basicProgress: currentUserData.basicProgress,
             memorizedNames: currentUserData.memorizedNames,
             completedJuzs: currentUserData.completedJuzs,
+            earnedJuzXpIds: currentUserData.earnedJuzXpIds || [],
             quranKhatams: currentUserData.quranKhatams,
             completedTasks: currentUserData.completedTasks,
             deletedPredefinedTasks: currentUserData.deletedPredefinedTasks,

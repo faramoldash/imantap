@@ -49,6 +49,7 @@ export interface UserData {
   basicProgress: Record<string, Partial<DayProgress>>;
   memorizedNames: number[]; 
   completedJuzs: number[];
+  earnedJuzXpIds: number[]; 
   quranKhatams: number; // Number of times Quran was completed
   completedTasks: number[]; 
   deletedPredefinedTasks: number[]; 
