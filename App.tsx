@@ -230,29 +230,34 @@ const App: React.FC = () => {
 
   const t = TRANSLATIONS[userData.language];
 
+  // ✅ НОВЫЙ — только дата, без времени суток (как в Dashboard.tsx)
   useEffect(() => {
-    const almatyOffset = 5 * 60;
-    const now = new Date();
-    const almatyTime = new Date(now.getTime() + (almatyOffset + now.getTimezoneOffset()) * 60000);
+      const getAlmatyDay = () => {
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
+        const todayDate = new Date(todayStr + 'T00:00:00+05:00');
+        const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+        const daysSincePrep = Math.floor((todayDate.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
+        return Math.max(1, daysSincePrep + 1);
+      };
 
-    // ✅ ВСЕГДА от 9 февраля — единая система
-    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
-    const daysSincePrep = Math.floor((almatyTime.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
-    const calculatedDay = Math.max(1, daysSincePrep + 1);
+      const calculatedDay = getAlmatyDay();
 
-    setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
-
-    if (!hasInitializedDay.current) {
-      setSelectedDay(calculatedDay);
-      hasInitializedDay.current = true;
-    }
-
-    const interval = setInterval(() => {
       setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
-    }, 60000);
 
-    return () => clearInterval(interval);
-  }, [ramadanInfo.isStarted]);
+      if (!hasInitializedDay.current) {
+        setSelectedDay(calculatedDay);
+        hasInitializedDay.current = true;
+      }
+
+      const interval = setInterval(() => {
+        setRealTodayDay(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
+        // ✅ Автоматически переходим на новый день в полночь
+        const newDay = getAlmatyDay();
+        setSelectedDay(prev => prev === newDay - 1 ? newDay : prev);
+      }, 60000);
+
+      return () => clearInterval(interval);
+    }, [ramadanInfo.isStarted]);
 
   // ✅ Отслеживание клавиатуры + автоскролл к полю
   useEffect(() => {
