@@ -170,7 +170,7 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
                     <span className={`text-[11px] font-black truncate ${isDone ? 'text-emerald-800' : 'text-slate-700'}`}>{item.end}</span>
                   </div>
                   {isEarned ? (
-                    <span className="text-[9px] font-black text-emerald-500 mt-0.5">✓ +150 XP {language === 'kk' ? 'алынды' : 'получено'}</span>
+                    <span className="text-[9px] font-black text-emerald-500 mt-0.5">✓ +150 XP {language === 'kk' ? 'берілді' : 'получено'}</span>
                   ) : (
                     <span className="text-[9px] font-bold text-slate-300 mt-0.5">+150 XP</span>
                   )}
