@@ -19,12 +19,12 @@ type FilterType = 'global' | 'country' | 'city' | 'friends';
 const XP_GUIDE_NAMAZ = [
   { emoji: '🌅', nameKk: 'Бамдат', nameRu: 'Фаджр', xp: 50 },
   { emoji: '☀️', nameKk: 'Дұха', nameRu: 'Духа', xp: 30 },
-  { emoji: '🌤', nameKk: 'Бесін', nameRu: 'Зухр', xp: 50 },
+  { emoji: '🌤️', nameKk: 'Бесін', nameRu: 'Зухр', xp: 50 },
   { emoji: '🌇', nameKk: 'Екінді', nameRu: 'Аср', xp: 50 },
   { emoji: '🌆', nameKk: 'Ақшам', nameRu: 'Магриб', xp: 50 },
   { emoji: '🌙', nameKk: 'Құптан', nameRu: 'Иша', xp: 50 },
   { emoji: '🌟', nameKk: 'Тәравих', nameRu: 'Таравих', xp: 100 },
-  { emoji: '✨', nameKk: 'Тәhажжуд', nameRu: 'Тахаджуд', xp: 100 },
+  { emoji: '✨', nameKk: 'Тәхажжуд', nameRu: 'Тахаджуд', xp: 100 },
   { emoji: '🤲', nameKk: 'Витр', nameRu: 'Витр', xp: 50 },
 ];
 
@@ -42,11 +42,32 @@ const XP_GUIDE_IBADAH = [
 ];
 
 const XP_GUIDE_BONUS = [
-  { emoji: '📿', nameKk: 'Аллаh есімін жаттау', nameRu: 'Имя Аллаха выучено', xp: 100 },
+  { emoji: '📿', nameKk: 'Аллах есімін жаттау', nameRu: 'Имя Аллаха выучено', xp: 100 },
   { emoji: '🎉', nameKk: 'Алғашқы Құран хатымы', nameRu: 'Первый хатым Корана', xp: 1000 },
   { emoji: '👥', nameKk: 'Дос шақыру', nameRu: 'Пригласить друга', xp: 100 },
   { emoji: '💎', nameKk: 'Досың төлемі', nameRu: 'Оплата друг', xp: 400 },
 ];
+
+const XpSection = ({ titleKk, titleRu, items, language }: {
+  titleKk: string; titleRu: string;
+  items: { emoji: string; nameKk: string; nameRu: string; xp: number }[];
+  language: Language;
+}) => (
+  <div>
+    <div className="px-6 pt-5 pb-2">
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        {language === 'kk' ? titleKk : titleRu}
+      </p>
+      <div className="mt-2 h-px bg-slate-100" />
+    </div>
+    {items.map(item => (
+      <div key={item.nameKk} className="flex items-center justify-between px-6 py-2.5">
+        <span className="text-[13px] text-slate-700">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
+        <span className="text-[13px] font-black text-amber-500">+{item.xp}</span>
+      </div>
+    ))}
+  </div>
+);
 
 const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigate }) => {
   const t = TRANSLATIONS[language];
@@ -265,7 +286,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
       </div>
 
       {/* ⚡ XP ГАЙД */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
 
         {/* Шапка */}
         <button
@@ -273,8 +294,8 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           className="w-full flex items-center justify-between px-6 py-5 active:bg-slate-50 transition-colors"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-400 rounded-[1.5rem] flex items-center justify-center shadow-sm shadow-amber-200/60 flex-shrink-0">
-              <span className="text-xl">⚡</span>
+            <div className="w-11 h-11 bg-gradient-to-br from-amber-400 to-orange-400 rounded-2xl flex items-center justify-center shadow-sm shadow-amber-200/60 flex-shrink-0">
+              <span className="text-lg">⚡</span>
             </div>
             <div className="text-left">
               <p className="font-black text-slate-800 text-sm">
@@ -293,81 +314,50 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
         </button>
 
         {xpGuideOpen && (
-          <div className="border-t border-slate-100 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="animate-in fade-in slide-in-from-top-1 duration-200">
 
-            {/* 🔥 Стрик — компактный */}
-            <div className="mx-4 my-4 bg-gradient-to-r from-orange-500 to-amber-400 rounded-2xl p-4 text-white flex items-center justify-between">
-              <div className="flex items-center space-x-2.5">
-                <span className="text-xl">🔥</span>
-                <div>
-                  <p className="font-black text-sm leading-none">
-                    {language === 'kk' ? 'Стрик бонусы' : 'Бонус серии'}
-                  </p>
-                  <p className="text-[11px] text-white/75 mt-0.5">
-                    {language === 'kk' ? 'Күн сайын белсенді болыңыз' : 'Будьте активны каждый день'}
-                  </p>
+            {/* 🔥 Стрик */}
+            <div className="px-6 pb-4">
+              <div className="bg-gradient-to-r from-orange-500 to-amber-400 rounded-2xl p-4 text-white flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="text-xl">🔥</span>
+                  <div>
+                    <p className="font-black text-sm leading-none">
+                      {language === 'kk' ? 'Стрик бонусы' : 'Бонус серии'}
+                    </p>
+                    <p className="text-[11px] text-white/75 mt-0.5">
+                      {language === 'kk' ? 'Күн сайын белсенді болыңыз' : 'Будьте активны каждый день'}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <div className="bg-white/20 rounded-xl px-3 py-2 text-center">
+                    <p className="font-black text-sm leading-none">×2.0</p>
+                    <p className="text-[9px] text-white/75 mt-0.5">{language === 'kk' ? '10 күн' : '10 дней'}</p>
+                  </div>
+                  <div className="bg-white/30 border border-white/40 rounded-xl px-3 py-2 text-center">
+                    <p className="font-black text-sm leading-none">×3.0</p>
+                    <p className="text-[9px] text-white/75 mt-0.5">{language === 'kk' ? '20+ күн' : '20+ дней'}</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-2 flex-shrink-0">
-                <div className="bg-white/20 rounded-xl px-3 py-2 text-center">
-                  <p className="font-black text-sm leading-none">×2.0</p>
-                  <p className="text-[9px] text-white/75 mt-0.5">{language === 'kk' ? '10 күн' : '10 дней'}</p>
-                </div>
-                <div className="bg-white/30 border border-white/40 rounded-xl px-3 py-2 text-center">
-                  <p className="font-black text-sm leading-none">×3.0</p>
-                  <p className="text-[9px] text-white/75 mt-0.5">{language === 'kk' ? '20+ күн' : '20+ дней'}</p>
-                </div>
-              </div>
             </div>
 
-            {/* 🕌 Намаз */}
-            <div className="border-t border-slate-100">
-              <div className="flex items-center space-x-2.5 px-5 py-3 bg-slate-50">
-                <div className="w-1 h-4 bg-emerald-500 rounded-full"></div>
-                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">🕌  {language === 'kk' ? 'Намаз' : 'Намаз'}</span>
-              </div>
-              <div className="grid grid-cols-2 px-4 pt-1 pb-3">
-                {XP_GUIDE_NAMAZ.map(item => (
-                  <div key={item.nameKk} className="flex items-center justify-between py-1.5 px-1">
-                    <span className="text-[12px] text-slate-600 truncate mr-1">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[11px] font-black text-amber-500 flex-shrink-0">+{item.xp}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Секции */}
+            <XpSection
+              titleKk="Намаз" titleRu="Намаз"
+              items={XP_GUIDE_NAMAZ} language={language}
+            />
+            <XpSection
+              titleKk="Ибадат" titleRu="Ибадат"
+              items={XP_GUIDE_IBADAH} language={language}
+            />
+            <XpSection
+              titleKk="Бонустар" titleRu="Бонусы"
+              items={XP_GUIDE_BONUS} language={language}
+            />
 
-            {/* 📖 Ибадат */}
-            <div className="border-t border-slate-100">
-              <div className="flex items-center space-x-2.5 px-5 py-3 bg-slate-50">
-                <div className="w-1 h-4 bg-emerald-500 rounded-full"></div>
-                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">📖  {language === 'kk' ? 'Ибадат' : 'Ибадат'}</span>
-              </div>
-              <div className="grid grid-cols-2 px-4 pt-1 pb-3">
-                {XP_GUIDE_IBADAH.map(item => (
-                  <div key={item.nameKk} className="flex items-center justify-between py-1.5 px-1">
-                    <span className="text-[12px] text-slate-600 truncate mr-1">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[11px] font-black text-amber-500 flex-shrink-0">+{item.xp}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 🎁 Бонусы */}
-            <div className="border-t border-slate-100">
-              <div className="flex items-center space-x-2.5 px-5 py-3 bg-slate-50">
-                <div className="w-1 h-4 bg-emerald-500 rounded-full"></div>
-                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">🎁  {language === 'kk' ? 'Бонустар' : 'Бонусы'}</span>
-              </div>
-              <div className="px-5 pt-1 pb-4">
-                {XP_GUIDE_BONUS.map(item => (
-                  <div key={item.nameKk} className="flex items-center justify-between py-1.5">
-                    <span className="text-[12px] text-slate-600 flex-1 pr-3">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[11px] font-black text-amber-500 flex-shrink-0">+{item.xp}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
+            <div className="pb-2" />
           </div>
         )}
       </div>
