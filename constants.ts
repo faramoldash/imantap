@@ -8,6 +8,7 @@ export const PREPARATION_START_DATE = '2026-02-09'; // 9 февраля
 export const PREPARATION_DAYS = 10; // 9-18 февраля (10 дней)
 export const FIRST_TARAWEEH_DATE = '2026-02-18'; // 18 февраля - первый день таравих намаза
 export const EID_AL_FITR_DATE = '2026-03-20'; // 20 марта - Ораза айт
+export const POST_RAMADAN_START_DAY = PREPARATION_DAYS + TOTAL_DAYS + 1;
 
 // Ramadan 2026 start date
 export const RAMADAN_START_DATE = '2026-02-19';

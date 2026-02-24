@@ -70,7 +70,8 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
     return days;
   }, [currentMonth]);
   
-  const todayAlmatyStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
+  const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const todayAlmatyStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
   
   const ramadanStart = new Date(ramadanStartDate + 'T00:00:00+05:00');
   const ramadanEnd = new Date(ramadanStart.getTime() + 28 * 86400000);
@@ -98,6 +99,11 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
     if (!date) return false;
     const str = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     return str === firstTaraweehDate; // ✅ сравниваем строку с пропсом 'YYYY-MM-DD'
+  };
+
+  const isPostRamadanDay = (date: Date | null) => {
+    if (!date) return false;
+    return date > ramadanEnd; // 20 марта и далее (Ораза айт + базовые дни)
   };
 
   const isEidDay = (date: Date | null) => {
@@ -142,7 +148,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   const prepStartMs = new Date(preparationStartDate + 'T00:00:00+05:00').getTime();
   const selectedDateMs = prepStartMs + (selectedDay - 1) * 86400000;
   const selectedDateStr = new Date(selectedDateMs)
-    .toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
+    .toLocaleDateString('en-CA', { timeZone: userTZ });
 
   return (
     <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
@@ -196,6 +202,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
           const isPrep = isPreparationDay(date);
           const isTaraweeh = isFirstTaraweehDay(date);
           const isEid = isEidDay(date);
+          const isPostRamadan = isPostRamadanDay(date) && !isEid; // базовые дни (не Ораза айт)
           
           const ramadanDay = isRamadan ? getRamadanDayNumber(date) : null;
           const prepDay = isPrep ? getPreparationDayNumber(date) : null;

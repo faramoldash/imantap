@@ -112,12 +112,18 @@ const Dashboard: React.FC<DashboardProps> = ({
     let phase: 'basic' | 'preparation' | 'ramadan';
     let dayInPhase: number;
 
+    const ramadanEndMs = new Date('2026-03-19T00:00:00+05:00').getTime();
+
     if (selectedDateMs < ramadanStartMs) {
       phase = 'preparation';
       dayInPhase = selectedDay;
-    } else {
+    } else if (selectedDateMs <= ramadanEndMs) {
       phase = 'ramadan';
       dayInPhase = Math.floor((selectedDateMs - ramadanStartMs) / 86400000) + 1;
+    } else {
+      // ✅ Ораза айт + базовые дни после Рамадана
+      phase = 'basic';
+      dayInPhase = selectedDay; // не важно, данные хранятся по дате через toLocalDateStr
     }
 
     // ✅ Создаём локальную дату без UTC смещения
@@ -148,7 +154,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // ✅ НАВИГАЦИЯ
   const canGoPrev = selectedDay > 1;
-  const canGoNext = selectedDay < (PREPARATION_DAYS + TOTAL_DAYS); // 10 + 29 = 39
+  const canGoNext = selectedDay < currentDay;
 
   const goToPrevDay = () => {
     if (canGoPrev) {
