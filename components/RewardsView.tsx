@@ -265,23 +265,23 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
       </div>
 
       {/* ⚡ XP ГАЙД */}
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-sky-100 overflow-hidden">
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
 
         {/* Шапка */}
         <button
           onClick={() => setXpGuideOpen(p => !p)}
-          className="w-full flex items-center justify-between p-6 active:bg-slate-50 transition-colors"
+          className="w-full flex items-center justify-between px-6 py-5 active:bg-slate-50 transition-colors"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 bg-amber-100 rounded-[2rem] flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl">⚡</span>
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-400 rounded-[1.5rem] flex items-center justify-center shadow-sm shadow-amber-200/60 flex-shrink-0">
+              <span className="text-xl">⚡</span>
             </div>
             <div className="text-left">
-              <p className="font-black text-slate-800">
+              <p className="font-black text-slate-800 text-sm leading-snug">
                 {language === 'kk' ? 'XP қалай жинауға болады?' : 'Как зарабатывать XP?'}
               </p>
-              <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">
-                {language === 'kk' ? 'Барлық іс-әрекеттер тізімі' : 'Полный список действий'}
+              <p className="text-[11px] text-amber-500 font-bold mt-0.5">
+                {language === 'kk' ? 'Күнде 1730+ XP жинауға болады' : 'Можно заработать 1730+ XP в день'}
               </p>
             </div>
           </div>
@@ -292,67 +292,89 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           </div>
         </button>
 
-        {/* Разворачиваемый контент */}
         {xpGuideOpen && (
-          <div className="px-6 pb-6 space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="border-t border-slate-50 animate-in fade-in slide-in-from-top-1 duration-200">
 
-            {/* Стрик — как XP Ережелері в QuranTracker, но в amber цветах */}
-            <div className="px-5 py-4 rounded-[1.75rem] bg-amber-50 border border-amber-100">
-              <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-3">
-                🔥  {language === 'kk' ? 'Стрик мультипликаторы' : 'Множитель серии'}
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[12px] text-slate-500">{language === 'kk' ? '10 күн белсенділік' : '10 дней активности'}</span>
-                  <span className="text-[12px] font-black text-amber-500">×2.0</span>
+            {/* 🔥 Стрик */}
+            <div className="mx-4 mt-4 bg-gradient-to-r from-orange-500 to-amber-400 rounded-[1.75rem] p-4 text-white">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xl">🔥</span>
+                  <div>
+                    <p className="font-black text-sm leading-none">
+                      {language === 'kk' ? 'Стрик мультипликаторы' : 'Множитель серии'}
+                    </p>
+                    <p className="text-[11px] text-white/80 mt-0.5">
+                      {language === 'kk' ? 'Күн сайын белсенді болыңыз' : 'Будьте активны каждый день'}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[12px] text-slate-500">{language === 'kk' ? '20+ күн белсенділік' : '20+ дней активности'}</span>
-                  <span className="text-[12px] font-black text-amber-500">×3.0 MAX</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-white/20 rounded-xl px-3 py-2 text-center">
+                  <p className="font-black text-base leading-none">×2.0</p>
+                  <p className="text-[10px] text-white/80 mt-1">{language === 'kk' ? '10 күн' : '10 дней'}</p>
+                </div>
+                <div className="bg-white/20 rounded-xl px-3 py-2 text-center">
+                  <p className="font-black text-base leading-none">×2.5</p>
+                  <p className="text-[10px] text-white/80 mt-1">{language === 'kk' ? '15 күн' : '15 дней'}</p>
+                </div>
+                <div className="bg-white/30 rounded-xl px-3 py-2 text-center border border-white/40">
+                  <p className="font-black text-base leading-none">×3.0</p>
+                  <p className="text-[10px] text-white/80 mt-1">{language === 'kk' ? '20+ күн' : '20+ дней'}</p>
                 </div>
               </div>
             </div>
 
-            {/* Намаз */}
-            <div className="px-5 py-4 rounded-[1.75rem] bg-slate-50 border border-slate-100">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                🕌  {language === 'kk' ? 'Намаз' : 'Намаз'}
-              </p>
-              <div className="space-y-2">
+            {/* 🕌 Намаз */}
+            <div className="mx-4 mt-3 rounded-[1.75rem] border border-emerald-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 px-5 py-3 flex items-center space-x-2">
+                <span className="text-sm">🕌</span>
+                <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">
+                  {language === 'kk' ? 'Намаз' : 'Намаз'}
+                </p>
+              </div>
+              <div className="divide-y divide-emerald-50/80">
                 {XP_GUIDE_NAMAZ.map(item => (
-                  <div key={item.nameKk} className="flex items-center justify-between">
-                    <span className="text-[12px] text-slate-500">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[12px] font-black text-amber-500">+{item.xp} XP</span>
+                  <div key={item.nameKk} className="flex items-center justify-between px-5 py-3">
+                    <span className="text-[13px] text-slate-600">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                    <span className="text-[11px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full whitespace-nowrap">+{item.xp} XP</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Ибадат */}
-            <div className="px-5 py-4 rounded-[1.75rem] bg-slate-50 border border-slate-100">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                📖  {language === 'kk' ? 'Ибадат' : 'Ибадат'}
-              </p>
-              <div className="space-y-2">
+            {/* 📖 Ибадат */}
+            <div className="mx-4 mt-3 rounded-[1.75rem] border border-sky-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-sky-50 to-blue-50 px-5 py-3 flex items-center space-x-2">
+                <span className="text-sm">📖</span>
+                <p className="text-[10px] font-black text-sky-700 uppercase tracking-widest">
+                  {language === 'kk' ? 'Ибадат' : 'Ибадат'}
+                </p>
+              </div>
+              <div className="divide-y divide-sky-50/80">
                 {XP_GUIDE_IBADAH.map(item => (
-                  <div key={item.nameKk} className="flex items-center justify-between">
-                    <span className="text-[12px] text-slate-500">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[12px] font-black text-amber-500">+{item.xp} XP</span>
+                  <div key={item.nameKk} className="flex items-center justify-between px-5 py-3">
+                    <span className="text-[13px] text-slate-600">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                    <span className="text-[11px] font-black text-sky-600 bg-sky-50 px-2.5 py-1 rounded-full whitespace-nowrap">+{item.xp} XP</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Бонусы */}
-            <div className="px-5 py-4 rounded-[1.75rem] bg-slate-50 border border-slate-100">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                🎁  {language === 'kk' ? 'Бонустар' : 'Бонусы'}
-              </p>
-              <div className="space-y-2">
+            {/* 🎁 Бонусы */}
+            <div className="mx-4 mt-3 mb-5 rounded-[1.75rem] border border-violet-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-violet-50 to-purple-50 px-5 py-3 flex items-center space-x-2">
+                <span className="text-sm">🎁</span>
+                <p className="text-[10px] font-black text-violet-700 uppercase tracking-widest">
+                  {language === 'kk' ? 'Бонустар' : 'Бонусы'}
+                </p>
+              </div>
+              <div className="divide-y divide-violet-50/80">
                 {XP_GUIDE_BONUS.map(item => (
-                  <div key={item.nameKk} className="flex items-center justify-between">
-                    <span className="text-[12px] text-slate-500 flex-1 pr-4">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[12px] font-black text-amber-500 whitespace-nowrap">+{item.xp} XP</span>
+                  <div key={item.nameKk} className="flex items-center justify-between px-5 py-3">
+                    <span className="text-[13px] text-slate-600 flex-1 pr-3">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                    <span className="text-[11px] font-black text-violet-600 bg-violet-50 px-2.5 py-1 rounded-full whitespace-nowrap">+{item.xp} XP</span>
                   </div>
                 ))}
               </div>
