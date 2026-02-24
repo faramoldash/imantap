@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Language, UserData } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
-import { getUserCircles, getCircleDetails, createCircle, inviteToCircle } from '../src/services/api';
+import { createCircle, inviteToCircle } from '../src/services/api';
 import { useUserCircles } from '../src/hooks/useUserCircles';
 
 
@@ -47,6 +47,28 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     | { type: 'invite-username' };
 
   const [modal, setModal] = useState<CirclesModal>({ type: 'none' });
+  
+  // ✅ Локальный расчёт прогресса — мгновенно, без ожидания API
+  const getMyLocalProgress = useCallback(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const customTasks = userData.customTasks || [];
+    let totalGoals = customTasks.length;
+    let completedGoals = customTasks.filter((t: any) => t.completed).length;
+
+    const basicToday = (userData.basicProgress as any)?.[today];
+    if ((userData.dailyQuranGoal || 0) > 0) {
+      totalGoals++;
+      if ((basicToday?.quranPages || 0) >= (userData.dailyQuranGoal || 1)) completedGoals++;
+    }
+    if ((userData.dailyCharityGoal || 0) > 0) {
+      totalGoals++;
+      if ((basicToday?.charityAmount || 0) >= (userData.dailyCharityGoal || 1)) completedGoals++;
+    }
+    const percent = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
+    return { completed: completedGoals, total: totalGoals, percent };
+  }, [userData.customTasks, userData.basicProgress, userData.dailyQuranGoal, userData.dailyCharityGoal]);
+
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (navigationData?.circleId && circles.length > 0) {
@@ -64,6 +86,18 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
       setModal({ type: 'join' });
     }
   }, [navigationData?.action, setModal]);
+
+  // ✅ Обновляем круг через 6 секунд после изменения задач пользователя
+  useEffect(() => {
+    if (!selectedCircle?.circleId) return;
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    refreshTimerRef.current = setTimeout(() => {
+      loadCircleDetails(selectedCircle.circleId);
+    }, 6000);
+    return () => {
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    };
+  }, [userData.customTasks, userData.basicProgress]);
 
   const handleCreateCircle = async () => {
     if (!circleName.trim()) return;
@@ -196,7 +230,12 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     if (!selectedCircle?.membersWithProgress || selectedCircle.membersWithProgress.length === 0) {
       return { averageProgress: 0, topMember: null, activeMembers: 0 };
     }
-    const members = selectedCircle.membersWithProgress;
+    // ✅ Для текущего юзера берём локальный прогресс
+    const myLocal = getMyLocalProgress();
+    const members = selectedCircle.membersWithProgress.map((m: any) => ({
+      ...m,
+      todayProgress: m.userId === userData.userId ? myLocal : m.todayProgress
+    }));
     const totalProgress = members.reduce((sum: number, m: any) => sum + m.todayProgress.percent, 0);
     const averageProgress = Math.round(totalProgress / members.length);
     const topMember = members.reduce((best: any, current: any) => {
@@ -664,6 +703,8 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               <div className="space-y-3 mb-5">
                 {selectedCircle.membersWithProgress?.map((member: any, index: number) => {
                   const isCurrentUser = member.userId === userData.userId;
+                  // ✅ Для себя — локальные данные, для других — с сервера
+                  const progressToShow = isCurrentUser ? getMyLocalProgress() : member.todayProgress;
                   const rank = index + 1;
                   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : null;
                   
@@ -691,14 +732,14 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                               )}
                             </p>
                             <p className="text-slate-400 text-[10px] font-bold">
-                              {member.todayProgress.completed}/{member.todayProgress.total} {language === 'kk' ? 'тапсырма' : 'задач'}
+                              {progressToShow.completed}/{progressToShow.total} {language === 'kk' ? 'тапсырма' : 'задач'}
                             </p>
                           </div>
                         </div>
                         
                         <div className="flex items-center space-x-2 flex-shrink-0">
                           <span className="text-xl font-black bg-gradient-to-br from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-                            {member.todayProgress.percent}%
+                            {progressToShow.percent}%
                           </span>
                           {isOwner && !isCurrentUser && (
                             <button 
@@ -716,7 +757,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                       <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500 rounded-full" 
-                          style={{ width: `${member.todayProgress.percent}%` }}
+                          style={{ width: `${progressToShow.percent}%` }}
                         ></div>
                       </div>
                     </div>
