@@ -545,10 +545,45 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
                     <span className={`w-6 text-xs font-black transition-all ${
                       user.rank === 1 ? 'text-amber-500 text-xl' : user.rank === 2 ? 'text-slate-400 text-lg' : user.rank === 3 ? 'text-amber-700 text-lg' : 'text-slate-300'
                     }`}>{user.rank}.</span>
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black transition-all ${
-                      user.isMe ? 'bg-emerald-600 text-white scale-110' : 'bg-slate-100 text-slate-600'
+                    <div className={`w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0 transition-all ${
+                      user.isMe ? 'ring-2 ring-emerald-500 scale-110' : ''
                     }`}>
-                      {(user.name || user.username || 'U').charAt(0).toUpperCase()}
+                      {(() => {
+                        // Для себя — из userData, для других — из поля photoUrl
+                        const photo = user.isMe
+                          ? (userData.photoUrl || user.photoUrl)
+                          : user.photoUrl;
+
+                        if (photo) {
+                          return (
+                            <img
+                              src={photo}
+                              alt={user.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                // Если фото не загрузилось — показываем букву
+                                const target = e.currentTarget;
+                                target.style.display = 'none';
+                                target.nextElementSibling?.removeAttribute('style');
+                              }}
+                            />
+                          );
+                        }
+                        return null;
+                      })()}
+                      <div
+                        className={`w-full h-full flex items-center justify-center text-sm font-black ${
+                          user.isMe ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
+                        }`}
+                        style={(() => {
+                          const photo = user.isMe
+                            ? (userData.photoUrl || user.photoUrl)
+                            : user.photoUrl;
+                          return photo ? { display: 'none' } : {};
+                        })()}
+                      >
+                        {(user.name || user.username || 'U').charAt(0).toUpperCase()}
+                      </div>
                     </div>
                     <div>
                       <p className={`text-sm font-black ${user.isMe ? 'text-emerald-900' : 'text-slate-700'}`}>

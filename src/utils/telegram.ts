@@ -55,18 +55,18 @@ export function initTelegramApp(): void {
     tg.ready();
     tg.expand();
     
-    // ✅ Отключаем изменение viewport при клавиатуре
-    if (tg.isVerticalSwipesEnabled !== undefined) {
-      tg.isVerticalSwipesEnabled = false;
+    // ✅ Правильный способ отключить вертикальные свайпы:
+    if (typeof tg.disableVerticalSwipes === 'function') {
+      tg.disableVerticalSwipes();
     }
     
-    // ✅ Включаем подтверждение закрытия
     tg.enableClosingConfirmation();
     
     console.log('✅ Telegram WebApp инициализирован');
     console.log('📱 Platform:', tg.platform);
     console.log('🎨 Color scheme:', tg.colorScheme);
     console.log('👤 User ID:', tg.initDataUnsafe?.user?.id);
+    console.log('🖼 Photo URL:', tg.initDataUnsafe?.user?.photo_url); // ✅ Добавь для отладки
     console.log('📏 Viewport height:', tg.viewportStableHeight);
   } else {
     console.warn('⚠️ Telegram WebApp недоступен');

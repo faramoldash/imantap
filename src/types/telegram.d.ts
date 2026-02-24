@@ -77,6 +77,12 @@ export interface TelegramWebApp {
   sendData: (data: string) => void;
   switchInlineQuery: (query: string, choose_chat_types?: string[]) => void;
   openInvoice: (url: string, callback?: (status: string) => void) => void;
+  disableVerticalSwipes: () => void;
+  enableVerticalSwipes: () => void;
+  requestFullscreen?: () => void;
+  exitFullscreen?: () => void;
+  lockOrientation?: () => void;
+  unlockOrientation?: () => void;
 }
 
 declare global {
