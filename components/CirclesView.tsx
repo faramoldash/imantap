@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { Language, UserData } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
 import { createCircle, inviteToCircle, getUserData } from '../src/services/api';
@@ -985,7 +986,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
         )}
 
         {/* 🔍 МОДАЛ: детали участника */}
-        {memberDetailModal && (
+        {memberDetailModal && ReactDOM.createPortal(
           <div
             onClick={() => setMemberDetailModal(null)}
             style={{
@@ -1107,7 +1108,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               )}
             </div>
           </div>
-        )}
+        , document.body)}
       </div>
     </>
   );
