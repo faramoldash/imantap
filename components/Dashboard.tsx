@@ -97,9 +97,10 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // ✅ ОПРЕДЕЛЯЕМ ТЕКУЩИЙ ДЕНЬ С УЧЕТОМ ФАЗЫ
   const currentDay = (() => {
-    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
-    const todayDate = new Date(todayStr + 'T00:00:00+05:00');
-    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
+    const todayDate = new Date(todayStr + 'T00:00:00');
+    const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00');
     const daysSincePrep = Math.floor((todayDate.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
     return Math.max(1, daysSincePrep + 1);
   })();
