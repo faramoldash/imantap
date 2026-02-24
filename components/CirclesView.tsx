@@ -48,13 +48,38 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
 
   const [modal, setModal] = useState<CirclesModal>({ type: 'none' });
   
+  // 19 ибадат-задач Рамадана (те же что считает бэкенд)
+  const RAMADAN_TASKS = [
+    'fasting', 'tahajjud', 'fajr', 'morningDhikr', 'quranRead',
+    'names99', 'salawat', 'hadith', 'duha', 'charity', 'dhuhr',
+    'lessons', 'asr', 'book', 'eveningDhikr', 'maghrib', 'isha',
+    'taraweeh', 'witr'
+  ];
+
   // ✅ Локальный расчёт прогресса — мгновенно, без ожидания API
   const getMyLocalProgress = useCallback(() => {
-    const today = new Date().toISOString().split('T')[0];
+    // Вычисляем текущий день Рамадана из startDate
+    const [sy, sm, sd] = userData.startDate.split('-').map(Number);
+    const startDate = new Date(sy, sm - 1, sd);
+    const now = new Date();
+    const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffDays = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const ramadanDay = diffDays >= 0 ? diffDays + 1 : null;
+
+    // Рамадан идёт — считаем 19 ибадат-задач
+    if (ramadanDay) {
+      const dayProgress = (userData.progress[ramadanDay] || {}) as any;
+      const total = RAMADAN_TASKS.length; // 19
+      const completed = RAMADAN_TASKS.filter(key => dayProgress[key] === true).length;
+      const percent = Math.round((completed / total) * 100);
+      return { completed, total, percent };
+    }
+
+    // До Рамадана — считаем customTasks + цели
     const customTasks = userData.customTasks || [];
     let totalGoals = customTasks.length;
     let completedGoals = customTasks.filter((t: any) => t.completed).length;
-
+    const today = new Date().toISOString().split('T')[0];
     const basicToday = (userData.basicProgress as any)?.[today];
     if ((userData.dailyQuranGoal || 0) > 0) {
       totalGoals++;
@@ -66,7 +91,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     }
     const percent = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
     return { completed: completedGoals, total: totalGoals, percent };
-  }, [userData.customTasks, userData.basicProgress, userData.dailyQuranGoal, userData.dailyCharityGoal]);
+  }, [userData.progress, userData.startDate, userData.customTasks, userData.basicProgress, userData.dailyQuranGoal, userData.dailyCharityGoal]);
 
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
