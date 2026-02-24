@@ -31,6 +31,7 @@ const XP_GUIDE_NAMAZ = [
 const XP_GUIDE_IBADAH = [
   { emoji: '🌙', nameKk: 'Ораза', nameRu: 'Пост', xp: 200 },
   { emoji: '📖', nameKk: 'Құран оқу', nameRu: 'Чтение Корана', xp: 100 },
+  { emoji: '📄', nameKk: 'Бір пара', nameRu: 'Одна пара', xp: 150 },
   { emoji: '🌅', nameKk: 'Таңғы зікір', nameRu: 'Утр. зикр', xp: 30 },
   { emoji: '🌌', nameKk: 'Кешкі зікір', nameRu: 'Веч. зикр', xp: 30 },
   { emoji: '💫', nameKk: 'Салауат', nameRu: 'Салауат', xp: 20 },
@@ -48,22 +49,24 @@ const XP_GUIDE_BONUS = [
   { emoji: '💎', nameKk: 'Досың төлемі', nameRu: 'Оплата друг', xp: 400 },
 ];
 
-const XpSection = ({ titleKk, titleRu, items, language }: {
+const XpSection = ({
+  titleKk, titleRu, items, language,
+}: {
   titleKk: string; titleRu: string;
   items: { emoji: string; nameKk: string; nameRu: string; xp: number }[];
   language: Language;
 }) => (
   <div>
-    <div className="px-6 pt-5 pb-2">
-      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+    <div className="px-6 pt-4 pb-2">
+      <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
         {language === 'kk' ? titleKk : titleRu}
       </p>
-      <div className="mt-2 h-px bg-slate-100" />
+      <div className="mt-2 h-px bg-white/10" />
     </div>
     {items.map(item => (
-      <div key={item.nameKk} className="flex items-center justify-between px-6 py-2.5">
-        <span className="text-[13px] text-slate-700">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
-        <span className="text-[13px] font-black text-amber-500">+{item.xp}</span>
+      <div key={item.nameKk} className="flex items-center justify-between px-6 py-[9px]">
+        <span className="text-[12px] text-white/80">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
+        <span className="text-[12px] font-black text-emerald-400">+{item.xp} XP</span>
       </div>
     ))}
   </div>
@@ -150,7 +153,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
   return (
     <div className="space-y-6 pb-8 pt-4">
 
-      {/* Карточка уровня */}
+      {/* Дәрежеңіз */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12"><span className="text-9xl">{levelInfo.icon}</span></div>
         <div className="relative z-10">
@@ -285,29 +288,29 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
         </div>
       </div>
 
-      {/* ⚡ XP ГАЙД */}
-      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
+      {/* ⚡ XP ГАЙД — цвета карточки Дәрежеңіз */}
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-[3rem] shadow-2xl overflow-hidden">
 
         {/* Шапка */}
         <button
           onClick={() => setXpGuideOpen(p => !p)}
-          className="w-full flex items-center justify-between px-6 py-5 active:bg-slate-50 transition-colors"
+          className="w-full flex items-center justify-between px-6 py-5 active:bg-white/5 transition-colors"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-11 h-11 bg-gradient-to-br from-amber-400 to-orange-400 rounded-2xl flex items-center justify-center shadow-sm shadow-amber-200/60 flex-shrink-0">
+            <div className="w-11 h-11 bg-gradient-to-br from-amber-400 to-orange-400 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0">
               <span className="text-lg">⚡</span>
             </div>
             <div className="text-left">
-              <p className="font-black text-slate-800 text-sm">
+              <p className="font-black text-white text-sm">
                 {language === 'kk' ? 'XP қалай жинауға болады?' : 'Как зарабатывать XP?'}
               </p>
-              <p className="text-[11px] text-amber-500 font-bold mt-0.5">
+              <p className="text-[11px] text-emerald-400 font-bold mt-0.5">
                 {language === 'kk' ? 'Күнде 1730+ XP жинауға болады' : 'Можно заработать 1730+ XP в день'}
               </p>
             </div>
           </div>
-          <div className={`w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 transition-transform duration-300 ${xpGuideOpen ? 'rotate-180' : ''}`}>
-            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className={`w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 transition-transform duration-300 ${xpGuideOpen ? 'rotate-180' : ''}`}>
+            <svg className="w-4 h-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
@@ -318,46 +321,36 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
 
             {/* 🔥 Стрик */}
             <div className="px-6 pb-4">
-              <div className="bg-gradient-to-r from-orange-500 to-amber-400 rounded-2xl p-4 text-white flex items-center justify-between">
+              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-4 flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <span className="text-xl">🔥</span>
                   <div>
-                    <p className="font-black text-sm leading-none">
+                    <p className="text-[12px] font-black text-white leading-none">
                       {language === 'kk' ? 'Стрик бонусы' : 'Бонус серии'}
                     </p>
-                    <p className="text-[11px] text-white/75 mt-0.5">
+                    <p className="text-[11px] text-white/50 mt-0.5">
                       {language === 'kk' ? 'Күн сайын белсенді болыңыз' : 'Будьте активны каждый день'}
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
-                  <div className="bg-white/20 rounded-xl px-3 py-2 text-center">
-                    <p className="font-black text-sm leading-none">×2.0</p>
-                    <p className="text-[9px] text-white/75 mt-0.5">{language === 'kk' ? '10 күн' : '10 дней'}</p>
+                  <div className="bg-white/10 rounded-xl px-3 py-2 text-center border border-white/10">
+                    <p className="text-[12px] font-black text-white leading-none">×2.0</p>
+                    <p className="text-[9px] text-white/50 mt-0.5">{language === 'kk' ? '10 күн' : '10 дней'}</p>
                   </div>
-                  <div className="bg-white/30 border border-white/40 rounded-xl px-3 py-2 text-center">
-                    <p className="font-black text-sm leading-none">×3.0</p>
-                    <p className="text-[9px] text-white/75 mt-0.5">{language === 'kk' ? '20+ күн' : '20+ дней'}</p>
+                  <div className="bg-emerald-500/20 rounded-xl px-3 py-2 text-center border border-emerald-500/30">
+                    <p className="text-[12px] font-black text-emerald-400 leading-none">×3.0</p>
+                    <p className="text-[9px] text-emerald-400/70 mt-0.5">{language === 'kk' ? '20+ күн' : '20+ дней'}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Секции */}
-            <XpSection
-              titleKk="Намаз" titleRu="Намаз"
-              items={XP_GUIDE_NAMAZ} language={language}
-            />
-            <XpSection
-              titleKk="Ибадат" titleRu="Ибадат"
-              items={XP_GUIDE_IBADAH} language={language}
-            />
-            <XpSection
-              titleKk="Бонустар" titleRu="Бонусы"
-              items={XP_GUIDE_BONUS} language={language}
-            />
+            <XpSection titleKk="Намаз" titleRu="Намаз" items={XP_GUIDE_NAMAZ} language={language} />
+            <XpSection titleKk="Ибадат" titleRu="Ибадат" items={XP_GUIDE_IBADAH} language={language} />
+            <XpSection titleKk="Бонустар" titleRu="Бонусы" items={XP_GUIDE_BONUS} language={language} />
 
-            <div className="pb-2" />
+            <div className="pb-5" />
           </div>
         )}
       </div>
