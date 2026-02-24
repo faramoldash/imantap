@@ -107,23 +107,27 @@ const Dashboard: React.FC<DashboardProps> = ({
   // ✅ ОПРЕДЕЛЯЕМ ФАЗУ И ДАТУ ВЫБРАННОГО ДНЯ
   const selectedDayInfo = useMemo(() => {
     const ramadanStartMs = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00').getTime();
+    const eidDateMs = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00').getTime();
     const selectedDateMs = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00').getTime() + (selectedDay - 1) * 86400000;
 
     let phase: 'basic' | 'preparation' | 'ramadan';
     let dayInPhase: number;
 
-    const ramadanEndMs = new Date('2026-03-19T00:00:00+05:00').getTime();
+    const prepStartMs = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00').getTime();
 
-    if (selectedDateMs < ramadanStartMs) {
+    if (selectedDateMs < prepStartMs) {
+      // ✅ До 9 февраля — обычный трекер
+      phase = 'basic';
+      dayInPhase = selectedDay;
+    } else if (selectedDateMs < ramadanStartMs) {
       phase = 'preparation';
       dayInPhase = selectedDay;
-    } else if (selectedDateMs <= ramadanEndMs) {
+    } else if (selectedDateMs >= eidDateMs) {
+      phase = 'basic';
+      dayInPhase = selectedDay;
+    } else {
       phase = 'ramadan';
       dayInPhase = Math.floor((selectedDateMs - ramadanStartMs) / 86400000) + 1;
-    } else {
-      // ✅ Ораза айт + базовые дни после Рамадана
-      phase = 'basic';
-      dayInPhase = selectedDay; // не важно, данные хранятся по дате через toLocalDateStr
     }
 
     // ✅ Создаём локальную дату без UTC смещения
@@ -153,7 +157,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   const isFutureDay = selectedDay > currentDay;
 
   // ✅ НАВИГАЦИЯ
-  const canGoPrev = selectedDay > 1;
+  const canGoPrev = true; // ✅ Бесконечно назад
   const canGoNext = selectedDay < currentDay;
 
   const goToPrevDay = () => {
@@ -234,7 +238,10 @@ const Dashboard: React.FC<DashboardProps> = ({
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, weekday: 'short'
       });
       if (dayOfWeekStr === 'Mon' || dayOfWeekStr === 'Thu') keys.push('fasting');
-      if (toLocalDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE) keys.push('taraweeh');
+      if (selectedDayInfo.phase === 'preparation' && 
+          toLocalDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE) {
+        keys.push('taraweeh');
+      }
       if (toLocalDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE) keys.push('eidPrayer');
     }
     if (!displayedData) return { completed: 0, total: 0, percentage: 0 };
