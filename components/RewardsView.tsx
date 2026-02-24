@@ -31,8 +31,8 @@ const XP_GUIDE_NAMAZ = [
 const XP_GUIDE_IBADAH = [
   { emoji: '🌙', nameKk: 'Ораза', nameRu: 'Пост', xp: 200 },
   { emoji: '📖', nameKk: 'Құран оқу', nameRu: 'Чтение Корана', xp: 100 },
-  { emoji: '🌅', nameKk: 'Таңғы зікір', nameRu: 'Утр. зикр', xp: 30 },
-  { emoji: '🌌', nameKk: 'Кешкі зікір', nameRu: 'Веч. зикр', xp: 30 },
+  { emoji: '🌅', nameKk: 'Таңғы зікір', nameRu: 'Утренний зикр', xp: 30 },
+  { emoji: '🌌', nameKk: 'Кешкі зікір', nameRu: 'Вечерний зикр', xp: 30 },
   { emoji: '💫', nameKk: 'Салауат', nameRu: 'Салауат', xp: 20 },
   { emoji: '📜', nameKk: 'Хадис', nameRu: 'Хадис', xp: 50 },
   { emoji: '💝', nameKk: 'Садақа', nameRu: 'Садака', xp: 100 },
@@ -44,8 +44,8 @@ const XP_GUIDE_IBADAH = [
 const XP_GUIDE_BONUS = [
   { emoji: '📿', nameKk: 'Аллаhтың 1 есімін жаттау', nameRu: '1 имя Аллаха выучено', xp: 100 },
   { emoji: '🎉', nameKk: 'Алғашқы Құран хатымы', nameRu: 'Первый хатым Корана', xp: 1000 },
-  { emoji: '👥', nameKk: 'Дос шақыру', nameRu: 'Пригласить друга', xp: 100 },
-  { emoji: '💎', nameKk: 'Дос жазылды', nameRu: 'Друг оплатил', xp: 400 },
+  { emoji: '👥', nameKk: 'Дос шақыру (тіркелу)', nameRu: 'Пригласить друга', xp: 100 },
+  { emoji: '💎', nameKk: 'Дос жазылды (төлем)', nameRu: 'Друг оплатил подписку', xp: 400 },
 ];
 
 const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigate }) => {
@@ -178,11 +178,11 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
         ) : userCircles.length > 0 ? (
           <div className="relative z-10 space-y-5">
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10"><div className="text-3xl font-black bg-gradient-to-br from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-1">{userCircles.length}</div><div className="text-[9px] font-bold text-white/90 leading-tight">{language === 'kk' ? 'барлық топ' : 'всего кругов'}</div></div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10"><div className="text-3xl font-black bg-gradient-to-br from-orange-400 to-red-400 bg-clip-text text-transparent mb-1">{userCircles.filter((c: any) => c.members?.find((m: any) => m.userId === userData.userId)?.status === 'active').length}</div><div className="text-[9px] font-bold text-white/90 leading-tight">{language === 'kk' ? 'белсенді топ' : 'активных'}</div></div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10"><div className="text-3xl font-black bg-gradient-to-br from-blue-400 to-purple-400 bg-clip-text text-transparent mb-1">{(() => { if (!userCircles.length) return 0; const p = userCircles.map((c: any) => { const ms = c.members?.filter((m: any) => m.status === 'active') || []; if (!ms.length) return 0; const avg = ms.reduce((s: number, m: any) => s + (m.xp || 0), 0) / ms.length; const max = Math.max(...ms.map((m: any) => m.xp || 0), 1); return max > 0 ? Math.round((avg / max) * 100) : 0; }); return Math.round(p.reduce((s: number, x: number) => s + x, 0) / p.length); })()}%</div><div className="text-[9px] font-bold text-white/90 leading-tight">{language === 'kk' ? 'орташа прогресс' : 'средний прогресс'}</div></div>
+              <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10"><div className="text-3xl font-black bg-gradient-to-br from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-1">{userCircles.length}</div><div className="text-[9px] font-bold text-white/90">{language === 'kk' ? 'барлық топ' : 'всего кругов'}</div></div>
+              <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10"><div className="text-3xl font-black bg-gradient-to-br from-orange-400 to-red-400 bg-clip-text text-transparent mb-1">{userCircles.filter((c: any) => c.members?.find((m: any) => m.userId === userData.userId)?.status === 'active').length}</div><div className="text-[9px] font-bold text-white/90">{language === 'kk' ? 'белсенді топ' : 'активных'}</div></div>
+              <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10"><div className="text-3xl font-black bg-gradient-to-br from-blue-400 to-purple-400 bg-clip-text text-transparent mb-1">{(() => { if (!userCircles.length) return 0; const p = userCircles.map((c: any) => { const ms = c.members?.filter((m: any) => m.status === 'active') || []; if (!ms.length) return 0; const avg = ms.reduce((s: number, m: any) => s + (m.xp || 0), 0) / ms.length; const max = Math.max(...ms.map((m: any) => m.xp || 0), 1); return max > 0 ? Math.round((avg / max) * 100) : 0; }); return Math.round(p.reduce((s: number, x: number) => s + x, 0) / p.length); })()}%</div><div className="text-[9px] font-bold text-white/90">{language === 'kk' ? 'орташа прогресс' : 'средний прогресс'}</div></div>
             </div>
-            <button onClick={handleViewAllCircles} className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-black uppercase tracking-wider hover:from-emerald-500 hover:to-teal-500 transition-all shadow-xl active:scale-[0.98] flex items-center justify-center space-x-2 border border-emerald-400/30">
+            <button onClick={handleViewAllCircles} className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-black uppercase tracking-wider active:scale-[0.98] flex items-center justify-center space-x-2 border border-emerald-400/30">
               <span>{language === 'kk' ? 'Ашу' : 'Открыть'}</span><span className="text-lg">→</span>
             </button>
           </div>
@@ -280,7 +280,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
               <p className="font-black text-slate-800">
                 {language === 'kk' ? 'XP қалай жинауға болады?' : 'Как зарабатывать XP?'}
               </p>
-              <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mt-0.5">
+              <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">
                 {language === 'kk' ? 'Барлық іс-әрекеттер тізімі' : 'Полный список действий'}
               </p>
             </div>
@@ -294,73 +294,65 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
 
         {/* Разворачиваемый контент */}
         {xpGuideOpen && (
-          <div className="px-6 pb-6 space-y-6 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="px-6 pb-6 space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
 
-            {/* Стрик-баннер — как оранжевый streak блок в Dashboard */}
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 p-5 rounded-[2rem] shadow-lg text-white flex items-center justify-between relative overflow-hidden border border-orange-300">
-              <div className="absolute top-0 right-0 p-6 opacity-10 text-6xl pointer-events-none">🔥</div>
-              <div className="flex items-center space-x-3 relative z-10">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-[1.5rem] flex items-center justify-center border border-white/30 flex-shrink-0">
-                  <span className="text-2xl">🔥</span>
+            {/* Стрик — как XP Ережелері в QuranTracker, но в amber цветах */}
+            <div className="px-5 py-4 rounded-[1.75rem] bg-amber-50 border border-amber-100">
+              <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-3">
+                🔥  {language === 'kk' ? 'Стрик мультипликаторы' : 'Множитель серии'}
+              </p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] text-slate-500">{language === 'kk' ? '10 күн белсенділік' : '10 дней активности'}</span>
+                  <span className="text-[12px] font-black text-amber-500">×2.0</span>
                 </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider opacity-90">
-                    {language === 'kk' ? 'Стрик мультипликаторы' : 'Множитель серии'}
-                  </p>
-                  <p className="text-xs text-white/80 mt-0.5">
-                    {language === 'kk' ? '10 күн = ×2.0 · 20+ күн = ×3.0' : '10 дней = ×2.0 · 20+ дней = ×3.0'}
-                  </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[12px] text-slate-500">{language === 'kk' ? '20+ күн белсенділік' : '20+ дней активности'}</span>
+                  <span className="text-[12px] font-black text-amber-500">×3.0 MAX</span>
                 </div>
-              </div>
-              <div className="relative z-10 bg-white/20 backdrop-blur-sm rounded-[1.5rem] px-4 py-2.5 border border-white/30 text-right flex-shrink-0">
-                <p className="text-xl font-black leading-none">×3.0</p>
-                <p className="text-[9px] font-black uppercase opacity-80">MAX</p>
               </div>
             </div>
 
             {/* Намаз */}
-            <div>
-              <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
-                🕌  {language === 'kk' ? 'Намаз' : 'Намаз'}
-              </h4>
-              <div className="grid grid-cols-3 gap-3">
+            <div className="px-5 py-4 rounded-[1.75rem] bg-slate-50 border border-slate-100">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                🕌  {language === 'kk' ? 'Намаз' : 'Намаз'}
+              </p>
+              <div className="space-y-2">
                 {XP_GUIDE_NAMAZ.map(item => (
-                  <div key={item.nameKk} className="p-2 rounded-[1.25rem] border border-slate-100 bg-white shadow-sm flex flex-col items-center justify-center space-y-1 h-[88px]">
-                    <span className="text-2xl">{item.emoji}</span>
-                    <span className="text-[11px] font-bold text-center text-slate-600 leading-tight">{language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[10px] font-black text-amber-500">+{item.xp} XP</span>
+                  <div key={item.nameKk} className="flex items-center justify-between">
+                    <span className="text-[12px] text-slate-500">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                    <span className="text-[12px] font-black text-amber-500">+{item.xp} XP</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Ибадат */}
-            <div>
-              <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
-                📖  {language === 'kk' ? 'Ибадат' : 'Ибадат'}
-              </h4>
-              <div className="grid grid-cols-3 gap-3">
+            <div className="px-5 py-4 rounded-[1.75rem] bg-slate-50 border border-slate-100">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                📖  {language === 'kk' ? 'Ибадат' : 'Ибадат'}
+              </p>
+              <div className="space-y-2">
                 {XP_GUIDE_IBADAH.map(item => (
-                  <div key={item.nameKk} className="p-2 rounded-[1.25rem] border border-slate-100 bg-white shadow-sm flex flex-col items-center justify-center space-y-1 h-[88px]">
-                    <span className="text-2xl">{item.emoji}</span>
-                    <span className="text-[11px] font-bold text-center text-slate-600 leading-tight">{language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[10px] font-black text-amber-500">+{item.xp} XP</span>
+                  <div key={item.nameKk} className="flex items-center justify-between">
+                    <span className="text-[12px] text-slate-500">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                    <span className="text-[12px] font-black text-amber-500">+{item.xp} XP</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Бонусы */}
-            <div>
-              <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
-                🎁  {language === 'kk' ? 'Бонустар' : 'Бонусы'}
-              </h4>
-              <div className="grid grid-cols-2 gap-3">
+            <div className="px-5 py-4 rounded-[1.75rem] bg-slate-50 border border-slate-100">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                🎁  {language === 'kk' ? 'Бонустар' : 'Бонусы'}
+              </p>
+              <div className="space-y-2">
                 {XP_GUIDE_BONUS.map(item => (
-                  <div key={item.nameKk} className="p-3 rounded-[1.25rem] border border-slate-100 bg-white shadow-sm flex flex-col items-center justify-center space-y-1.5 min-h-[96px]">
-                    <span className="text-2xl">{item.emoji}</span>
-                    <span className="text-[11px] font-bold text-center text-slate-600 leading-tight">{language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[10px] font-black text-amber-500">+{item.xp} XP</span>
+                  <div key={item.nameKk} className="flex items-center justify-between">
+                    <span className="text-[12px] text-slate-500 flex-1 pr-4">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                    <span className="text-[12px] font-black text-amber-500 whitespace-nowrap">+{item.xp} XP</span>
                   </div>
                 ))}
               </div>
