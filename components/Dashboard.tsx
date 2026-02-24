@@ -159,7 +159,8 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // ✅ НАВИГАЦИЯ
   const canGoPrev = true; // ✅ Бесконечно назад
-  const canGoNext = selectedDay < currentDay;
+  const LAST_BROWSABLE_DAY = PREPARATION_DAYS + TOTAL_DAYS + 1; // день 40 = Ораза айт
+  const canGoNext = selectedDay < Math.max(currentDay, LAST_BROWSABLE_DAY);
 
   const goToPrevDay = () => {
     if (canGoPrev) {
