@@ -890,20 +890,21 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
                                     {language === 'kk' ? group.kk : group.ru}
                                   </p>
-                                  {/* Задачи */}
-                                  <div className="space-y-1">
+                                  {/* Задачи — 3 колонны */}
+                                  <div className="grid grid-cols-3 gap-x-2 gap-y-1">
                                     {group.tasks.map((task) => {
                                       const done = expandedTasksMap[member.userId]?.tasks?.[task.key] === true;
                                       return (
                                         <div key={task.key} className="flex items-center justify-between">
-                                          <span className={`text-[11px] font-bold ${done ? 'text-slate-700' : 'text-slate-300'}`}>
+                                          <span className={`text-[10px] font-bold truncate ${done ? 'text-slate-700' : 'text-slate-300'}`}>
                                             {language === 'kk' ? task.kk : task.ru}
                                           </span>
-                                          {done && <span className="text-emerald-500 text-[10px] font-black ml-2">✓</span>}
+                                          {done && <span className="text-emerald-500 text-[9px] font-black ml-1 flex-shrink-0">✓</span>}
                                         </div>
                                       );
                                     })}
                                   </div>
+
                                   {/* Разделитель (кроме последней группы) */}
                                   {gi < RAMADAN_TASK_GROUPS.length - 1 && (
                                     <div className="mt-3 border-t border-slate-100"></div>
