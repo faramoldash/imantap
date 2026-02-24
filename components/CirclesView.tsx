@@ -32,13 +32,14 @@ const RAMADAN_TASK_GROUPS = [
     ru: 'Намазы',
     tasks: [
       { key: 'tahajjud',  emoji: '🌃', kk: 'Тахаджуд',  ru: 'Тахаджуд' },
-      { key: 'fajr',      emoji: '🕌', kk: 'Бамдат',    ru: 'Фаджр' },
+      { key: 'fajr',      emoji: '🕌', kk: 'Таң',       ru: 'Фаджр' },
+      { key: 'duha',      emoji: '🌅', kk: 'Дұха',      ru: 'Духа' },
       { key: 'dhuhr',     emoji: '🕌', kk: 'Бесін',     ru: 'Зухр' },
       { key: 'asr',       emoji: '🕌', kk: 'Екінті',    ru: 'Аср' },
       { key: 'maghrib',   emoji: '🌇', kk: 'Ақшам',     ru: 'Магриб' },
       { key: 'isha',      emoji: '🌙', kk: 'Құптан',    ru: 'Иша' },
-      { key: 'taraweeh',  emoji: '⭐', kk: 'Тарауих',   ru: 'Таравих' },
-      { key: 'witr',      emoji: '🌟', kk: 'Уітір',     ru: 'Витр' },
+      { key: 'taraweeh',  emoji: '⭐', kk: 'Тарауық',   ru: 'Таравих' },
+      { key: 'witr',      emoji: '🌟', kk: 'Үтір',      ru: 'Витр' },
     ]
   },
   {
@@ -49,12 +50,11 @@ const RAMADAN_TASK_GROUPS = [
       { key: 'quranRead',    emoji: '📖', kk: 'Құран',         ru: 'Коран' },
       { key: 'names99',      emoji: '📿', kk: '99 есім',       ru: '99 имён' },
       { key: 'salawat',      emoji: '✨', kk: 'Салауат',       ru: 'Салауат' },
+      { key: 'charity',      emoji: '🤲', kk: 'Садақа',        ru: 'Садака' },
       { key: 'hadith',       emoji: '📚', kk: 'Хадис',         ru: 'Хадис' },
-      { key: 'duha',         emoji: '🌅', kk: 'Шурық',         ru: 'Духа' },
       { key: 'lessons',      emoji: '🎓', kk: 'Дәрістер',      ru: 'Уроки' },
       { key: 'book',         emoji: '📗', kk: 'Кітап',         ru: 'Книга' },
       { key: 'eveningDhikr', emoji: '🌆', kk: 'Кешкі зікір',  ru: 'Веч. зикр' },
-      { key: 'charity',      emoji: '💎', kk: 'Садақа',        ru: 'Садака' },
     ]
   },
 ];
