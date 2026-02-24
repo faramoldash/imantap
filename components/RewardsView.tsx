@@ -57,14 +57,14 @@ const XpSection = ({
   language: Language;
 }) => (
   <div>
-    <div className="px-6 pt-4 pb-2">
+    <div className="px-6 pt-3 pb-2">
       <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
         {language === 'kk' ? titleKk : titleRu}
       </p>
       <div className="mt-2 h-px bg-white/10" />
     </div>
     {items.map(item => (
-      <div key={item.nameKk} className="flex items-center justify-between px-6 py-[9px]">
+      <div key={item.nameKk} className="flex items-center justify-between px-6 py-2">
         <span className="text-[12px] text-white/80">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
         <span className="text-[12px] font-black text-emerald-400">+{item.xp} XP</span>
       </div>
