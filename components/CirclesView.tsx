@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import ReactDOM from 'react-dom';
 import { Language, UserData } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
 import { createCircle, inviteToCircle, getUserData } from '../src/services/api';
@@ -117,8 +116,8 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   }, [userData.progress, userData.startDate, userData.customTasks, userData.basicProgress, userData.dailyQuranGoal, userData.dailyCharityGoal]);
 
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [memberDetailModal, setMemberDetailModal] = useState<{ member: any; tasks: any; customTasks: any[] | null; isRamadan: boolean } | null>(null);
-  const [isLoadingMemberDetail, setIsLoadingMemberDetail] = useState(false);
+  const [expandedMemberId, setExpandedMemberId] = useState<number | null>(null);
+  const [expandedTasksMap, setExpandedTasksMap] = useState<Record<number, { tasks: any; customTasks: any[]; isLoading: boolean; isRamadan: boolean }>>({});
 
 
   useEffect(() => {
@@ -151,9 +150,19 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   }, [userData.customTasks, userData.basicProgress]);
 
   const handleMemberTap = async (member: any) => {
+    // Повторное нажатие — закрыть
+    if (expandedMemberId === member.userId) {
+      setExpandedMemberId(null);
+      return;
+    }
+
+    setExpandedMemberId(member.userId);
+
+    // Если уже загружено — не грузим снова
+    if (expandedTasksMap[member.userId]) return;
+
     const isCurrentUser = member.userId === userData.userId;
 
-    // Вычисляем день Рамадана
     const [sy, sm, sd] = userData.startDate.split('-').map(Number);
     const startDate = new Date(sy, sm - 1, sd);
     const now = new Date();
@@ -163,25 +172,18 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     const isRamadan = ramadanDay !== null;
 
     if (isCurrentUser) {
-      // Для себя — локальные данные, без API
       const tasks = isRamadan ? (userData.progress[ramadanDay!] || {}) : {};
       const customTasks = userData.customTasks || [];
-      setMemberDetailModal({ member, tasks, customTasks, isRamadan });
+      setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks, customTasks, isLoading: false, isRamadan } }));
     } else {
-      // Для других — загружаем с сервера
-      setIsLoadingMemberDetail(true);
-      setMemberDetailModal({ member, tasks: null, customTasks: null, isRamadan });
+      setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks: {}, customTasks: [], isLoading: true, isRamadan } }));
       try {
         const memberData = await getUserData(member.userId);
-        const tasks = isRamadan && memberData?.progress
-          ? (memberData.progress[ramadanDay!] || {})
-          : {};
+        const tasks = isRamadan && memberData?.progress ? (memberData.progress[ramadanDay!] || {}) : {};
         const customTasks = memberData?.customTasks || [];
-        setMemberDetailModal({ member, tasks, customTasks, isRamadan });
+        setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks, customTasks, isLoading: false, isRamadan } }));
       } catch {
-        setMemberDetailModal({ member, tasks: {}, customTasks: [], isRamadan });
-      } finally {
-        setIsLoadingMemberDetail(false);
+        setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks: {}, customTasks: [], isLoading: false, isRamadan } }));
       }
     }
   };
@@ -848,6 +850,57 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                           style={{ width: `${progressToShow.percent}%` }}
                         ></div>
                       </div>
+
+                      {/* ✅ Раскрывающийся список задач */}
+                      {expandedMemberId === member.userId && (
+                        <div className="mt-3 pt-3 border-t border-slate-200">
+                          {expandedTasksMap[member.userId]?.isLoading ? (
+                            <div className="flex items-center space-x-2 py-1">
+                              <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin flex-shrink-0"></div>
+                              <span className="text-slate-400 text-[10px] font-bold">
+                                {language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}
+                              </span>
+                            </div>
+                          ) : expandedTasksMap[member.userId]?.isRamadan ? (
+                            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                              {RAMADAN_TASKS_INFO.map((task) => {
+                                const done = expandedTasksMap[member.userId]?.tasks?.[task.key] === true;
+                                return (
+                                  <div key={task.key} className="flex items-center space-x-1.5">
+                                    {done
+                                      ? <span className="text-emerald-500 text-[10px] font-black flex-shrink-0">✓</span>
+                                      : <span className="w-[10px] flex-shrink-0"></span>
+                                    }
+                                    <span className={`text-[11px] font-bold truncate ${done ? 'text-slate-700' : 'text-slate-300'}`}>
+                                      {language === 'kk' ? task.kk : task.ru}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="space-y-1">
+                              {(expandedTasksMap[member.userId]?.customTasks || []).length === 0 ? (
+                                <p className="text-slate-300 text-[10px] font-bold">
+                                  {language === 'kk' ? 'Мақсаттар жоқ' : 'Нет целей'}
+                                </p>
+                              ) : (
+                                (expandedTasksMap[member.userId]?.customTasks || []).map((task: any) => (
+                                  <div key={task.id} className="flex items-center space-x-1.5">
+                                    {task.completed
+                                      ? <span className="text-emerald-500 text-[10px] font-black flex-shrink-0">✓</span>
+                                      : <span className="w-[10px] flex-shrink-0"></span>
+                                    }
+                                    <span className={`text-[11px] font-bold leading-tight ${task.completed ? 'text-slate-700' : 'text-slate-300'}`}>
+                                      {task.text}
+                                    </span>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -984,131 +1037,6 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
             </div>
           </div>
         )}
-
-        {/* 🔍 МОДАЛ: детали участника */}
-        {memberDetailModal && ReactDOM.createPortal(
-          <div
-            onClick={() => setMemberDetailModal(null)}
-            style={{
-              position: 'fixed',
-              top: 0, left: 0, right: 0, bottom: 0,
-              zIndex: 9999,
-              background: 'rgba(0,0,0,0.55)',
-              backdropFilter: 'blur(14px)',
-              WebkitBackdropFilter: 'blur(14px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px'
-            }}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                width: '100%',
-                maxWidth: '360px',
-                borderRadius: '24px',
-                padding: '20px',
-                background: 'rgba(255,255,255,0.07)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
-              }}
-            >
-              {/* Шапка */}
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="text-white font-black text-base">
-                    {memberDetailModal.member.name}
-                  </h3>
-                  <p className="text-white/40 text-[10px] font-bold mt-0.5">
-                    {memberDetailModal.member.userId === userData.userId
-                      ? `${getMyLocalProgress().completed}/${getMyLocalProgress().total} · ${getMyLocalProgress().percent}%`
-                      : `${memberDetailModal.member.todayProgress.completed}/${memberDetailModal.member.todayProgress.total} · ${memberDetailModal.member.todayProgress.percent}%`
-                    }{' '}{language === 'kk' ? 'тапсырма' : 'задач'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setMemberDetailModal(null)}
-                  style={{
-                    width: '30px', height: '30px',
-                    borderRadius: '10px',
-                    background: 'rgba(255,255,255,0.08)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    color: 'rgba(255,255,255,0.4)',
-                    fontSize: '11px',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* Прогресс-бар */}
-              <div style={{ width: '100%', height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.08)', marginBottom: '16px', overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%',
-                  borderRadius: '99px',
-                  background: 'linear-gradient(to right, #34d399, #2dd4bf)',
-                  width: `${memberDetailModal.member.userId === userData.userId
-                    ? getMyLocalProgress().percent
-                    : memberDetailModal.member.todayProgress.percent}%`,
-                  transition: 'width 0.5s ease'
-                }}></div>
-              </div>
-
-              {/* Список задач */}
-              {isLoadingMemberDetail ? (
-                <div className="text-center py-6">
-                  <div className="inline-block w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-2"></div>
-                  <p className="text-white/30 text-[10px] font-bold">
-                    {language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}
-                  </p>
-                </div>
-              ) : memberDetailModal.isRamadan ? (
-                // ✅ Рамадан — текстовый список
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                  {RAMADAN_TASKS_INFO.map((task) => {
-                    const done = memberDetailModal.tasks?.[task.key] === true;
-                    return (
-                      <div key={task.key} className="flex items-center space-x-1.5">
-                        {done
-                          ? <span className="text-emerald-400 text-[10px] flex-shrink-0">✓</span>
-                          : <span className="w-[10px] flex-shrink-0"></span>
-                        }
-                        <span className={`text-[11px] font-bold truncate ${done ? 'text-white/90' : 'text-white/25'}`}>
-                          {language === 'kk' ? task.kk : task.ru}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                // ✅ Обычные дни — customTasks
-                <div className="space-y-1.5 max-h-60 overflow-y-auto">
-                  {(memberDetailModal.customTasks || []).length === 0 ? (
-                    <p className="text-white/25 text-xs font-bold text-center py-4">
-                      {language === 'kk' ? 'Мақсаттар жоқ' : 'Нет целей'}
-                    </p>
-                  ) : (
-                    (memberDetailModal.customTasks || []).map((task: any) => (
-                      <div key={task.id} className="flex items-center space-x-1.5">
-                        {task.completed
-                          ? <span className="text-emerald-400 text-[10px] flex-shrink-0">✓</span>
-                          : <span className="w-[10px] flex-shrink-0"></span>
-                        }
-                        <span className={`text-[11px] font-bold leading-tight ${task.completed ? 'text-white/90' : 'text-white/25'}`}>
-                          {task.text}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        , document.body)}
       </div>
     </>
   );
