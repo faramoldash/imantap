@@ -50,11 +50,8 @@ const XP_GUIDE_BONUS = [
 
 const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigate }) => {
   const t = TRANSLATIONS[language];
-
-  // ✅ Используем новую систему уровней
   const levelInfo = getUserLevelInfo(userData.xp, language);
   
-  // Состояния
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [userRank, setUserRank] = useState<number | null>(null);
   const [totalUsers, setTotalUsers] = useState<number>(0);
@@ -68,16 +65,12 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
   const [isPulling, setIsPulling] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const [xpGuideOpen, setXpGuideOpen] = useState(false);
-  const {
-    circles: userCircles,
-      isLoadingCircles,
-    } = useUserCircles(userData.userId);
+  const { circles: userCircles, isLoadingCircles } = useUserCircles(userData.userId);
   
   const leaderboardRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef<number>(0);
   const autoRefreshInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Загрузка лидерборда
   const loadLeaderboard = useCallback(async (reset = false) => {
     try {
       if (reset) {
@@ -87,26 +80,15 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
       } else {
         setIsLoadingMore(true);
       }
-
       let data: any;
       const currentOffset = reset ? 0 : offset;
 
       if (filterType === 'friends') {
         data = await getFriendsLeaderboard(userData.userId, 20);
         if (data) {
-          const withMe = data.map((user: any, idx: number) => ({
-            ...user,
-            isMe: user.userId === userData.userId,
-            rank: idx + 1 // ← ДОБАВИТЬ ранг
-          }));
-          
-          // ✅ Находим позицию пользователя среди друзей
+          const withMe = data.map((user: any, idx: number) => ({ ...user, isMe: user.userId === userData.userId, rank: idx + 1 }));
           const myPosition = withMe.findIndex((u: any) => u.isMe);
-          if (myPosition !== -1) {
-            setUserRank(myPosition + 1);
-            setTotalUsers(withMe.length);
-          }
-          
+          if (myPosition !== -1) { setUserRank(myPosition + 1); setTotalUsers(withMe.length); }
           setLeaderboard(withMe);
           setHasMore(false);
         }
@@ -117,35 +99,16 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           country: filterType === 'country' || filterType === 'city' ? 'Kazakhstan' : null,
           city: filterType === 'city' ? selectedCity : null
         });
-
         if (result && result.data) {
-          const withMe = result.data.map((user: any, idx: number) => ({
-            ...user,
-            isMe: user.userId === userData.userId,
-            rank: currentOffset + idx + 1 // ← ДОБАВИТЬ ранг
-          }));
-
-          // ✅ Получаем место пользователя
+          const withMe = result.data.map((user: any, idx: number) => ({ ...user, isMe: user.userId === userData.userId, rank: currentOffset + idx + 1 }));
           if (result.userRank !== undefined) {
             setUserRank(result.userRank);
           } else {
-            // Если API не возвращает userRank, ищем в списке
             const myPosition = withMe.findIndex((u: any) => u.isMe);
-            if (myPosition !== -1) {
-              setUserRank(currentOffset + myPosition + 1);
-            }
+            if (myPosition !== -1) setUserRank(currentOffset + myPosition + 1);
           }
-          
-          if (result.total !== undefined) {
-            setTotalUsers(result.total);
-          }
-
-          if (reset) {
-            setLeaderboard(withMe);
-          } else {
-            setLeaderboard(prev => [...prev, ...withMe]);
-          }
-
+          if (result.total !== undefined) setTotalUsers(result.total);
+          if (reset) { setLeaderboard(withMe); } else { setLeaderboard(prev => [...prev, ...withMe]); }
           setHasMore(result.hasMore ?? false);
           setOffset(currentOffset + 20);
         }
@@ -153,223 +116,99 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
     } catch (error) {
       console.error('Ошибка загрузки лидерборда:', error);
     } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-      setIsPulling(false);
-      setPullDistance(0);
+      setIsLoading(false); setIsLoadingMore(false); setIsPulling(false); setPullDistance(0);
     }
   }, [filterType, selectedCity, userData.userId, offset]);
 
-  // Загрузка городов только для фильтра "Қала бойынша"
   useEffect(() => {
     if (filterType === 'city') {
-      const loadCities = async () => {
-        const citiesList = await getCities('Kazakhstan');
-        setCities(citiesList);
-      };
+      const loadCities = async () => { const citiesList = await getCities('Kazakhstan'); setCities(citiesList); };
       loadCities();
-    } else {
-      setCities([]);
-      setSelectedCity(null);
-    }
+    } else { setCities([]); setSelectedCity(null); }
   }, [filterType]);
 
-  // Первоначальная загрузка и при изменении фильтров
-  useEffect(() => {
-    loadLeaderboard(true);
-  }, [filterType, selectedCity]);
+  useEffect(() => { loadLeaderboard(true); }, [filterType, selectedCity]);
 
-  // Автообновление каждые 30 секунд
   useEffect(() => {
-    autoRefreshInterval.current = setInterval(() => {
-      loadLeaderboard(true);
-    }, 30000);
-
-    return () => {
-      if (autoRefreshInterval.current) {
-        clearInterval(autoRefreshInterval.current);
-      }
-    };
+    autoRefreshInterval.current = setInterval(() => { loadLeaderboard(true); }, 30000);
+    return () => { if (autoRefreshInterval.current) clearInterval(autoRefreshInterval.current); };
   }, [loadLeaderboard]);
 
-  // Pull-to-refresh для карточки лидерборда
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (leaderboardRef.current && leaderboardRef.current.scrollTop === 0) {
-      touchStartY.current = e.touches[0].clientY;
-    }
+    if (leaderboardRef.current && leaderboardRef.current.scrollTop === 0) touchStartY.current = e.touches[0].clientY;
   };
-
   const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartY.current && leaderboardRef.current && leaderboardRef.current.scrollTop === 0) {
-      const currentY = e.touches[0].clientY;
-      const distance = currentY - touchStartY.current;
-      
-      if (distance > 0 && distance < 150) {
-        setIsPulling(true);
-        setPullDistance(distance);
-      }
+      const distance = e.touches[0].clientY - touchStartY.current;
+      if (distance > 0 && distance < 150) { setIsPulling(true); setPullDistance(distance); }
     }
   };
-
   const handleTouchEnd = () => {
-    if (pullDistance > 80) {
-      loadLeaderboard(true);
-    } else {
-      setIsPulling(false);
-      setPullDistance(0);
-    }
+    if (pullDistance > 80) { loadLeaderboard(true); } else { setIsPulling(false); setPullDistance(0); }
     touchStartY.current = 0;
   };
-
-  // Infinite scroll только для карточки лидерборда
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const element = e.currentTarget;
-    if (element.scrollHeight - element.scrollTop <= element.clientHeight + 50 && hasMore && !isLoadingMore && filterType !== 'friends') {
-      loadLeaderboard(false);
-    }
+    const el = e.currentTarget;
+    if (el.scrollHeight - el.scrollTop <= el.clientHeight + 50 && hasMore && !isLoadingMore && filterType !== 'friends') loadLeaderboard(false);
   };
-
-  // Переключение фильтра
   const handleFilterChange = (type: FilterType) => {
-    setFilterType(type);
-    setOffset(0);
-    setUserRank(null);
-    if (type === 'global' || type === 'friends' || type === 'country') {
-      setSelectedCity(null);
-    }
+    setFilterType(type); setOffset(0); setUserRank(null);
+    if (type !== 'city') setSelectedCity(null);
   };
-
-  //  ОБРАБОТЧИКИ КРУГОВ 
-  const handleCreateCircle = () => {
-    if (onNavigate) {
-      onNavigate('circles', { 
-        from: 'rewards', 
-        action: 'create' 
-      });
-    }
-  };
-
-  const handleJoinByCode = () => {
-    if (onNavigate) {
-      onNavigate('circles', { 
-        from: 'rewards', 
-        action: 'join' 
-      });
-    }
-  };
-
-  const handleOpenCircle = (circleId: string) => {
-    if (onNavigate) {
-      onNavigate('circles', { 
-        from: 'rewards', 
-        circleId: circleId 
-      });
-    }
-  };
-
-  const handleViewAllCircles = () => {
-    if (onNavigate) {
-      onNavigate('circles', { 
-        from: 'rewards' 
-      });
-    }
-  };
+  const handleCreateCircle = () => { if (onNavigate) onNavigate('circles', { from: 'rewards', action: 'create' }); };
+  const handleJoinByCode = () => { if (onNavigate) onNavigate('circles', { from: 'rewards', action: 'join' }); };
+  const handleViewAllCircles = () => { if (onNavigate) onNavigate('circles', { from: 'rewards' }); };
 
   return (
     <div className="space-y-6 pb-8 pt-4">
-      {/* ✅ Карточка уровня - ОБНОВЛЕНА */}
+
+      {/* Карточка уровня */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
-          <span className="text-9xl">{levelInfo.icon}</span>
-        </div>
+        <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12"><span className="text-9xl">{levelInfo.icon}</span></div>
         <div className="relative z-10">
-          <p className="text-emerald-400 font-black tracking-widest text-[10px] uppercase mb-2">
-            {language === 'kk' ? 'ДӘРЕЖЕҢІЗ' : 'ВАШ УРОВЕНЬ'}
-          </p>
+          <p className="text-emerald-400 font-black tracking-widest text-[10px] uppercase mb-2">{language === 'kk' ? 'ДӘРЕЖЕҢІЗ' : 'ВАШ УРОВЕНЬ'}</p>
           <div className="flex items-center space-x-3 mb-2">
             <span className="text-4xl">{levelInfo.icon}</span>
             <h2 className="text-3xl font-black">{levelInfo.name}</h2>
           </div>
-          <p className="text-emerald-300 text-sm font-bold mb-6">
-            {language === 'kk' ? 'Деңгей' : 'Уровень'} {levelInfo.level}
-          </p>
-          
-          {/* ✅ МЕСТО В РЕЙТИНГЕ */}
+          <p className="text-emerald-300 text-sm font-bold mb-6">{language === 'kk' ? 'Деңгей' : 'Уровень'} {levelInfo.level}</p>
           {userRank !== null && (
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-6 border border-white/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <span className="text-3xl">🏆</span>
                   <div>
-                    <p className="text-[9px] font-black text-emerald-300 uppercase tracking-wider">
-                      {language === 'kk' ? 'Сіздің орныңыз' : 'Ваше место'}
-                    </p>
-                    <p className="text-2xl font-black text-white">
-                      {userRank}
-                      {totalUsers > 0 && (
-                        <span className="text-sm font-medium text-slate-300 ml-2">
-                          / {totalUsers}
-                        </span>
-                      )}
-                    </p>
+                    <p className="text-[9px] font-black text-emerald-300 uppercase tracking-wider">{language === 'kk' ? 'Сіздің орныңыз' : 'Ваше место'}</p>
+                    <p className="text-2xl font-black text-white">{userRank}{totalUsers > 0 && <span className="text-sm font-medium text-slate-300 ml-2">/ {totalUsers}</span>}</p>
                   </div>
                 </div>
-                {userRank <= 3 && (
-                  <span className="text-4xl animate-bounce">
-                    {userRank === 1 ? '🥇' : userRank === 2 ? '🥈' : '🥉'}
-                  </span>
-                )}
+                {userRank <= 3 && <span className="text-4xl animate-bounce">{userRank === 1 ? '🥇' : userRank === 2 ? '🥈' : '🥉'}</span>}
               </div>
             </div>
           )}
-          
-          {/* ✅ ПРОГРЕСС ДО СЛЕДУЮЩЕГО УРОВНЯ */}
           <div className="space-y-2">
             <div className="flex justify-between items-center text-[10px] font-black uppercase">
               <span className="text-slate-400">XP</span>
               <span className="text-emerald-400">{userData.xp.toLocaleString()} XP</span>
             </div>
             <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500" 
-                style={{ width: `${levelInfo.progressPercent}%` }}
-              ></div>
+              <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500" style={{ width: `${levelInfo.progressPercent}%` }}></div>
             </div>
-            {levelInfo.hasNextLevel ? (
-              <p className="text-[9px] text-slate-400 italic">
-                {language === 'kk' 
-                  ? `Келесі деңгейге: ${levelInfo.xpToNextLevel.toLocaleString()} XP қалды` 
-                  : `До следующего уровня: ${levelInfo.xpToNextLevel.toLocaleString()} XP`}
-              </p>
-            ) : (
-              <p className="text-[9px] text-emerald-400 italic font-bold">
-                {language === 'kk' ? '🎉 Максималды деңгей!' : '🎉 Максимальный уровень!'}
-              </p>
-            )}
+            {levelInfo.hasNextLevel
+              ? <p className="text-[9px] text-slate-400 italic">{language === 'kk' ? `Келесі деңгейге: ${levelInfo.xpToNextLevel.toLocaleString()} XP қалды` : `До следующего уровня: ${levelInfo.xpToNextLevel.toLocaleString()} XP`}</p>
+              : <p className="text-[9px] text-emerald-400 italic font-bold">{language === 'kk' ? '🎉 Максималды деңгей!' : '🎉 Максимальный уровень!'}</p>
+            }
           </div>
         </div>
       </div>
 
-      {/* ✅ МОИ КРУГИ - СТИЛЬНАЯ КОМПАКТНАЯ КАРТОЧКА */}
+      {/* Круги */}
       <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm rounded-[2.5rem] p-6 shadow-xl overflow-hidden">
-        {/* Декоративный фоновый эмодзи */}
-        <div className="absolute -right-8 -bottom-8 text-[140px] opacity-5 pointer-events-none">
-          🤝
-        </div>
-        
-        {/* Заголовок */}
+        <div className="absolute -right-8 -bottom-8 text-[140px] opacity-5 pointer-events-none">🤝</div>
         <div className="relative z-10 mb-6">
-          <h3 className="text-white font-black uppercase tracking-widest text-[10px] mb-1">
-            {language === 'kk' ? 'МЕНІҢ ТОПТАРЫМ' : 'МОИ КРУГИ'}
-          </h3>
-          <p className="text-white/40 text-[10px]">
-            {language === 'kk' 
-              ? 'Достармен бірге прогресс' 
-              : 'Прогресс вместе с друзьями'}
-          </p>
+          <h3 className="text-white font-black uppercase tracking-widest text-[10px] mb-1">{language === 'kk' ? 'МЕНІҢ ТОПТАРЫМ' : 'МОИ КРУГИ'}</h3>
+          <p className="text-white/40 text-[10px]">{language === 'kk' ? 'Достармен бірге прогресс' : 'Прогресс вместе с друзьями'}</p>
         </div>
-        
-        {/* Контент */}
         {isLoadingCircles ? (
           <div className="text-center py-8">
             <div className="inline-block w-6 h-6 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
@@ -377,98 +216,53 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           </div>
         ) : userCircles.length > 0 ? (
           <div className="relative z-10 space-y-5">
-            {/* 📊 МЕТРИКИ В 3 КОЛОНКИ */}
             <div className="grid grid-cols-3 gap-3">
-              {/* Всего кругов */}
               <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10">
-                <div className="text-3xl font-black bg-gradient-to-br from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-1">
-                  {userCircles.length}
-                </div>
-                <div className="text-[9px] font-bold text-white/90 leading-tight">
-                  {language === 'kk' ? 'барлық топ' : 'всего кругов'}
-                </div>
+                <div className="text-3xl font-black bg-gradient-to-br from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-1">{userCircles.length}</div>
+                <div className="text-[9px] font-bold text-white/90 leading-tight">{language === 'kk' ? 'барлық топ' : 'всего кругов'}</div>
               </div>
-              
-              {/* Активные */}
               <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10">
                 <div className="text-3xl font-black bg-gradient-to-br from-orange-400 to-red-400 bg-clip-text text-transparent mb-1">
-                  {userCircles.filter((c: any) => {
-                    const activeMember = c.members?.find((m: any) => m.userId === userData.userId);
-                    return activeMember?.status === 'active';
-                  }).length}
+                  {userCircles.filter((c: any) => c.members?.find((m: any) => m.userId === userData.userId)?.status === 'active').length}
                 </div>
-                <div className="text-[9px] font-bold text-white/90 leading-tight">
-                  {language === 'kk' ? 'белсенді топ' : 'активных'}
-                </div>
+                <div className="text-[9px] font-bold text-white/90 leading-tight">{language === 'kk' ? 'белсенді топ' : 'активных'}</div>
               </div>
-              
-              {/* Средний прогресс */}
               <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10">
                 <div className="text-3xl font-black bg-gradient-to-br from-blue-400 to-purple-400 bg-clip-text text-transparent mb-1">
                   {(() => {
-                    if (userCircles.length === 0) return 0;
-                    const circleProgresses = userCircles.map((c: any) => {
-                      const members = c.members?.filter((m: any) => m.status === 'active') || [];
-                      if (members.length === 0) return 0;
-                      const totalXp = members.reduce((sum: number, m: any) => sum + (m.xp || 0), 0);
-                      const avgXp = totalXp / members.length;
-                      const maxXp = Math.max(...members.map((m: any) => m.xp || 0), 1);
-                      return maxXp > 0 ? Math.round((avgXp / maxXp) * 100) : 0;
+                    if (!userCircles.length) return 0;
+                    const progs = userCircles.map((c: any) => {
+                      const ms = c.members?.filter((m: any) => m.status === 'active') || [];
+                      if (!ms.length) return 0;
+                      const avg = ms.reduce((s: number, m: any) => s + (m.xp || 0), 0) / ms.length;
+                      const max = Math.max(...ms.map((m: any) => m.xp || 0), 1);
+                      return max > 0 ? Math.round((avg / max) * 100) : 0;
                     });
-                    const avgProgress = circleProgresses.reduce((sum, p) => sum + p, 0) / circleProgresses.length;
-                    return Math.round(avgProgress);
+                    return Math.round(progs.reduce((s: number, p: number) => s + p, 0) / progs.length);
                   })()}%
                 </div>
-                <div className="text-[9px] font-bold text-white/90 leading-tight">
-                  {language === 'kk' ? 'орташа прогресс' : 'средний прогресс'}
-                </div>
+                <div className="text-[9px] font-bold text-white/90 leading-tight">{language === 'kk' ? 'орташа прогресс' : 'средний прогресс'}</div>
               </div>
             </div>
-            
-            {/* 🔘 КНОПКА ОТКРЫТЬ */}
-            <button 
-              onClick={handleViewAllCircles}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-black uppercase tracking-wider hover:from-emerald-500 hover:to-teal-500 transition-all shadow-xl active:scale-[0.98] flex items-center justify-center space-x-2 border border-emerald-400/30"
-            >
-              <span>{language === 'kk' ? 'Ашу' : 'Открыть'}</span>
-              <span className="text-lg">→</span>
+            <button onClick={handleViewAllCircles} className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-black uppercase tracking-wider hover:from-emerald-500 hover:to-teal-500 transition-all shadow-xl active:scale-[0.98] flex items-center justify-center space-x-2 border border-emerald-400/30">
+              <span>{language === 'kk' ? 'Ашу' : 'Открыть'}</span><span className="text-lg">→</span>
             </button>
           </div>
         ) : (
-          /* 🌟 ПУСТОЕ СОСТОЯНИЕ */
           <div className="relative z-10 text-center py-8">
-            <div className="relative inline-block mb-4">
-              <span className="text-7xl opacity-80">🌟</span>
-            </div>
-            <h4 className="text-lg font-black text-white mb-2">
-              {language === 'kk' ? 'Әлі топтар жоқ' : 'Пока нет кругов'}
-            </h4>
-            <p className="text-xs text-white/40 mb-6 max-w-[220px] mx-auto leading-relaxed">
-              {language === 'kk' 
-                ? 'Досыңызбен бірге жарысыңыз және прогресс жасаңыз!' 
-                : 'Соревнуйтесь с друзьями и достигайте прогресса вместе!'}
-            </p>
+            <span className="text-7xl opacity-80 block mb-4">🌟</span>
+            <h4 className="text-lg font-black text-white mb-2">{language === 'kk' ? 'Әлі топтар жоқ' : 'Пока нет кругов'}</h4>
+            <p className="text-xs text-white/40 mb-6 max-w-[220px] mx-auto leading-relaxed">{language === 'kk' ? 'Досыңызбен бірге жарысыңыз және прогресс жасаңыз!' : 'Соревнуйтесь с друзьями и достигайте прогресса вместе!'}</p>
             <div className="space-y-3">
-              <button 
-                onClick={handleCreateCircle}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-black uppercase tracking-wider hover:from-emerald-500 hover:to-teal-500 transition-all shadow-xl active:scale-[0.98] border border-emerald-400/30"
-              >
-                {language === 'kk' ? '+ Жаңа топ құру' : '+ Создать круг'}
-              </button>
-              <button 
-                onClick={handleJoinByCode}
-                className="w-full py-3.5 rounded-2xl bg-white/10 backdrop-blur-sm text-white/90 text-sm font-black uppercase tracking-wider hover:bg-white/20 transition-all active:scale-[0.98] border border-white/20"
-              >
-                {language === 'kk' ? '📥 Кодпен қосылу' : '📥 Присоединиться по коду'}
-              </button>
+              <button onClick={handleCreateCircle} className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-black uppercase tracking-wider hover:from-emerald-500 hover:to-teal-500 transition-all shadow-xl active:scale-[0.98] border border-emerald-400/30">{language === 'kk' ? '+ Жаңа топ құру' : '+ Создать круг'}</button>
+              <button onClick={handleJoinByCode} className="w-full py-3.5 rounded-2xl bg-white/10 backdrop-blur-sm text-white/90 text-sm font-black uppercase tracking-wider hover:bg-white/20 transition-all active:scale-[0.98] border border-white/20">{language === 'kk' ? '📥 Кодпен қосылу' : '📥 Присоединиться по коду'}</button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Карточка лидерборда - ТОЛЬКО ОНА скроллится */}
+      {/* Лидерборд */}
       <div className="bg-white rounded-[3rem] shadow-sm border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {/* Pull to refresh indicator */}
         {isPulling && (
           <div className="absolute top-0 left-0 right-0 z-50 flex justify-center pt-2" style={{ transform: `translateY(${Math.min(pullDistance - 40, 40)}px)` }}>
             <div className="bg-white rounded-full p-2 shadow-lg">
@@ -478,77 +272,32 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
             </div>
           </div>
         )}
-
-        {/* Заголовок и фильтры - фиксированные */}
         <div className="p-6 pb-4 sticky top-0 bg-white z-10 border-b border-slate-50">
           <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">{t.rewardsLeaderboard}</h3>
-          
-          {/* Фильтры */}
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-            <button
-              onClick={() => handleFilterChange('global')}
-              className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
-                filterType === 'global' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
-              }`}
-            >
-              🌍 {language === 'kk' ? 'Жалпы' : 'Глобальный'}
-            </button>
-            <button
-              onClick={() => handleFilterChange('country')}
-              className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
-                filterType === 'country' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
-              }`}
-            >
-              🇰🇿 {language === 'kk' ? 'Ел бойынша' : 'По стране'}
-            </button>
-            <button
-              onClick={() => handleFilterChange('city')}
-              className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
-                filterType === 'city' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
-              }`}
-            >
-              🏙️ {language === 'kk' ? 'Қала бойынша' : 'По городу'}
-            </button>
-            <button
-              onClick={() => handleFilterChange('friends')}
-              className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
-                filterType === 'friends' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
-              }`}
-            >
-              👥 {language === 'kk' ? 'Достар' : 'Друзья'}
-            </button>
+            {(['global', 'country', 'city', 'friends'] as FilterType[]).map((type) => (
+              <button key={type} onClick={() => handleFilterChange(type)}
+                className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${ filterType === type ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600' }`}
+              >
+                {type === 'global' && `🌍 ${language === 'kk' ? 'Жалпы' : 'Глобальный'}`}
+                {type === 'country' && `🇰🇿 ${language === 'kk' ? 'Ел бойынша' : 'По стране'}`}
+                {type === 'city' && `🏙️ ${language === 'kk' ? 'Қала бойынша' : 'По городу'}`}
+                {type === 'friends' && `👥 ${language === 'kk' ? 'Достар' : 'Друзья'}`}
+              </button>
+            ))}
           </div>
-
-          {/* Селектор города только для "Қала бойынша" */}
           {filterType === 'city' && (
             <div className="mt-3">
-              <select
-                value={selectedCity || ''}
-                onChange={(e) => setSelectedCity(e.target.value || null)}
+              <select value={selectedCity || ''} onChange={(e) => setSelectedCity(e.target.value || null)}
                 className="w-full px-4 py-3 rounded-xl text-sm font-bold bg-slate-50 border-2 border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
               >
-                <option value="">
-                  {language === 'kk' ? '🌍 Барлық қалалар' : '🌍 Все города'}
-                </option>
-                {cities.map((item) => (
-                  <option key={item.city} value={item.city}>
-                    {item.city} ({item.count.toLocaleString()} {language === 'kk' ? 'адам' : 'чел.'})
-                  </option>
-                ))}
+                <option value="">{language === 'kk' ? '🌍 Барлық қалалар' : '🌍 Все города'}</option>
+                {cities.map((item) => <option key={item.city} value={item.city}>{item.city} ({item.count.toLocaleString()} {language === 'kk' ? 'адам' : 'чел.'})</option>)}
               </select>
             </div>
           )}
         </div>
-
-        {/* Список лидерборда - СКРОЛЛИТСЯ */}
-        <div 
-          ref={leaderboardRef}
-          className="divide-y divide-slate-50 max-h-[60vh] overflow-y-auto"
-          onScroll={handleScroll}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
+        <div ref={leaderboardRef} className="divide-y divide-slate-50 max-h-[60vh] overflow-y-auto" onScroll={handleScroll} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
           {isLoading ? (
             <div className="px-8 py-12 text-center">
               <div className="inline-block w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
@@ -562,196 +311,158 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           ) : (
             <>
               {leaderboard.map((user, idx) => (
-                <div 
-                  key={user.userId || idx} 
-                  className={`flex items-center justify-between px-6 py-4 transition-all duration-300 animate-in fade-in slide-in-from-right-4 ${
-                    user.isMe ? 'bg-emerald-50' : 'bg-white hover:bg-slate-50'
-                  }`}
+                <div key={user.userId || idx}
+                  className={`flex items-center justify-between px-6 py-4 transition-all duration-300 animate-in fade-in slide-in-from-right-4 ${ user.isMe ? 'bg-emerald-50' : 'bg-white hover:bg-slate-50' }`}
                   style={{ animationDelay: `${idx * 30}ms`, animationDuration: '400ms' }}
                 >
                   <div className="flex items-center space-x-4">
-                    <span className={`w-6 text-xs font-black transition-all ${
-                      user.rank === 1 ? 'text-amber-500 text-xl' : user.rank === 2 ? 'text-slate-400 text-lg' : user.rank === 3 ? 'text-amber-700 text-lg' : 'text-slate-300'
-                    }`}>{user.rank}.</span>
-                    <div className={`w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0 transition-all ${
-                      user.isMe ? 'ring-2 ring-emerald-500 scale-110' : ''
-                    }`}>
+                    <span className={`w-6 text-xs font-black ${ user.rank === 1 ? 'text-amber-500 text-xl' : user.rank === 2 ? 'text-slate-400 text-lg' : user.rank === 3 ? 'text-amber-700 text-lg' : 'text-slate-300' }`}>{user.rank}.</span>
+                    <div className={`w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0 ${ user.isMe ? 'ring-2 ring-emerald-500 scale-110' : '' }`}>
                       {(() => {
-                        const photo = user.isMe
-                          ? (userData.photoUrl || user.photoUrl)
-                          : user.photoUrl;
-                        if (photo) {
-                          return (
-                            <img
-                              src={photo}
-                              alt={user.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.currentTarget;
-                                target.style.display = 'none';
-                                target.nextElementSibling?.removeAttribute('style');
-                              }}
-                            />
-                          );
-                        }
+                        const photo = user.isMe ? (userData.photoUrl || user.photoUrl) : user.photoUrl;
+                        if (photo) return <img src={photo} alt={user.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.removeAttribute('style'); }} />;
                         return null;
                       })()}
-                      <div
-                        className={`w-full h-full flex items-center justify-center text-sm font-black ${
-                          user.isMe ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
-                        }`}
-                        style={(() => {
-                          const photo = user.isMe
-                            ? (userData.photoUrl || user.photoUrl)
-                            : user.photoUrl;
-                          return photo ? { display: 'none' } : {};
-                        })()}
+                      <div className={`w-full h-full flex items-center justify-center text-sm font-black ${ user.isMe ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600' }`}
+                        style={(() => { const photo = user.isMe ? (userData.photoUrl || user.photoUrl) : user.photoUrl; return photo ? { display: 'none' } : {}; })()}
                       >
                         {(user.name || user.username || 'U').charAt(0).toUpperCase()}
                       </div>
                     </div>
                     <div>
-                      <p className={`text-sm font-black ${user.isMe ? 'text-emerald-900' : 'text-slate-700'}`}>
-                        {user.name || user.username || 'User'} 
-                        {user.isMe && (
-                          <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md ml-1 animate-pulse">
-                            {language === 'kk' ? 'СІЗ' : 'ВЫ'}
-                          </span>
-                        )}
+                      <p className={`text-sm font-black ${ user.isMe ? 'text-emerald-900' : 'text-slate-700' }`}>
+                        {user.name || user.username || 'User'}
+                        {user.isMe && <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md ml-1 animate-pulse">{language === 'kk' ? 'СІЗ' : 'ВЫ'}</span>}
                       </p>
                       <div className="flex items-center gap-2">
                         <p className="text-[10px] text-slate-400 font-bold">{user.xp} XP</p>
-                        {user.location?.city && (
-                          <span className="text-[9px] text-slate-300">
-                            📍 {translateName(user.location.city, language, 'city')}
-                          </span>
-                        )}
+                        {user.location?.city && <span className="text-[9px] text-slate-300">📍 {translateName(user.location.city, language, 'city')}</span>}
                       </div>
                     </div>
                   </div>
-                  {user.rank <= 3 && (
-                    <span className="text-2xl animate-bounce" style={{ animationDelay: `${(user.rank - 1) * 100}ms` }}>
-                      {user.rank === 1 ? '🥇' : user.rank === 2 ? '🥈' : '🥉'}
-                    </span>
-                  )}
+                  {user.rank <= 3 && <span className="text-2xl animate-bounce" style={{ animationDelay: `${(user.rank - 1) * 100}ms` }}>{user.rank === 1 ? '🥇' : user.rank === 2 ? '🥈' : '🥉'}</span>}
                 </div>
               ))}
-
-              {/* Индикатор загрузки при пагинации */}
-              {isLoadingMore && (
-                <div className="px-8 py-4 text-center">
-                  <div className="inline-block w-6 h-6 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              )}
-
-              {/* Сообщение об окончании списка */}
-              {!hasMore && !isLoadingMore && filterType !== 'friends' && (
-                <div className="px-8 py-4 text-center">
-                  <p className="text-[10px] text-slate-400 italic">
-                    {language === 'kk' ? 'Барлық қатысушылар' : 'Все участники показаны'}
-                  </p>
-                </div>
-              )}
+              {isLoadingMore && <div className="px-8 py-4 text-center"><div className="inline-block w-6 h-6 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div></div>}
+              {!hasMore && !isLoadingMore && filterType !== 'friends' && <div className="px-8 py-4 text-center"><p className="text-[10px] text-slate-400 italic">{language === 'kk' ? 'Барлық қатысушылар' : 'Все участники показаны'}</p></div>}
             </>
           )}
         </div>
       </div>
 
-      {/* ⚡ XP ГАЙД — Как зарабатывать очки */}
-      <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-[2.5rem] overflow-hidden shadow-xl">
-        {/* Заголовок — кликабельный для разворачивания */}
+      {/* ⚡ XP ГАЙД — Glassmorphism */}
+      <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] border border-slate-100/80 shadow-lg shadow-black/[0.04] overflow-hidden">
+
+        {/* Шапка — клик для разворота */}
         <button
           onClick={() => setXpGuideOpen(prev => !prev)}
-          className="w-full flex items-center justify-between p-6 active:scale-[0.99] transition-transform"
+          className="w-full flex items-center justify-between px-7 py-6 active:bg-slate-50/80 transition-colors"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-amber-400/20 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl">⚡</span>
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-400 shadow-md shadow-amber-200/50 flex items-center justify-center flex-shrink-0">
+              <span className="text-xl">⚡</span>
             </div>
             <div className="text-left">
-              <p className="text-white font-black text-sm uppercase tracking-wider">
+              <p className="text-slate-800 font-black text-sm">
                 {language === 'kk' ? 'XP қалай жинауға болады?' : 'Как зарабатывать XP?'}
               </p>
-              <p className="text-white/40 text-[10px] mt-0.5">
+              <p className="text-slate-400 text-[11px] mt-0.5">
                 {language === 'kk' ? 'Барлық іс-әрекеттер тізімі' : 'Полный список действий'}
               </p>
             </div>
           </div>
-          <span className={`text-white/50 text-xl transition-transform duration-300 ${xpGuideOpen ? 'rotate-180' : ''}`}>
-            ▾
-          </span>
+          <div className={`w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 transition-transform duration-300 ${xpGuideOpen ? 'rotate-180' : ''}`}>
+            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
         </button>
 
-        {/* Разворачиваемый контент */}
+        {/* Разворачиваемый блок */}
         {xpGuideOpen && (
-          <div className="px-6 pb-6 space-y-5 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="animate-in fade-in slide-in-from-top-1 duration-200">
 
-            {/* Стрик-баннер вверху */}
-            <div className="bg-gradient-to-r from-orange-500/25 to-red-500/25 rounded-2xl p-4 border border-orange-500/20 flex items-start space-x-3">
-              <span className="text-2xl flex-shrink-0">🔥</span>
+            {/* Разделитель */}
+            <div className="mx-7 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+
+            <div className="px-7 pt-5 pb-7 space-y-6">
+
+              {/* Баннер стрик */}
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-4 border border-orange-100/80 flex items-start space-x-3">
+                <span className="text-xl flex-shrink-0 mt-0.5">🔥</span>
+                <div>
+                  <p className="text-orange-700 font-black text-xs">
+                    {language === 'kk' ? 'Стрик мультипликаторы' : 'Множитель серии'}
+                  </p>
+                  <p className="text-orange-600/70 text-[11px] leading-relaxed mt-0.5">
+                    {language === 'kk'
+                      ? 'Күн сайын белсенді болыңыз — XP ×3.0 дейін өседі!'
+                      : 'Ежедневная активность умножает XP до ×3.0!'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Намаз */}
               <div>
-                <p className="text-white font-black text-xs mb-1">
-                  {language === 'kk' ? 'Стрик мультипликаторы' : 'Множитель серии'}
-                </p>
-                <p className="text-white/60 text-[11px] leading-relaxed">
-                  {language === 'kk'
-                    ? 'Күн сайын белсенді болсаңыз — XP автоматты түрде көбейеді! 10 күн = ×2.0, 20 күн = ×3.0 дейін'
-                    : 'Чем длиннее ваша серия активных дней — тем больше XP! 10 дней = ×2.0, до ×3.0 за 20+ дней'}
-                </p>
+                <div className="flex items-center space-x-2 mb-3">
+                  <span className="text-sm">🕌</span>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {language === 'kk' ? 'Намаз' : 'Намаз'}
+                  </p>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {XP_GUIDE_NAMAZ.map((item) => (
+                    <div key={item.nameKk} className="flex items-center justify-between py-3">
+                      <span className="text-slate-700 text-sm">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                      <span className="text-[11px] font-black text-amber-500 bg-amber-50 px-2.5 py-1 rounded-xl">+{item.xp} XP</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Намаз */}
-            <div>
-              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-3">
-                🕌 {language === 'kk' ? 'НАМАЗ' : 'НАМАЗ'}
-              </p>
-              <div className="space-y-1.5">
-                {XP_GUIDE_NAMAZ.map((item) => (
-                  <div key={item.nameKk} className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-xl">
-                    <span className="text-white/80 text-xs font-bold">
-                      {item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}
-                    </span>
-                    <span className="text-amber-400 text-xs font-black">+{item.xp} XP</span>
-                  </div>
-                ))}
+              {/* Разделитель */}
+              <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+
+              {/* Ибадат */}
+              <div>
+                <div className="flex items-center space-x-2 mb-3">
+                  <span className="text-sm">📖</span>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {language === 'kk' ? 'Ибадат' : 'Ибадат'}
+                  </p>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {XP_GUIDE_IBADAH.map((item) => (
+                    <div key={item.nameKk} className="flex items-center justify-between py-3">
+                      <span className="text-slate-700 text-sm">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                      <span className="text-[11px] font-black text-amber-500 bg-amber-50 px-2.5 py-1 rounded-xl">+{item.xp} XP</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Ибадат */}
-            <div>
-              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-3">
-                📖 {language === 'kk' ? 'ИБАДАТ' : 'ИБАДАТ'}
-              </p>
-              <div className="space-y-1.5">
-                {XP_GUIDE_IBADAH.map((item) => (
-                  <div key={item.nameKk} className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-xl">
-                    <span className="text-white/80 text-xs font-bold">
-                      {item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}
-                    </span>
-                    <span className="text-amber-400 text-xs font-black">+{item.xp} XP</span>
-                  </div>
-                ))}
+              {/* Разделитель */}
+              <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+
+              {/* Бонусы */}
+              <div>
+                <div className="flex items-center space-x-2 mb-3">
+                  <span className="text-sm">🎁</span>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {language === 'kk' ? 'Бонустар' : 'Бонусы'}
+                  </p>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {XP_GUIDE_BONUS.map((item) => (
+                    <div key={item.nameKk} className="flex items-center justify-between py-3">
+                      <span className="text-slate-700 text-sm flex-1 pr-3">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                      <span className="text-[11px] font-black text-amber-500 bg-amber-50 px-2.5 py-1 rounded-xl whitespace-nowrap">+{item.xp} XP</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Бонусы */}
-            <div>
-              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-3">
-                🎁 {language === 'kk' ? 'БОНУСТАР' : 'БОНУСЫ'}
-              </p>
-              <div className="space-y-1.5">
-                {XP_GUIDE_BONUS.map((item) => (
-                  <div key={item.nameKk} className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-xl">
-                    <span className="text-white/80 text-xs font-bold flex-1 pr-3">
-                      {item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}
-                    </span>
-                    <span className="text-amber-400 text-xs font-black whitespace-nowrap">+{item.xp} XP</span>
-                  </div>
-                ))}
-              </div>
             </div>
-
           </div>
         )}
       </div>
