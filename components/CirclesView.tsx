@@ -987,108 +987,119 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
         {/* 🔍 МОДАЛ: детали участника */}
         {memberDetailModal && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-5"
-            style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
             onClick={() => setMemberDetailModal(null)}
+            style={{
+              position: 'fixed',
+              top: 0, left: 0, right: 0, bottom: 0,
+              zIndex: 9999,
+              background: 'rgba(0,0,0,0.55)',
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px'
+            }}
           >
             <div
-              className="w-full max-w-sm rounded-[2rem] p-5 animate-in zoom-in-95 fade-in duration-200"
+              onClick={(e) => e.stopPropagation()}
               style={{
-                background: 'rgba(255,255,255,0.08)',
+                width: '100%',
+                maxWidth: '360px',
+                borderRadius: '24px',
+                padding: '20px',
+                background: 'rgba(255,255,255,0.07)',
                 backdropFilter: 'blur(24px)',
                 WebkitBackdropFilter: 'blur(24px)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
               }}
-              onClick={(e) => e.stopPropagation()}
             >
               {/* Шапка */}
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h3 className="text-white font-black text-base leading-tight">
+                  <h3 className="text-white font-black text-base">
                     {memberDetailModal.member.name}
                   </h3>
                   <p className="text-white/40 text-[10px] font-bold mt-0.5">
                     {memberDetailModal.member.userId === userData.userId
-                      ? `${getMyLocalProgress().completed}/${getMyLocalProgress().total}`
-                      : `${memberDetailModal.member.todayProgress.completed}/${memberDetailModal.member.todayProgress.total}`
-                    }{' '}{language === 'kk' ? 'тапсырма' : 'задач'}{' · '}
-                    {memberDetailModal.member.userId === userData.userId
-                      ? `${getMyLocalProgress().percent}%`
-                      : `${memberDetailModal.member.todayProgress.percent}%`
-                    }
+                      ? `${getMyLocalProgress().completed}/${getMyLocalProgress().total} · ${getMyLocalProgress().percent}%`
+                      : `${memberDetailModal.member.todayProgress.completed}/${memberDetailModal.member.todayProgress.total} · ${memberDetailModal.member.todayProgress.percent}%`
+                    }{' '}{language === 'kk' ? 'тапсырма' : 'задач'}
                   </p>
                 </div>
                 <button
                   onClick={() => setMemberDetailModal(null)}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center text-white/40 active:scale-90 text-xs transition-all"
-                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  style={{
+                    width: '30px', height: '30px',
+                    borderRadius: '10px',
+                    background: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: 'rgba(255,255,255,0.4)',
+                    fontSize: '11px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}
                 >
                   ✕
                 </button>
               </div>
 
               {/* Прогресс-бар */}
-              <div className="w-full h-1.5 rounded-full overflow-hidden mb-4" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${memberDetailModal.member.userId === userData.userId
-                      ? getMyLocalProgress().percent
-                      : memberDetailModal.member.todayProgress.percent}%`
-                  }}
-                ></div>
+              <div style={{ width: '100%', height: '3px', borderRadius: '99px', background: 'rgba(255,255,255,0.08)', marginBottom: '16px', overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  borderRadius: '99px',
+                  background: 'linear-gradient(to right, #34d399, #2dd4bf)',
+                  width: `${memberDetailModal.member.userId === userData.userId
+                    ? getMyLocalProgress().percent
+                    : memberDetailModal.member.todayProgress.percent}%`,
+                  transition: 'width 0.5s ease'
+                }}></div>
               </div>
 
               {/* Список задач */}
               {isLoadingMemberDetail ? (
                 <div className="text-center py-6">
-                  <div className="inline-block w-6 h-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-2"></div>
-                  <p className="text-white/30 text-[10px] font-bold">{language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}</p>
+                  <div className="inline-block w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-2"></div>
+                  <p className="text-white/30 text-[10px] font-bold">
+                    {language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}
+                  </p>
                 </div>
               ) : memberDetailModal.isRamadan ? (
-                // ✅ Рамадан — 19 задач в 3 колонки
-                <div className="grid grid-cols-3 gap-1.5">
+                // ✅ Рамадан — текстовый список
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
                   {RAMADAN_TASKS_INFO.map((task) => {
                     const done = memberDetailModal.tasks?.[task.key] === true;
                     return (
-                      <div
-                        key={task.key}
-                        className="flex flex-col items-center p-2.5 rounded-xl transition-all"
-                        style={{
-                          background: done ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.04)',
-                          border: done ? '1px solid rgba(52,211,153,0.25)' : '1px solid rgba(255,255,255,0.05)'
-                        }}
-                      >
-                        <span className="text-base mb-1">{task.emoji}</span>
-                        <p className={`text-[9px] font-black text-center leading-tight ${done ? 'text-emerald-300' : 'text-white/25'}`}>
+                      <div key={task.key} className="flex items-center space-x-1.5">
+                        {done
+                          ? <span className="text-emerald-400 text-[10px] flex-shrink-0">✓</span>
+                          : <span className="w-[10px] flex-shrink-0"></span>
+                        }
+                        <span className={`text-[11px] font-bold truncate ${done ? 'text-white/90' : 'text-white/25'}`}>
                           {language === 'kk' ? task.kk : task.ru}
-                        </p>
+                        </span>
                       </div>
                     );
                   })}
                 </div>
               ) : (
                 // ✅ Обычные дни — customTasks
-                <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                <div className="space-y-1.5 max-h-60 overflow-y-auto">
                   {(memberDetailModal.customTasks || []).length === 0 ? (
                     <p className="text-white/25 text-xs font-bold text-center py-4">
                       {language === 'kk' ? 'Мақсаттар жоқ' : 'Нет целей'}
                     </p>
                   ) : (
                     (memberDetailModal.customTasks || []).map((task: any) => (
-                      <div
-                        key={task.id}
-                        className="flex items-center space-x-2.5 px-3 py-2.5 rounded-xl transition-all"
-                        style={{
-                          background: task.completed ? 'rgba(52,211,153,0.12)' : 'rgba(255,255,255,0.04)',
-                          border: task.completed ? '1px solid rgba(52,211,153,0.2)' : '1px solid rgba(255,255,255,0.05)'
-                        }}
-                      >
-                        <span className="text-xs flex-shrink-0">{task.completed ? '✅' : '⬜'}</span>
-                        <p className={`text-[11px] font-bold flex-1 leading-tight ${task.completed ? 'text-emerald-300' : 'text-white/30'}`}>
+                      <div key={task.id} className="flex items-center space-x-1.5">
+                        {task.completed
+                          ? <span className="text-emerald-400 text-[10px] flex-shrink-0">✓</span>
+                          : <span className="w-[10px] flex-shrink-0"></span>
+                        }
+                        <span className={`text-[11px] font-bold leading-tight ${task.completed ? 'text-white/90' : 'text-white/25'}`}>
                           {task.text}
-                        </p>
+                        </span>
                       </div>
                     ))
                   )}
