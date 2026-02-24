@@ -116,7 +116,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   }, [userData.progress, userData.startDate, userData.customTasks, userData.basicProgress, userData.dailyQuranGoal, userData.dailyCharityGoal]);
 
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [memberDetailModal, setMemberDetailModal] = useState<{ member: any; tasks: any } | null>(null);
+  const [memberDetailModal, setMemberDetailModal] = useState<{ member: any; tasks: any; customTasks: any[] | null; isRamadan: boolean } | null>(null);
   const [isLoadingMemberDetail, setIsLoadingMemberDetail] = useState(false);
 
 
@@ -151,6 +151,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
 
   const handleMemberTap = async (member: any) => {
     const isCurrentUser = member.userId === userData.userId;
+
     // Вычисляем день Рамадана
     const [sy, sm, sd] = userData.startDate.split('-').map(Number);
     const startDate = new Date(sy, sm - 1, sd);
@@ -158,23 +159,26 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const diffDays = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const ramadanDay = diffDays >= 0 ? diffDays + 1 : null;
+    const isRamadan = ramadanDay !== null;
 
     if (isCurrentUser) {
       // Для себя — локальные данные, без API
-      const tasks = ramadanDay ? (userData.progress[ramadanDay] || {}) : {};
-      setMemberDetailModal({ member, tasks });
+      const tasks = isRamadan ? (userData.progress[ramadanDay!] || {}) : {};
+      const customTasks = userData.customTasks || [];
+      setMemberDetailModal({ member, tasks, customTasks, isRamadan });
     } else {
       // Для других — загружаем с сервера
       setIsLoadingMemberDetail(true);
-      setMemberDetailModal({ member, tasks: null });
+      setMemberDetailModal({ member, tasks: null, customTasks: null, isRamadan });
       try {
         const memberData = await getUserData(member.userId);
-        const tasks = ramadanDay && memberData?.progress
-          ? (memberData.progress[ramadanDay] || {})
+        const tasks = isRamadan && memberData?.progress
+          ? (memberData.progress[ramadanDay!] || {})
           : {};
-        setMemberDetailModal({ member, tasks });
+        const customTasks = memberData?.customTasks || [];
+        setMemberDetailModal({ member, tasks, customTasks, isRamadan });
       } catch {
-        setMemberDetailModal({ member, tasks: {} });
+        setMemberDetailModal({ member, tasks: {}, customTasks: [], isRamadan });
       } finally {
         setIsLoadingMemberDetail(false);
       }
@@ -1029,7 +1033,8 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                   <div className="inline-block w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2"></div>
                   <p className="text-white/40 text-xs font-bold">{language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}</p>
                 </div>
-              ) : (
+              ) : memberDetailModal.isRamadan ? (
+                // ✅ Рамадан — показываем 19 ибадат-задач
                 <div className="grid grid-cols-2 gap-2">
                   {RAMADAN_TASKS_INFO.map((task) => {
                     const done = memberDetailModal.tasks?.[task.key] === true;
@@ -1050,6 +1055,31 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                       </div>
                     );
                   })}
+                </div>
+              ) : (
+                // ✅ Обычные дни — показываем customTasks
+                <div className="space-y-2">
+                  {(memberDetailModal.customTasks || []).length === 0 ? (
+                    <p className="text-white/30 text-xs font-bold text-center py-4">
+                      {language === 'kk' ? 'Мақсаттар жоқ' : 'Нет целей'}
+                    </p>
+                  ) : (
+                    (memberDetailModal.customTasks || []).map((task: any) => (
+                      <div
+                        key={task.id}
+                        className={`flex items-center space-x-3 p-3 rounded-2xl border transition-all ${
+                          task.completed
+                            ? 'bg-emerald-500/20 border-emerald-500/30'
+                            : 'bg-white/5 border-white/5'
+                        }`}
+                      >
+                        <span className="text-sm flex-shrink-0">{task.completed ? '✅' : '⬜'}</span>
+                        <p className={`text-[11px] font-black flex-1 ${task.completed ? 'text-emerald-300' : 'text-white/30'}`}>
+                          {task.text}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </div>
