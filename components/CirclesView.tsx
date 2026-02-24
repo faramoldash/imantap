@@ -22,13 +22,13 @@ const spinReverseStyle = `
 const RAMADAN_TASKS_INFO = [
   { key: 'fasting',      emoji: '🌙', kk: 'Ораза',        ru: 'Пост' },
   { key: 'tahajjud',     emoji: '🌃', kk: 'Тахаджуд',     ru: 'Тахаджуд' },
-  { key: 'fajr',         emoji: '🕌', kk: 'Бамдат',       ru: 'Фаджр' },
+  { key: 'fajr',         emoji: '🕌', kk: 'Таң',       ru: 'Фаджр' },
   { key: 'morningDhikr', emoji: '☀️', kk: 'Таңғы зікір', ru: 'Утр. зикр' },
   { key: 'quranRead',    emoji: '📖', kk: 'Құран',        ru: 'Коран' },
   { key: 'names99',      emoji: '📿', kk: '99 есім',      ru: '99 имён' },
   { key: 'salawat',      emoji: '✨', kk: 'Салауат',      ru: 'Салауат' },
   { key: 'hadith',       emoji: '📚', kk: 'Хадис',        ru: 'Хадис' },
-  { key: 'duha',         emoji: '🌅', kk: 'Шурық',        ru: 'Духа' },
+  { key: 'duha',         emoji: '🌅', kk: 'Дұха',        ru: 'Духа' },
   { key: 'charity',      emoji: '💎', kk: 'Садақа',       ru: 'Садака' },
   { key: 'dhuhr',        emoji: '🕌', kk: 'Бесін',        ru: 'Зухр' },
   { key: 'lessons',      emoji: '🎓', kk: 'Дәрістер',     ru: 'Уроки' },
@@ -38,7 +38,7 @@ const RAMADAN_TASKS_INFO = [
   { key: 'maghrib',      emoji: '🌇', kk: 'Ақшам',        ru: 'Магриб' },
   { key: 'isha',         emoji: '🌙', kk: 'Құптан',       ru: 'Иша' },
   { key: 'taraweeh',     emoji: '⭐', kk: 'Тарауих',      ru: 'Таравих' },
-  { key: 'witr',         emoji: '🌟', kk: 'Уітір',        ru: 'Витр' },
+  { key: 'witr',         emoji: '🌟', kk: 'Үтір',        ru: 'Витр' },
 ];
 
 const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigate, navigationData }) => {
