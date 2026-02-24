@@ -16,6 +16,38 @@ interface RewardsViewProps {
 
 type FilterType = 'global' | 'country' | 'city' | 'friends';
 
+const XP_GUIDE_NAMAZ = [
+  { emoji: '🌅', nameKk: 'Бамдат', nameRu: 'Фаджр', xp: 50 },
+  { emoji: '☀️', nameKk: 'Дұха', nameRu: 'Духа', xp: 30 },
+  { emoji: '🌤', nameKk: 'Бесін', nameRu: 'Зухр', xp: 50 },
+  { emoji: '🌇', nameKk: 'Екінді', nameRu: 'Аср', xp: 50 },
+  { emoji: '🌆', nameKk: 'Ақшам', nameRu: 'Магриб', xp: 50 },
+  { emoji: '🌙', nameKk: 'Құптан', nameRu: 'Иша', xp: 50 },
+  { emoji: '🌟', nameKk: 'Тәравих', nameRu: 'Таравих', xp: 100 },
+  { emoji: '✨', nameKk: 'Тәhажжуд', nameRu: 'Тахаджуд', xp: 100 },
+  { emoji: '🤲', nameKk: 'Витр', nameRu: 'Витр', xp: 50 },
+];
+
+const XP_GUIDE_IBADAH = [
+  { emoji: '🌙', nameKk: 'Ораза', nameRu: 'Пост', xp: 200 },
+  { emoji: '📖', nameKk: 'Құран оқу', nameRu: 'Чтение Корана', xp: 100 },
+  { emoji: '🌅', nameKk: 'Таңғы зікір', nameRu: 'Утренний зикр', xp: 30 },
+  { emoji: '🌌', nameKk: 'Кешкі зікір', nameRu: 'Вечерний зикр', xp: 30 },
+  { emoji: '💫', nameKk: 'Салауат', nameRu: 'Салауат', xp: 20 },
+  { emoji: '📜', nameKk: 'Хадис', nameRu: 'Хадис', xp: 50 },
+  { emoji: '💝', nameKk: 'Садақа', nameRu: 'Садака', xp: 100 },
+  { emoji: '🕋', nameKk: '99 есімдер', nameRu: '99 имён', xp: 50 },
+  { emoji: '📚', nameKk: 'Дарыс', nameRu: 'Урок', xp: 50 },
+  { emoji: '📕', nameKk: 'Кітап', nameRu: 'Книга', xp: 50 },
+];
+
+const XP_GUIDE_BONUS = [
+  { emoji: '📿', nameKk: 'Аллаhтың 1 есімін жаттау', nameRu: '1 имя Аллаха выучено', xp: 100 },
+  { emoji: '🎉', nameKk: 'Алғашқы Құран хатымы', nameRu: 'Первый хатым Корана', xp: 1000 },
+  { emoji: '👥', nameKk: 'Дос шақыру (тіркелу)', nameRu: 'Пригласить друга', xp: 100 },
+  { emoji: '💎', nameKk: 'Дос жазылды (төлем)', nameRu: 'Друг оплатил подписку', xp: 400 },
+];
+
 const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigate }) => {
   const t = TRANSLATIONS[language];
 
@@ -35,6 +67,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
   const [hasMore, setHasMore] = useState(true);
   const [isPulling, setIsPulling] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+  const [xpGuideOpen, setXpGuideOpen] = useState(false);
   const {
     circles: userCircles,
       isLoadingCircles,
@@ -373,20 +406,15 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
               <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/10">
                 <div className="text-3xl font-black bg-gradient-to-br from-blue-400 to-purple-400 bg-clip-text text-transparent mb-1">
                   {(() => {
-                    // Рассчитываем средний прогресс по всем кругам
                     if (userCircles.length === 0) return 0;
-                    
                     const circleProgresses = userCircles.map((c: any) => {
                       const members = c.members?.filter((m: any) => m.status === 'active') || [];
                       if (members.length === 0) return 0;
-                      
                       const totalXp = members.reduce((sum: number, m: any) => sum + (m.xp || 0), 0);
                       const avgXp = totalXp / members.length;
                       const maxXp = Math.max(...members.map((m: any) => m.xp || 0), 1);
-                      
                       return maxXp > 0 ? Math.round((avgXp / maxXp) * 100) : 0;
                     });
-                    
                     const avgProgress = circleProgresses.reduce((sum, p) => sum + p, 0) / circleProgresses.length;
                     return Math.round(avgProgress);
                   })()}%
@@ -549,11 +577,9 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
                       user.isMe ? 'ring-2 ring-emerald-500 scale-110' : ''
                     }`}>
                       {(() => {
-                        // Для себя — из userData, для других — из поля photoUrl
                         const photo = user.isMe
                           ? (userData.photoUrl || user.photoUrl)
                           : user.photoUrl;
-
                         if (photo) {
                           return (
                             <img
@@ -561,7 +587,6 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
                               alt={user.name}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                // Если фото не загрузилось — показываем букву
                                 const target = e.currentTarget;
                                 target.style.display = 'none';
                                 target.nextElementSibling?.removeAttribute('style');
@@ -630,6 +655,105 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
             </>
           )}
         </div>
+      </div>
+
+      {/* ⚡ XP ГАЙД — Как зарабатывать очки */}
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-[2.5rem] overflow-hidden shadow-xl">
+        {/* Заголовок — кликабельный для разворачивания */}
+        <button
+          onClick={() => setXpGuideOpen(prev => !prev)}
+          className="w-full flex items-center justify-between p-6 active:scale-[0.99] transition-transform"
+        >
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-amber-400/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl">⚡</span>
+            </div>
+            <div className="text-left">
+              <p className="text-white font-black text-sm uppercase tracking-wider">
+                {language === 'kk' ? 'XP қалай жинауға болады?' : 'Как зарабатывать XP?'}
+              </p>
+              <p className="text-white/40 text-[10px] mt-0.5">
+                {language === 'kk' ? 'Барлық іс-әрекеттер тізімі' : 'Полный список действий'}
+              </p>
+            </div>
+          </div>
+          <span className={`text-white/50 text-xl transition-transform duration-300 ${xpGuideOpen ? 'rotate-180' : ''}`}>
+            ▾
+          </span>
+        </button>
+
+        {/* Разворачиваемый контент */}
+        {xpGuideOpen && (
+          <div className="px-6 pb-6 space-y-5 animate-in fade-in slide-in-from-top-2 duration-300">
+
+            {/* Стрик-баннер вверху */}
+            <div className="bg-gradient-to-r from-orange-500/25 to-red-500/25 rounded-2xl p-4 border border-orange-500/20 flex items-start space-x-3">
+              <span className="text-2xl flex-shrink-0">🔥</span>
+              <div>
+                <p className="text-white font-black text-xs mb-1">
+                  {language === 'kk' ? 'Стрик мультипликаторы' : 'Множитель серии'}
+                </p>
+                <p className="text-white/60 text-[11px] leading-relaxed">
+                  {language === 'kk'
+                    ? 'Күн сайын белсенді болсаңыз — XP автоматты түрде көбейеді! 10 күн = ×2.0, 20 күн = ×3.0 дейін'
+                    : 'Чем длиннее ваша серия активных дней — тем больше XP! 10 дней = ×2.0, до ×3.0 за 20+ дней'}
+                </p>
+              </div>
+            </div>
+
+            {/* Намаз */}
+            <div>
+              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-3">
+                🕌 {language === 'kk' ? 'НАМАЗ' : 'НАМАЗ'}
+              </p>
+              <div className="space-y-1.5">
+                {XP_GUIDE_NAMAZ.map((item) => (
+                  <div key={item.nameKk} className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-xl">
+                    <span className="text-white/80 text-xs font-bold">
+                      {item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}
+                    </span>
+                    <span className="text-amber-400 text-xs font-black">+{item.xp} XP</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ибадат */}
+            <div>
+              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-3">
+                📖 {language === 'kk' ? 'ИБАДАТ' : 'ИБАДАТ'}
+              </p>
+              <div className="space-y-1.5">
+                {XP_GUIDE_IBADAH.map((item) => (
+                  <div key={item.nameKk} className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-xl">
+                    <span className="text-white/80 text-xs font-bold">
+                      {item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}
+                    </span>
+                    <span className="text-amber-400 text-xs font-black">+{item.xp} XP</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Бонусы */}
+            <div>
+              <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-3">
+                🎁 {language === 'kk' ? 'БОНУСТАР' : 'БОНУСЫ'}
+              </p>
+              <div className="space-y-1.5">
+                {XP_GUIDE_BONUS.map((item) => (
+                  <div key={item.nameKk} className="flex items-center justify-between py-2 px-3 bg-white/5 rounded-xl">
+                    <span className="text-white/80 text-xs font-bold flex-1 pr-3">
+                      {item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}
+                    </span>
+                    <span className="text-amber-400 text-xs font-black whitespace-nowrap">+{item.xp} XP</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        )}
       </div>
 
       {/* Индикатор автообновления */}
