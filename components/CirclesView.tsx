@@ -19,27 +19,48 @@ const spinReverseStyle = `
   }
 `;
 
-const RAMADAN_TASKS_INFO = [
-  { key: 'fasting',      emoji: '🌙', kk: 'Ораза',        ru: 'Пост' },
-  { key: 'tahajjud',     emoji: '🌃', kk: 'Тахаджуд',     ru: 'Тахаджуд' },
-  { key: 'fajr',         emoji: '🕌', kk: 'Таң',       ru: 'Фаджр' },
-  { key: 'morningDhikr', emoji: '☀️', kk: 'Таңғы зікір', ru: 'Утр. зикр' },
-  { key: 'quranRead',    emoji: '📖', kk: 'Құран',        ru: 'Коран' },
-  { key: 'names99',      emoji: '📿', kk: '99 есім',      ru: '99 имён' },
-  { key: 'salawat',      emoji: '✨', kk: 'Салауат',      ru: 'Салауат' },
-  { key: 'hadith',       emoji: '📚', kk: 'Хадис',        ru: 'Хадис' },
-  { key: 'duha',         emoji: '🌅', kk: 'Дұха',        ru: 'Духа' },
-  { key: 'charity',      emoji: '💎', kk: 'Садақа',       ru: 'Садака' },
-  { key: 'dhuhr',        emoji: '🕌', kk: 'Бесін',        ru: 'Зухр' },
-  { key: 'lessons',      emoji: '🎓', kk: 'Дәрістер',     ru: 'Уроки' },
-  { key: 'asr',          emoji: '🕌', kk: 'Екінті',       ru: 'Аср' },
-  { key: 'book',         emoji: '📗', kk: 'Кітап',        ru: 'Книга' },
-  { key: 'eveningDhikr', emoji: '🌆', kk: 'Кешкі зікір', ru: 'Веч. зикр' },
-  { key: 'maghrib',      emoji: '🌇', kk: 'Ақшам',        ru: 'Магриб' },
-  { key: 'isha',         emoji: '🌙', kk: 'Құптан',       ru: 'Иша' },
-  { key: 'taraweeh',     emoji: '⭐', kk: 'Тарауих',      ru: 'Таравих' },
-  { key: 'witr',         emoji: '🌟', kk: 'Үтір',        ru: 'Витр' },
+const RAMADAN_TASK_GROUPS = [
+  {
+    kk: 'Ораза',
+    ru: 'Пост',
+    tasks: [
+      { key: 'fasting', emoji: '🌙', kk: 'Ораза тұту', ru: 'Держать пост' },
+    ]
+  },
+  {
+    kk: 'Намаздар',
+    ru: 'Намазы',
+    tasks: [
+      { key: 'tahajjud',  emoji: '🌃', kk: 'Тахаджуд',  ru: 'Тахаджуд' },
+      { key: 'fajr',      emoji: '🕌', kk: 'Бамдат',    ru: 'Фаджр' },
+      { key: 'dhuhr',     emoji: '🕌', kk: 'Бесін',     ru: 'Зухр' },
+      { key: 'asr',       emoji: '🕌', kk: 'Екінті',    ru: 'Аср' },
+      { key: 'maghrib',   emoji: '🌇', kk: 'Ақшам',     ru: 'Магриб' },
+      { key: 'isha',      emoji: '🌙', kk: 'Құптан',    ru: 'Иша' },
+      { key: 'taraweeh',  emoji: '⭐', kk: 'Тарауих',   ru: 'Таравих' },
+      { key: 'witr',      emoji: '🌟', kk: 'Уітір',     ru: 'Витр' },
+    ]
+  },
+  {
+    kk: 'Рухани амалдар',
+    ru: 'Духовное',
+    tasks: [
+      { key: 'morningDhikr', emoji: '☀️', kk: 'Таңғы зікір',  ru: 'Утр. зикр' },
+      { key: 'quranRead',    emoji: '📖', kk: 'Құран',         ru: 'Коран' },
+      { key: 'names99',      emoji: '📿', kk: '99 есім',       ru: '99 имён' },
+      { key: 'salawat',      emoji: '✨', kk: 'Салауат',       ru: 'Салауат' },
+      { key: 'hadith',       emoji: '📚', kk: 'Хадис',         ru: 'Хадис' },
+      { key: 'duha',         emoji: '🌅', kk: 'Шурық',         ru: 'Духа' },
+      { key: 'lessons',      emoji: '🎓', kk: 'Дәрістер',      ru: 'Уроки' },
+      { key: 'book',         emoji: '📗', kk: 'Кітап',         ru: 'Книга' },
+      { key: 'eveningDhikr', emoji: '🌆', kk: 'Кешкі зікір',  ru: 'Веч. зикр' },
+      { key: 'charity',      emoji: '💎', kk: 'Садақа',        ru: 'Садака' },
+    ]
+  },
 ];
+
+// Плоский список для совместимости (getMyLocalProgress использует RAMADAN_TASKS)
+const RAMADAN_TASKS_INFO = RAMADAN_TASK_GROUPS.flatMap(g => g.tasks);
 
 const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigate, navigationData }) => {
   const t = TRANSLATIONS[language];
@@ -862,21 +883,33 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                               </span>
                             </div>
                           ) : expandedTasksMap[member.userId]?.isRamadan ? (
-                            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-                              {RAMADAN_TASKS_INFO.map((task) => {
-                                const done = expandedTasksMap[member.userId]?.tasks?.[task.key] === true;
-                                return (
-                                  <div key={task.key} className="flex items-center space-x-1.5">
-                                    {done
-                                      ? <span className="text-emerald-500 text-[10px] font-black flex-shrink-0">✓</span>
-                                      : <span className="w-[10px] flex-shrink-0"></span>
-                                    }
-                                    <span className={`text-[11px] font-bold truncate ${done ? 'text-slate-700' : 'text-slate-300'}`}>
-                                      {language === 'kk' ? task.kk : task.ru}
-                                    </span>
+                            <div className="space-y-3">
+                              {RAMADAN_TASK_GROUPS.map((group, gi) => (
+                                <div key={gi}>
+                                  {/* Заголовок категории */}
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                    {language === 'kk' ? group.kk : group.ru}
+                                  </p>
+                                  {/* Задачи */}
+                                  <div className="space-y-1">
+                                    {group.tasks.map((task) => {
+                                      const done = expandedTasksMap[member.userId]?.tasks?.[task.key] === true;
+                                      return (
+                                        <div key={task.key} className="flex items-center justify-between">
+                                          <span className={`text-[11px] font-bold ${done ? 'text-slate-700' : 'text-slate-300'}`}>
+                                            {language === 'kk' ? task.kk : task.ru}
+                                          </span>
+                                          {done && <span className="text-emerald-500 text-[10px] font-black ml-2">✓</span>}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
-                                );
-                              })}
+                                  {/* Разделитель (кроме последней группы) */}
+                                  {gi < RAMADAN_TASK_GROUPS.length - 1 && (
+                                    <div className="mt-3 border-t border-slate-100"></div>
+                                  )}
+                                </div>
+                              ))}
                             </div>
                           ) : (
                             <div className="space-y-1">
@@ -886,14 +919,13 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                                 </p>
                               ) : (
                                 (expandedTasksMap[member.userId]?.customTasks || []).map((task: any) => (
-                                  <div key={task.id} className="flex items-center space-x-1.5">
-                                    {task.completed
-                                      ? <span className="text-emerald-500 text-[10px] font-black flex-shrink-0">✓</span>
-                                      : <span className="w-[10px] flex-shrink-0"></span>
-                                    }
+                                  <div key={task.id} className="flex items-center justify-between">
                                     <span className={`text-[11px] font-bold leading-tight ${task.completed ? 'text-slate-700' : 'text-slate-300'}`}>
                                       {task.text}
                                     </span>
+                                    {task.completed && (
+                                      <span className="text-emerald-500 text-[10px] font-black ml-2">✓</span>
+                                    )}
                                   </div>
                                 ))
                               )}
