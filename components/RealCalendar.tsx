@@ -242,6 +242,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
                 const clickedMs = new Date(clickedStr + 'T00:00:00+05:00').getTime();
                 const prepStartMs = new Date(preparationStartDate + 'T00:00:00+05:00').getTime();
                 const dayNumber = Math.floor((clickedMs - prepStartMs) / 86400000) + 1;
+                if (dayNumber < 1) return;
                 onDaySelect(dayNumber);
               }}
                 
