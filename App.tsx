@@ -175,7 +175,7 @@ const App: React.FC = () => {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     const isStarted = diffDays >= 0;
-    const currentDay = isStarted ? Math.min(diffDays + 1, TOTAL_DAYS) : 0;
+    const currentDay = isStarted ? diffDays + 1 : 0; // ✅ без кэпа — растёт бесконечно
     const daysUntil = !isStarted ? -diffDays : 0;
 
     return { isStarted, currentDay, daysUntil };
@@ -233,9 +233,10 @@ const App: React.FC = () => {
   // ✅ НОВЫЙ — только дата, без времени суток (как в Dashboard.tsx)
   useEffect(() => {
       const getAlmatyDay = () => {
-        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Almaty' });
-        const todayDate = new Date(todayStr + 'T00:00:00+05:00');
-        const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00');
+        const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
+        const prepStart = new Date(PREPARATION_START_DATE + 'T00:00:00');
+        const todayDate = new Date(todayStr + 'T00:00:00');
         const daysSincePrep = Math.floor((todayDate.getTime() - prepStart.getTime()) / (1000 * 60 * 60 * 24));
         return Math.max(1, daysSincePrep + 1);
       };
