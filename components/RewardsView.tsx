@@ -31,8 +31,8 @@ const XP_GUIDE_NAMAZ = [
 const XP_GUIDE_IBADAH = [
   { emoji: '🌙', nameKk: 'Ораза', nameRu: 'Пост', xp: 200 },
   { emoji: '📖', nameKk: 'Құран оқу', nameRu: 'Чтение Корана', xp: 100 },
-  { emoji: '🌅', nameKk: 'Таңғы зікір', nameRu: 'Утренний зикр', xp: 30 },
-  { emoji: '🌌', nameKk: 'Кешкі зікір', nameRu: 'Вечерний зикр', xp: 30 },
+  { emoji: '🌅', nameKk: 'Таңғы зікір', nameRu: 'Утр. зикр', xp: 30 },
+  { emoji: '🌌', nameKk: 'Кешкі зікір', nameRu: 'Веч. зикр', xp: 30 },
   { emoji: '💫', nameKk: 'Салауат', nameRu: 'Салауат', xp: 20 },
   { emoji: '📜', nameKk: 'Хадис', nameRu: 'Хадис', xp: 50 },
   { emoji: '💝', nameKk: 'Садақа', nameRu: 'Садака', xp: 100 },
@@ -42,10 +42,10 @@ const XP_GUIDE_IBADAH = [
 ];
 
 const XP_GUIDE_BONUS = [
-  { emoji: '📿', nameKk: 'Аллаhтың 1 есімін жаттау', nameRu: '1 имя Аллаха выучено', xp: 100 },
+  { emoji: '📿', nameKk: 'Аллаh есімін жаттау', nameRu: 'Имя Аллаха выучено', xp: 100 },
   { emoji: '🎉', nameKk: 'Алғашқы Құран хатымы', nameRu: 'Первый хатым Корана', xp: 1000 },
-  { emoji: '👥', nameKk: 'Дос шақыру (тіркелу)', nameRu: 'Пригласить друга', xp: 100 },
-  { emoji: '💎', nameKk: 'Дос жазылды (төлем)', nameRu: 'Друг оплатил подписку', xp: 400 },
+  { emoji: '👥', nameKk: 'Дос шақыру', nameRu: 'Пригласить друга', xp: 100 },
+  { emoji: '💎', nameKk: 'Досың төлемі', nameRu: 'Оплата друг', xp: 400 },
 ];
 
 const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigate }) => {
@@ -277,7 +277,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
               <span className="text-xl">⚡</span>
             </div>
             <div className="text-left">
-              <p className="font-black text-slate-800 text-sm leading-snug">
+              <p className="font-black text-slate-800 text-sm">
                 {language === 'kk' ? 'XP қалай жинауға болады?' : 'Как зарабатывать XP?'}
               </p>
               <p className="text-[11px] text-amber-500 font-bold mt-0.5">
@@ -293,88 +293,76 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
         </button>
 
         {xpGuideOpen && (
-          <div className="border-t border-slate-50 animate-in fade-in slide-in-from-top-1 duration-200">
+          <div className="border-t border-slate-100 animate-in fade-in slide-in-from-top-1 duration-200">
 
-            {/* 🔥 Стрик */}
-            <div className="mx-4 mt-4 bg-gradient-to-r from-orange-500 to-amber-400 rounded-[1.75rem] p-4 text-white">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-xl">🔥</span>
-                  <div>
-                    <p className="font-black text-sm leading-none">
-                      {language === 'kk' ? 'Стрик мультипликаторы' : 'Множитель серии'}
-                    </p>
-                    <p className="text-[11px] text-white/80 mt-0.5">
-                      {language === 'kk' ? 'Күн сайын белсенді болыңыз' : 'Будьте активны каждый день'}
-                    </p>
-                  </div>
+            {/* 🔥 Стрик — компактный */}
+            <div className="mx-4 my-4 bg-gradient-to-r from-orange-500 to-amber-400 rounded-2xl p-4 text-white flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <span className="text-xl">🔥</span>
+                <div>
+                  <p className="font-black text-sm leading-none">
+                    {language === 'kk' ? 'Стрик бонусы' : 'Бонус серии'}
+                  </p>
+                  <p className="text-[11px] text-white/75 mt-0.5">
+                    {language === 'kk' ? 'Күн сайын белсенді болыңыз' : 'Будьте активны каждый день'}
+                  </p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="flex gap-2 flex-shrink-0">
                 <div className="bg-white/20 rounded-xl px-3 py-2 text-center">
-                  <p className="font-black text-base leading-none">×2.0</p>
-                  <p className="text-[10px] text-white/80 mt-1">{language === 'kk' ? '10 күн' : '10 дней'}</p>
+                  <p className="font-black text-sm leading-none">×2.0</p>
+                  <p className="text-[9px] text-white/75 mt-0.5">{language === 'kk' ? '10 күн' : '10 дней'}</p>
                 </div>
-                <div className="bg-white/20 rounded-xl px-3 py-2 text-center">
-                  <p className="font-black text-base leading-none">×2.5</p>
-                  <p className="text-[10px] text-white/80 mt-1">{language === 'kk' ? '15 күн' : '15 дней'}</p>
-                </div>
-                <div className="bg-white/30 rounded-xl px-3 py-2 text-center border border-white/40">
-                  <p className="font-black text-base leading-none">×3.0</p>
-                  <p className="text-[10px] text-white/80 mt-1">{language === 'kk' ? '20+ күн' : '20+ дней'}</p>
+                <div className="bg-white/30 border border-white/40 rounded-xl px-3 py-2 text-center">
+                  <p className="font-black text-sm leading-none">×3.0</p>
+                  <p className="text-[9px] text-white/75 mt-0.5">{language === 'kk' ? '20+ күн' : '20+ дней'}</p>
                 </div>
               </div>
             </div>
 
             {/* 🕌 Намаз */}
-            <div className="mx-4 mt-3 rounded-[1.75rem] border border-emerald-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 px-5 py-3 flex items-center space-x-2">
-                <span className="text-sm">🕌</span>
-                <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">
-                  {language === 'kk' ? 'Намаз' : 'Намаз'}
-                </p>
+            <div className="border-t border-slate-100">
+              <div className="flex items-center space-x-2.5 px-5 py-3 bg-slate-50">
+                <div className="w-1 h-4 bg-emerald-500 rounded-full"></div>
+                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">🕌  {language === 'kk' ? 'Намаз' : 'Намаз'}</span>
               </div>
-              <div className="divide-y divide-emerald-50/80">
+              <div className="grid grid-cols-2 px-4 pt-1 pb-3">
                 {XP_GUIDE_NAMAZ.map(item => (
-                  <div key={item.nameKk} className="flex items-center justify-between px-5 py-3">
-                    <span className="text-[13px] text-slate-600">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[11px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full whitespace-nowrap">+{item.xp} XP</span>
+                  <div key={item.nameKk} className="flex items-center justify-between py-1.5 px-1">
+                    <span className="text-[12px] text-slate-600 truncate mr-1">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                    <span className="text-[11px] font-black text-amber-500 flex-shrink-0">+{item.xp}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* 📖 Ибадат */}
-            <div className="mx-4 mt-3 rounded-[1.75rem] border border-sky-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-sky-50 to-blue-50 px-5 py-3 flex items-center space-x-2">
-                <span className="text-sm">📖</span>
-                <p className="text-[10px] font-black text-sky-700 uppercase tracking-widest">
-                  {language === 'kk' ? 'Ибадат' : 'Ибадат'}
-                </p>
+            <div className="border-t border-slate-100">
+              <div className="flex items-center space-x-2.5 px-5 py-3 bg-slate-50">
+                <div className="w-1 h-4 bg-emerald-500 rounded-full"></div>
+                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">📖  {language === 'kk' ? 'Ибадат' : 'Ибадат'}</span>
               </div>
-              <div className="divide-y divide-sky-50/80">
+              <div className="grid grid-cols-2 px-4 pt-1 pb-3">
                 {XP_GUIDE_IBADAH.map(item => (
-                  <div key={item.nameKk} className="flex items-center justify-between px-5 py-3">
-                    <span className="text-[13px] text-slate-600">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[11px] font-black text-sky-600 bg-sky-50 px-2.5 py-1 rounded-full whitespace-nowrap">+{item.xp} XP</span>
+                  <div key={item.nameKk} className="flex items-center justify-between py-1.5 px-1">
+                    <span className="text-[12px] text-slate-600 truncate mr-1">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                    <span className="text-[11px] font-black text-amber-500 flex-shrink-0">+{item.xp}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* 🎁 Бонусы */}
-            <div className="mx-4 mt-3 mb-5 rounded-[1.75rem] border border-violet-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-violet-50 to-purple-50 px-5 py-3 flex items-center space-x-2">
-                <span className="text-sm">🎁</span>
-                <p className="text-[10px] font-black text-violet-700 uppercase tracking-widest">
-                  {language === 'kk' ? 'Бонустар' : 'Бонусы'}
-                </p>
+            <div className="border-t border-slate-100">
+              <div className="flex items-center space-x-2.5 px-5 py-3 bg-slate-50">
+                <div className="w-1 h-4 bg-emerald-500 rounded-full"></div>
+                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">🎁  {language === 'kk' ? 'Бонустар' : 'Бонусы'}</span>
               </div>
-              <div className="divide-y divide-violet-50/80">
+              <div className="px-5 pt-1 pb-4">
                 {XP_GUIDE_BONUS.map(item => (
-                  <div key={item.nameKk} className="flex items-center justify-between px-5 py-3">
-                    <span className="text-[13px] text-slate-600 flex-1 pr-3">{item.emoji}  {language === 'kk' ? item.nameKk : item.nameRu}</span>
-                    <span className="text-[11px] font-black text-violet-600 bg-violet-50 px-2.5 py-1 rounded-full whitespace-nowrap">+{item.xp} XP</span>
+                  <div key={item.nameKk} className="flex items-center justify-between py-1.5">
+                    <span className="text-[12px] text-slate-600 flex-1 pr-3">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
+                    <span className="text-[11px] font-black text-amber-500 flex-shrink-0">+{item.xp}</span>
                   </div>
                 ))}
               </div>
