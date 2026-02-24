@@ -17,36 +17,36 @@ interface RewardsViewProps {
 type FilterType = 'global' | 'country' | 'city' | 'friends';
 
 const XP_GUIDE_NAMAZ = [
-  { emoji: '🌅', nameKk: 'Бамдат', nameRu: 'Фаджр', xp: 50 },
+  { emoji: '🌅', nameKk: 'Таң', nameRu: 'Фаджр', xp: 50 },
   { emoji: '☀️', nameKk: 'Дұха', nameRu: 'Духа', xp: 30 },
   { emoji: '🌤️', nameKk: 'Бесін', nameRu: 'Зухр', xp: 50 },
-  { emoji: '🌇', nameKk: 'Екінді', nameRu: 'Аср', xp: 50 },
+  { emoji: '🌇', nameKk: 'Екінті', nameRu: 'Аср', xp: 50 },
   { emoji: '🌆', nameKk: 'Ақшам', nameRu: 'Магриб', xp: 50 },
   { emoji: '🌙', nameKk: 'Құптан', nameRu: 'Иша', xp: 50 },
-  { emoji: '🌟', nameKk: 'Тәравих', nameRu: 'Таравих', xp: 100 },
-  { emoji: '✨', nameKk: 'Тәхажжуд', nameRu: 'Тахаджуд', xp: 100 },
-  { emoji: '🤲', nameKk: 'Витр', nameRu: 'Витр', xp: 50 },
+  { emoji: '🌟', nameKk: 'Тарауық', nameRu: 'Таравих', xp: 100 },
+  { emoji: '✨', nameKk: 'Таһажуд', nameRu: 'Тахаджуд', xp: 100 },
+  { emoji: '🤲', nameKk: 'Үтір', nameRu: 'Витр', xp: 50 },
 ];
 
 const XP_GUIDE_IBADAH = [
   { emoji: '🌙', nameKk: 'Ораза', nameRu: 'Пост', xp: 200 },
   { emoji: '📖', nameKk: 'Құран оқу', nameRu: 'Чтение Корана', xp: 100 },
   { emoji: '📄', nameKk: 'Бір пара', nameRu: 'Одна пара', xp: 150 },
+  { emoji: '🎉', nameKk: 'Алғашқы Құран хатымы', nameRu: 'Первый хатым Корана', xp: 1000 },
   { emoji: '🌅', nameKk: 'Таңғы зікір', nameRu: 'Утр. зикр', xp: 30 },
   { emoji: '🌌', nameKk: 'Кешкі зікір', nameRu: 'Веч. зикр', xp: 30 },
   { emoji: '💫', nameKk: 'Салауат', nameRu: 'Салауат', xp: 20 },
   { emoji: '📜', nameKk: 'Хадис', nameRu: 'Хадис', xp: 50 },
   { emoji: '💝', nameKk: 'Садақа', nameRu: 'Садака', xp: 100 },
-  { emoji: '🕋', nameKk: '99 есімдер', nameRu: '99 имён', xp: 50 },
-  { emoji: '📚', nameKk: 'Дарыс', nameRu: 'Урок', xp: 50 },
-  { emoji: '📕', nameKk: 'Кітап', nameRu: 'Книга', xp: 50 },
+  { emoji: '🕋', nameKk: 'Алланың 99 көркем есімі', nameRu: '99 имён Аллаха', xp: 50 },
+  { emoji: '📿', nameKk: 'Аллах есімін жаттау', nameRu: 'Имя Аллаха выучено', xp: 100 },
+  { emoji: '📚', nameKk: 'Дәріс', nameRu: 'Урок', xp: 50 },
+  { emoji: '📕', nameKk: 'Кітап оқу', nameRu: 'Чтение книги', xp: 50 },
 ];
 
 const XP_GUIDE_BONUS = [
-  { emoji: '📿', nameKk: 'Аллах есімін жаттау', nameRu: 'Имя Аллаха выучено', xp: 100 },
-  { emoji: '🎉', nameKk: 'Алғашқы Құран хатымы', nameRu: 'Первый хатым Корана', xp: 1000 },
   { emoji: '👥', nameKk: 'Дос шақыру', nameRu: 'Пригласить друга', xp: 100 },
-  { emoji: '💎', nameKk: 'Досың төлемі', nameRu: 'Оплата друг', xp: 400 },
+  { emoji: '💎', nameKk: 'Досың төлем жасады', nameRu: 'Друг оплатил подписку', xp: 400 },
 ];
 
 const XpSection = ({
