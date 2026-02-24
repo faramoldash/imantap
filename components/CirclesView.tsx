@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Language, UserData } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
-import { createCircle, inviteToCircle } from '../src/services/api';
+import { createCircle, inviteToCircle, getUserData } from '../src/services/api';
 import { useUserCircles } from '../src/hooks/useUserCircles';
 
 
@@ -18,6 +18,28 @@ const spinReverseStyle = `
     to { transform: rotate(0deg); }
   }
 `;
+
+const RAMADAN_TASKS_INFO = [
+  { key: 'fasting',      emoji: '🌙', kk: 'Ораза',        ru: 'Пост' },
+  { key: 'tahajjud',     emoji: '🌃', kk: 'Тахаджуд',     ru: 'Тахаджуд' },
+  { key: 'fajr',         emoji: '🕌', kk: 'Бамдат',       ru: 'Фаджр' },
+  { key: 'morningDhikr', emoji: '☀️', kk: 'Таңғы зікір', ru: 'Утр. зикр' },
+  { key: 'quranRead',    emoji: '📖', kk: 'Құран',        ru: 'Коран' },
+  { key: 'names99',      emoji: '📿', kk: '99 есім',      ru: '99 имён' },
+  { key: 'salawat',      emoji: '✨', kk: 'Салауат',      ru: 'Салауат' },
+  { key: 'hadith',       emoji: '📚', kk: 'Хадис',        ru: 'Хадис' },
+  { key: 'duha',         emoji: '🌅', kk: 'Шурық',        ru: 'Духа' },
+  { key: 'charity',      emoji: '💎', kk: 'Садақа',       ru: 'Садака' },
+  { key: 'dhuhr',        emoji: '🕌', kk: 'Бесін',        ru: 'Зухр' },
+  { key: 'lessons',      emoji: '🎓', kk: 'Дәрістер',     ru: 'Уроки' },
+  { key: 'asr',          emoji: '🕌', kk: 'Екінті',       ru: 'Аср' },
+  { key: 'book',         emoji: '📗', kk: 'Кітап',        ru: 'Книга' },
+  { key: 'eveningDhikr', emoji: '🌆', kk: 'Кешкі зікір', ru: 'Веч. зикр' },
+  { key: 'maghrib',      emoji: '🌇', kk: 'Ақшам',        ru: 'Магриб' },
+  { key: 'isha',         emoji: '🌙', kk: 'Құптан',       ru: 'Иша' },
+  { key: 'taraweeh',     emoji: '⭐', kk: 'Тарауих',      ru: 'Таравих' },
+  { key: 'witr',         emoji: '🌟', kk: 'Уітір',        ru: 'Витр' },
+];
 
 const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigate, navigationData }) => {
   const t = TRANSLATIONS[language];
@@ -94,6 +116,9 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
   }, [userData.progress, userData.startDate, userData.customTasks, userData.basicProgress, userData.dailyQuranGoal, userData.dailyCharityGoal]);
 
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [memberDetailModal, setMemberDetailModal] = useState<{ member: any; tasks: any } | null>(null);
+  const [isLoadingMemberDetail, setIsLoadingMemberDetail] = useState(false);
+
 
   useEffect(() => {
     if (navigationData?.circleId && circles.length > 0) {
@@ -123,6 +148,38 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
   }, [userData.customTasks, userData.basicProgress]);
+
+  const handleMemberTap = async (member: any) => {
+    const isCurrentUser = member.userId === userData.userId;
+    // Вычисляем день Рамадана
+    const [sy, sm, sd] = userData.startDate.split('-').map(Number);
+    const startDate = new Date(sy, sm - 1, sd);
+    const now = new Date();
+    const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffDays = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const ramadanDay = diffDays >= 0 ? diffDays + 1 : null;
+
+    if (isCurrentUser) {
+      // Для себя — локальные данные, без API
+      const tasks = ramadanDay ? (userData.progress[ramadanDay] || {}) : {};
+      setMemberDetailModal({ member, tasks });
+    } else {
+      // Для других — загружаем с сервера
+      setIsLoadingMemberDetail(true);
+      setMemberDetailModal({ member, tasks: null });
+      try {
+        const memberData = await getUserData(member.userId);
+        const tasks = ramadanDay && memberData?.progress
+          ? (memberData.progress[ramadanDay] || {})
+          : {};
+        setMemberDetailModal({ member, tasks });
+      } catch {
+        setMemberDetailModal({ member, tasks: {} });
+      } finally {
+        setIsLoadingMemberDetail(false);
+      }
+    }
+  };
 
   const handleCreateCircle = async () => {
     if (!circleName.trim()) return;
@@ -735,8 +792,9 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                   
                   return (
                     <div 
-                      key={member.userId} 
-                      className={`relative p-4 rounded-[2rem] transition-all border ${
+                      key={member.userId}
+                      onClick={() => handleMemberTap(member)}
+                      className={`relative p-4 rounded-[2rem] transition-all border cursor-pointer active:scale-[0.98] ${
                         isCurrentUser 
                           ? 'bg-emerald-50 border-emerald-200' 
                           : 'bg-slate-50 border-slate-100'
@@ -921,6 +979,83 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
             </div>
           </div>
         )}
+
+        {/* 🔍 МОДАЛ: детали участника */}
+        {memberDetailModal && (
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-end justify-center z-50 animate-in fade-in duration-200"
+            onClick={() => setMemberDetailModal(null)}
+          >
+            <div
+              className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-t-[2.5rem] p-6 w-full max-w-md shadow-2xl border-t border-white/10 animate-in slide-in-from-bottom duration-300 pb-10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Шапка */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-white font-black text-lg leading-tight">
+                    {memberDetailModal.member.name}
+                  </h3>
+                  <p className="text-white/40 text-[10px] font-bold uppercase tracking-wider mt-0.5">
+                    {memberDetailModal.member.userId === userData.userId
+                      ? `${getMyLocalProgress().percent}% • ${getMyLocalProgress().completed}/${getMyLocalProgress().total}`
+                      : `${memberDetailModal.member.todayProgress.percent}% • ${memberDetailModal.member.todayProgress.completed}/${memberDetailModal.member.todayProgress.total}`
+                    }{' '}{language === 'kk' ? 'тапсырма' : 'задач'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setMemberDetailModal(null)}
+                  className="w-9 h-9 bg-white/10 rounded-2xl flex items-center justify-center text-white/60 active:scale-95 text-sm"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Прогресс-бар */}
+              <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-5">
+                <div
+                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all"
+                  style={{
+                    width: `${memberDetailModal.member.userId === userData.userId
+                      ? getMyLocalProgress().percent
+                      : memberDetailModal.member.todayProgress.percent}%`
+                  }}
+                ></div>
+              </div>
+
+              {/* Список задач */}
+              {isLoadingMemberDetail ? (
+                <div className="text-center py-8">
+                  <div className="inline-block w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                  <p className="text-white/40 text-xs font-bold">{language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {RAMADAN_TASKS_INFO.map((task) => {
+                    const done = memberDetailModal.tasks?.[task.key] === true;
+                    return (
+                      <div
+                        key={task.key}
+                        className={`flex items-center space-x-2 p-3 rounded-2xl border transition-all ${
+                          done
+                            ? 'bg-emerald-500/20 border-emerald-500/30'
+                            : 'bg-white/5 border-white/5'
+                        }`}
+                      >
+                        <span className="text-sm flex-shrink-0">{task.emoji}</span>
+                        <p className={`text-[11px] font-black flex-1 truncate ${done ? 'text-emerald-300' : 'text-white/30'}`}>
+                          {language === 'kk' ? task.kk : task.ru}
+                        </p>
+                        <span className="text-xs flex-shrink-0">{done ? '✅' : '⬜'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
       </div>
     </>
   );
