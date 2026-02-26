@@ -324,16 +324,22 @@ const App: React.FC = () => {
         const data = await response.json();
         if (data.success && data.data) {
           const validatedData = normalizeUserData(data.data as UserData);
-          // ✅ Не перезаписываем dailyGoalRecords если сервер вернул пустые
-          setUserData(prev => ({
-            ...validatedData,
-            dailyGoalRecords: Object.keys(validatedData.dailyGoalRecords || {}).length > 0
-              ? validatedData.dailyGoalRecords
-              : prev.dailyGoalRecords,
-            goalStreaks: Object.keys(validatedData.goalStreaks || {}).length > 0
-              ? validatedData.goalStreaks
-              : prev.goalStreaks,
-          }));
+          setUserData(prev => {
+            // Берём dailyGoalRecords: мёрджим по датам, локальные данные побеждают
+            const mergedGoalRecords: typeof prev.dailyGoalRecords = {
+              ...validatedData.dailyGoalRecords,
+              ...prev.dailyGoalRecords,  // ← локальные всегда побеждают
+            };
+            const mergedStreaks =
+              Object.keys(prev.goalStreaks || {}).length > 0
+                ? prev.goalStreaks
+                : validatedData.goalStreaks;
+            return {
+              ...validatedData,
+              dailyGoalRecords: mergedGoalRecords,
+              goalStreaks: mergedStreaks,
+            };
+          });
         }
         if (data.xpAdded && data.xpAdded > 0) {
           if ((window as any).showXPNotification) {
