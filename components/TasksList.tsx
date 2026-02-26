@@ -19,83 +19,184 @@ function getTodayStr(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: tz });
 }
 
-const XpFloatAnim: React.FC<{ xp: number; onDone: () => void }> = ({ xp, onDone }) => {
+// ─────────────────────────────────────────────
+// XP анимация
+// ─────────────────────────────────────────────
+const XpFloat: React.FC<{ xp: number; onDone: () => void }> = ({ xp, onDone }) => {
   useEffect(() => {
-    const t = setTimeout(onDone, 1400);
+    const t = setTimeout(onDone, 1600);
     return () => clearTimeout(t);
   }, [onDone]);
   return (
     <div
-      className="pointer-events-none fixed z-[200] left-1/2"
-      style={{ top: '35%', animation: 'xpFloat 1.4s ease-out forwards', transform: 'translateX(-50%)' }}
+      className="pointer-events-none fixed z-[999] left-1/2"
+      style={{
+        top: '40%',
+        transform: 'translateX(-50%)',
+        animation: 'xpPop 1.6s cubic-bezier(.22,1,.36,1) forwards',
+      }}
     >
-      <span className="text-3xl font-black text-emerald-500 drop-shadow-lg">+{xp} XP ✨</span>
+      <div className="bg-emerald-500 text-white font-black text-xl px-6 py-3 rounded-full shadow-xl shadow-emerald-200">
+        +{xp} XP ✨
+      </div>
     </div>
   );
 };
 
-// ─── Чип шаблона ───
-// Отдельный компонент, чтобы работала обработка нажатия
-const TemplateChip: React.FC<{
-  label: string;
-  xp: number;
-  chosen: boolean;
-  onSelect: () => void;
-}> = ({ label, xp, chosen, onSelect }) => {
-  const touchStarted = useRef(false);
-  const touchMoved = useRef(false);
+// ─────────────────────────────────────────────
+// Карточка категории (строка в списке)
+// ─────────────────────────────────────────────
+const CategoryRow: React.FC<{
+  cat: typeof GOAL_CATEGORIES[0];
+  language: Language;
+  rec?: DailyGoalRecord;
+  streak: number;
+  onPress: () => void;
+  onDone: () => void;
+  t: any;
+}> = ({ cat, language, rec, streak, onPress, onDone, t }) => {
+  const isDone = rec?.completed === true;
+  const isSelected = !!rec && !rec.completed;
+  const name = language === 'kk' ? cat.name_kk : cat.name_ru;
 
   return (
     <div
-      className={`px-3.5 py-2.5 rounded-2xl border cursor-pointer select-none transition-all ${
-        chosen
-          ? 'bg-emerald-500 border-emerald-500 shadow-sm'
-          : 'bg-white border-slate-200 active:bg-emerald-50 active:border-emerald-300'
-      }`}
-      style={{ maxWidth: '70%' }}
-      // touchstart — запоминаем начало касания, сбрасываем флаг движения
-      onTouchStart={() => {
-        touchStarted.current = true;
-        touchMoved.current = false;
-      }}
-      // touchmove — если пользователь скроллит — выходим
-      onTouchMove={() => {
-        touchMoved.current = true;
-      }}
-      // touchend — если не было движения — вызываем обработчик
-      onTouchEnd={(e) => {
-        if (touchStarted.current && !touchMoved.current) {
-          e.preventDefault(); // предотвращаем ghost click
-          onSelect();
-        }
-        touchStarted.current = false;
-        touchMoved.current = false;
-      }}
-      // для десктопа
-      onClick={() => {
-        onSelect();
+      className="relative overflow-hidden"
+      style={{
+        background: isDone
+          ? 'linear-gradient(135deg,#ecfdf5,#f0fdf4)'
+          : isSelected
+          ? 'linear-gradient(135deg,#fffbeb,#fef3c7)'
+          : '#ffffff',
+        borderRadius: 20,
+        border: isDone
+          ? '1.5px solid #6ee7b7'
+          : isSelected
+          ? '1.5px solid #fcd34d'
+          : '1.5px solid #f1f5f9',
+        boxShadow: isDone
+          ? '0 2px 12px rgba(16,185,129,0.08)'
+          : isSelected
+          ? '0 2px 12px rgba(245,158,11,0.08)'
+          : '0 1px 4px rgba(0,0,0,0.04)',
       }}
     >
-      <p className={`text-[13px] font-semibold leading-snug ${
-        chosen ? 'text-white' : 'text-slate-700'
-      }`}>{label}</p>
-      <p className={`text-[11px] font-black mt-0.5 ${
-        chosen ? 'text-white/80' : 'text-emerald-600'
-      }`}>+{xp} XP</p>
+      {/* Декоративный круг */}
+      <div
+        className="absolute -right-4 -top-4 w-16 h-16 rounded-full pointer-events-none"
+        style={{
+          background: isDone ? '#d1fae5' : isSelected ? '#fef3c7' : '#f8fafc',
+          opacity: 0.6,
+        }}
+      />
+
+      <button
+        type="button"
+        className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left"
+        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+        onClick={onPress}
+      >
+        {/* Иконка */}
+        <div
+          className="shrink-0 flex items-center justify-center text-xl"
+          style={{
+            width: 46,
+            height: 46,
+            borderRadius: 14,
+            background: isDone ? '#d1fae5' : isSelected ? '#fef3c7' : '#f8fafc',
+          }}
+        >
+          {isDone ? '✅' : cat.icon}
+        </div>
+
+        {/* Текст */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span
+              className="font-bold text-[14px]"
+              style={{
+                color: isDone ? '#059669' : '#0f172a',
+                textDecoration: isDone ? 'line-through' : 'none',
+                opacity: isDone ? 0.7 : 1,
+              }}
+            >
+              {name}
+            </span>
+            {streak > 0 && (
+              <span className="text-[11px] font-bold text-orange-400 shrink-0">
+                🔥{streak}
+              </span>
+            )}
+          </div>
+
+          {isSelected && rec && (
+            <p className="text-[12px] font-medium text-amber-700 mt-0.5 truncate leading-tight">
+              {rec.goalText}
+            </p>
+          )}
+          {isDone && rec && (
+            <p className="text-[12px] font-medium text-emerald-600 mt-0.5 truncate leading-tight">
+              {rec.goalText}
+            </p>
+          )}
+          {!isDone && !isSelected && (
+            <p className="text-[12px] text-slate-400 mt-0.5">
+              {language === 'kk' ? 'Мақсат таңдаңыз' : 'Выберите цель'}
+            </p>
+          )}
+        </div>
+
+        {/* Правая часть */}
+        <div className="shrink-0 flex items-center gap-2">
+          {isDone && rec && (
+            <span className="text-[12px] font-black text-emerald-500">
+              +{rec.xpEarned} XP
+            </span>
+          )}
+          {isSelected && (
+            <button
+              type="button"
+              className="font-black text-[12px] text-white px-3.5 py-2 rounded-[12px]"
+              style={{
+                background: 'linear-gradient(135deg,#10b981,#059669)',
+                boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDone();
+              }}
+            >
+              {t.goalsDoneBtn || 'Орындадым'}
+            </button>
+          )}
+          {!isDone && !isSelected && (
+            <div
+              className="flex items-center justify-center text-slate-300"
+              style={{ width: 28, height: 28, borderRadius: 8, background: '#f8fafc' }}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5 3l4 4-4 4" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          )}
+        </div>
+      </button>
     </div>
   );
 };
 
-// ─── ROW ───
-const HabitRow: React.FC<{
-  cat: typeof GOAL_CATEGORIES[0];
+// ─────────────────────────────────────────────
+// Bottom Sheet — выбор цели
+// ─────────────────────────────────────────────
+const GoalSheet: React.FC<{
+  cat: typeof GOAL_CATEGORIES[0] | null;
   language: Language;
   rec?: DailyGoalRecord;
   customItems: CustomGoalItem[];
   customInputVal: string;
-  streak: number;
-  isOpen: boolean;
-  onToggle: () => void;
+  onClose: () => void;
   onSelect: (goalId: string, goalText: string, xp: number) => void;
   onComplete: () => void;
   onAddCustom: () => void;
@@ -103,155 +204,181 @@ const HabitRow: React.FC<{
   onCustomInputChange: (val: string) => void;
   t: any;
 }> = ({
-  cat, language, rec, customItems, customInputVal, streak,
-  isOpen, onToggle, onSelect, onComplete, onAddCustom, onDeleteCustom, onCustomInputChange, t
+  cat, language, rec, customItems, customInputVal,
+  onClose, onSelect, onComplete, onAddCustom, onDeleteCustom, onCustomInputChange, t,
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const isDone = rec?.completed === true;
   const isSelected = !!rec && !rec.completed;
-  const panelRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Блокируем скролл body пока шит открыт, не трогая его позицию
   useEffect(() => {
-    if (isOpen && panelRef.current) {
-      setTimeout(() => {
-        panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 150);
-    }
-  }, [isOpen]);
+    if (!cat) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [cat]);
 
-  // Обработка нажатия на строку — только onClick,
-  // чтобы не срабатывало при скролле
-  const rowTouchStartY = useRef(0);
-  const rowTouchMoved = useRef(false);
+  const handleInputFocus = () => {
+    setTimeout(() => {
+      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 400);
+  };
+
+  if (!cat) return null;
+
+  const name = language === 'kk' ? cat.name_kk : cat.name_ru;
 
   return (
-    <div>
-      {/* ROW */}
+    <div
+      className="fixed inset-0 z-[100] flex items-end"
+      style={{ background: 'rgba(15,23,42,0.5)', backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div
-        className={`flex items-center gap-3 px-4 py-4 transition-colors ${
-          isDone ? 'bg-emerald-50/50' : isSelected ? 'bg-amber-50/40' : 'bg-white'
-        } ${!isDone ? 'cursor-pointer' : ''}`}
-        onTouchStart={(e) => {
-          rowTouchStartY.current = e.touches[0].clientY;
-          rowTouchMoved.current = false;
+        ref={sheetRef}
+        className="w-full"
+        style={{
+          background: '#fff',
+          borderRadius: '24px 24px 0 0',
+          maxHeight: '88vh',
+          display: 'flex',
+          flexDirection: 'column',
+          animation: 'sheetUp 0.28s cubic-bezier(.22,1,.36,1)',
         }}
-        onTouchMove={(e) => {
-          if (Math.abs(e.touches[0].clientY - rowTouchStartY.current) > 8) {
-            rowTouchMoved.current = true;
-          }
-        }}
-        onTouchEnd={() => {
-          if (!rowTouchMoved.current && !isDone) {
-            onToggle();
-          }
-        }}
-        onClick={() => {
-          // в браузере (desktop)
-          if (!isDone) onToggle();
-        }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Иконка */}
-        <div className={`w-11 h-11 rounded-[14px] flex items-center justify-center text-xl shrink-0 ${
-          isDone ? 'bg-emerald-100' : isSelected ? 'bg-amber-100' : 'bg-slate-100'
-        }`}>
-          {isDone ? '✅' : cat.icon}
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0">
+          <div className="w-10 h-1 bg-slate-200 rounded-full" />
         </div>
 
-        {/* Текст */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className={`text-[14px] font-bold ${
-              isDone ? 'text-slate-400 line-through' : 'text-slate-800'
-            }`}>
-              {language === 'kk' ? cat.name_kk : cat.name_ru}
-            </span>
-            {streak > 0 && (
-              <span className="text-[11px] font-bold text-orange-400">🔥 {streak}</span>
-            )}
-          </div>
-          <div className="mt-0.5">
-            {isDone && rec && (
-              <span className="text-[12px] text-emerald-600 font-medium">{rec.goalText}</span>
-            )}
-            {isSelected && rec && (
-              <span className="text-[12px] text-amber-600 font-medium truncate block">{rec.goalText}</span>
-            )}
-            {!isDone && !isSelected && (
-              <span className="text-[12px] text-slate-400">
-                {language === 'kk' ? 'Таңдау →' : 'Выбрать →'}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Правая часть */}
-        <div className="shrink-0">
-          {isDone && rec && (
-            <span className="text-[12px] font-black text-emerald-500">+{rec.xpEarned} XP</span>
-          )}
-          {isSelected && (
-            <button
-              className="bg-emerald-500 text-white text-[12px] font-black px-3.5 py-2 rounded-2xl active:opacity-80 shadow-sm"
-              onClick={(e) => { e.stopPropagation(); onComplete(); }}
-              onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onComplete(); }}
+        {/* Шапка */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 shrink-0">
+          <div className="flex items-center gap-3">
+            <div
+              className="flex items-center justify-center text-2xl"
+              style={{ width: 46, height: 46, borderRadius: 14, background: '#f8fafc' }}
             >
-              {t.goalsDoneBtn || 'Орындадым'}
-            </button>
-          )}
-          {!isDone && !isSelected && (
-            <span className={`text-slate-300 text-lg leading-none transition-transform duration-200 inline-block ${
-              isOpen ? '-rotate-180' : ''
-            }`}>›</span>
-          )}
+              {isDone ? '✅' : cat.icon}
+            </div>
+            <div>
+              <p className="font-black text-slate-800 text-[16px]">{name}</p>
+              {isDone
+                ? <p className="text-[11px] font-semibold text-emerald-500">{language === 'kk' ? '✓ Орындалды' : '✓ Выполнено'}</p>
+                : isSelected
+                ? <p className="text-[11px] font-semibold text-amber-500">{language === 'kk' ? 'Мақсат таңдалды' : 'Цель выбрана'}</p>
+                : <p className="text-[11px] text-slate-400">{language === 'kk' ? 'Мақсат таңдаңыз' : 'Выберите цель'}</p>
+              }
+            </div>
+          </div>
+          <button
+            type="button"
+            className="flex items-center justify-center font-bold text-slate-500 text-[14px]"
+            style={{
+              width: 34, height: 34, borderRadius: '50%',
+              background: '#f1f5f9', touchAction: 'manipulation',
+              WebkitTapHighlightColor: 'transparent',
+            }}
+            onClick={onClose}
+          >✕</button>
         </div>
-      </div>
 
-      {/* ── РАЗВЁРНУТАЯ ПАНЕЛЬ ── */}
-      {isOpen && !isDone && (
-        <div ref={panelRef} className="px-4 pb-5 space-y-5 bg-slate-50/80 border-t border-slate-100">
+        {/* Контент */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5" style={{ WebkitOverflowScrolling: 'touch' }}>
+
+          {/* Если выполнено */}
+          {isDone && rec && (
+            <div
+              className="rounded-[16px] p-5 text-center"
+              style={{ background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', border: '1.5px solid #6ee7b7' }}
+            >
+              <p className="text-4xl mb-2">🎉</p>
+              <p className="font-black text-emerald-800 text-[15px] leading-snug">{rec.goalText}</p>
+              <p className="text-[12px] font-black text-emerald-500 mt-2">+{rec.xpEarned} XP</p>
+              <p className="text-[11px] text-slate-400 mt-2">
+                {language === 'kk' ? 'Ертең жаңа мақсат таңдауға болады' : 'Завтра можно выбрать новую цель'}
+              </p>
+            </div>
+          )}
 
           {/* Выбранная цель + кнопка Done */}
           {isSelected && rec && (
-            <div className="pt-4">
-              <div className="bg-white border border-amber-200 rounded-[1.4rem] px-4 py-3.5 flex items-start gap-3 shadow-sm">
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">
-                    {language === 'kk' ? '✅ Таңдалған мақсат' : '✅ Выбранная цель'}
-                  </p>
-                  <p className="text-[13px] font-semibold text-slate-800 leading-snug">{rec.goalText}</p>
-                  <p className="text-[11px] font-black text-amber-600 mt-1">+{rec.xpEarned} XP</p>
-                </div>
+            <div
+              className="rounded-[16px] p-4"
+              style={{ background: 'linear-gradient(135deg,#fffbeb,#fef3c7)', border: '1.5px solid #fcd34d' }}
+            >
+              <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-2">
+                {language === 'kk' ? 'Таңдалған мақсат' : 'Выбранная цель'}
+              </p>
+              <p className="font-semibold text-slate-800 text-[14px] leading-snug mb-3">{rec.goalText}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] font-black text-amber-600">+{rec.xpEarned} XP</span>
                 <button
-                  className="bg-emerald-500 text-white text-[13px] font-black px-4 py-2.5 rounded-[14px] active:opacity-80 shadow-sm shrink-0"
-                  onClick={(e) => { e.stopPropagation(); onComplete(); }}
-                  onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onComplete(); }}
+                  type="button"
+                  className="font-black text-[13px] text-white px-5 py-2.5 rounded-[14px]"
+                  style={{
+                    background: 'linear-gradient(135deg,#10b981,#059669)',
+                    boxShadow: '0 4px 12px rgba(16,185,129,0.35)',
+                    touchAction: 'manipulation',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                  onClick={onComplete}
                 >
-                  {t.goalsDoneBtn || 'Орындадым'}
+                  {t.goalsDoneBtn || 'Орындадым ✓'}
                 </button>
               </div>
             </div>
           )}
 
           {/* Шаблоны */}
-          <div className={isSelected ? '' : 'pt-4'}>
-            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">
-              {language === 'kk' ? 'Шаблондар' : 'Шаблоны'}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {cat.templates.map((tmpl: GoalTemplate) => (
-                <TemplateChip
-                  key={tmpl.id}
-                  label={language === 'kk' ? tmpl.text_kk : tmpl.text_ru}
-                  xp={tmpl.xp}
-                  chosen={rec?.goalId === tmpl.id}
-                  onSelect={() => onSelect(tmpl.id, language === 'kk' ? tmpl.text_kk : tmpl.text_ru, tmpl.xp)}
-                />
-              ))}
+          {!isDone && (
+            <div>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                {language === 'kk' ? 'Шаблондар' : 'Шаблоны'}
+              </p>
+              <div className="space-y-2">
+                {cat.templates.map((tmpl: GoalTemplate) => {
+                  const chosen = rec?.goalId === tmpl.id;
+                  const label = language === 'kk' ? tmpl.text_kk : tmpl.text_ru;
+                  return (
+                    <button
+                      key={tmpl.id}
+                      type="button"
+                      className="w-full text-left px-4 py-3 rounded-[14px] flex items-center justify-between gap-3 transition-all"
+                      style={{
+                        background: chosen
+                          ? 'linear-gradient(135deg,#10b981,#059669)'
+                          : '#f8fafc',
+                        border: chosen ? '1.5px solid #10b981' : '1.5px solid #f1f5f9',
+                        boxShadow: chosen ? '0 2px 10px rgba(16,185,129,0.2)' : 'none',
+                        touchAction: 'manipulation',
+                        WebkitTapHighlightColor: 'transparent',
+                      }}
+                      onClick={() => onSelect(tmpl.id, label, tmpl.xp)}
+                    >
+                      <span
+                        className="text-[13px] font-semibold leading-snug flex-1"
+                        style={{ color: chosen ? '#fff' : '#1e293b' }}
+                      >
+                        {label}
+                      </span>
+                      <span
+                        className="text-[11px] font-black shrink-0"
+                        style={{ color: chosen ? 'rgba(255,255,255,0.8)' : '#10b981' }}
+                      >
+                        +{tmpl.xp} XP
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Кастомные */}
-          {customItems.length > 0 && (
+          {/* Мои цели */}
+          {!isDone && customItems.length > 0 && (
             <div>
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">
                 {language === 'kk' ? 'Менің мақсаттарым' : 'Мои цели'}
@@ -260,58 +387,107 @@ const HabitRow: React.FC<{
                 {customItems.map(item => {
                   const chosen = rec?.goalId === item.id;
                   return (
-                    <TemplateChip
+                    <div
                       key={item.id}
-                      label={item.text}
-                      xp={item.xp}
-                      chosen={chosen}
-                      onSelect={() => onSelect(item.id, item.text, item.xp)}
-                    />
+                      className="flex items-center gap-2 px-4 py-3 rounded-[14px]"
+                      style={{
+                        background: chosen ? 'linear-gradient(135deg,#10b981,#059669)' : '#f8fafc',
+                        border: chosen ? '1.5px solid #10b981' : '1.5px solid #f1f5f9',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="flex-1 text-left"
+                        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                        onClick={() => onSelect(item.id, item.text, item.xp)}
+                      >
+                        <span className="text-[13px] font-semibold block" style={{ color: chosen ? '#fff' : '#1e293b' }}>
+                          {item.text}
+                        </span>
+                        <span className="text-[11px] font-black" style={{ color: chosen ? 'rgba(255,255,255,0.8)' : '#10b981' }}>
+                          +{item.xp} XP
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        className="flex items-center justify-center shrink-0"
+                        style={{
+                          width: 28, height: 28, borderRadius: '50%',
+                          background: chosen ? 'rgba(255,255,255,0.2)' : '#e2e8f0',
+                          color: chosen ? '#fff' : '#94a3b8',
+                          fontSize: 11,
+                          touchAction: 'manipulation',
+                          WebkitTapHighlightColor: 'transparent',
+                        }}
+                        onClick={() => onDeleteCustom(item.id)}
+                      >✕</button>
+                    </div>
                   );
                 })}
               </div>
             </div>
           )}
 
-          {/* Input */}
-          <div>
-            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">
-              {language === 'kk' ? 'Өз мақсатыңызды қос' : 'Своя цель'}
-            </p>
-            <div className="flex gap-2">
-              <input
-                ref={inputRef}
-                type="text"
-                value={customInputVal}
-                onChange={e => onCustomInputChange(e.target.value)}
-                onKeyPress={e => e.key === 'Enter' && onAddCustom()}
-                onFocus={() => {
-                  setTimeout(() => {
-                    inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }, 350);
-                }}
-                placeholder={language === 'kk' ? 'Мақсат жазыңыз...' : 'Напишите цель...'}
-                className="flex-1 bg-white border border-slate-200 rounded-2xl px-4 py-3 text-[13px] outline-none focus:border-emerald-400 transition-colors"
-              />
-              <button
-                className="bg-emerald-500 text-white w-11 h-11 rounded-2xl flex items-center justify-center text-xl font-black active:opacity-80 shrink-0"
-                onClick={onAddCustom}
-                onTouchEnd={(e) => { e.preventDefault(); onAddCustom(); }}
-              >+</button>
+          {/* Добавить свою цель */}
+          {!isDone && (
+            <div>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                {language === 'kk' ? 'Өз мақсатыңды қос' : 'Добавить свою цель'}
+              </p>
+              <div className="flex gap-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={customInputVal}
+                  onChange={e => onCustomInputChange(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && onAddCustom()}
+                  onFocus={handleInputFocus}
+                  placeholder={language === 'kk' ? 'Мақсатыңызды жазыңыз...' : 'Напишите цель...'}
+                  className="flex-1 text-[14px] outline-none"
+                  style={{
+                    background: '#f8fafc',
+                    border: '1.5px solid #e2e8f0',
+                    borderRadius: 14,
+                    padding: '12px 16px',
+                    transition: 'border-color 0.15s',
+                  }}
+                  onFocusCapture={e => { (e.target as HTMLInputElement).style.borderColor = '#10b981'; }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = '#e2e8f0'; }}
+                />
+                <button
+                  type="button"
+                  className="flex items-center justify-center shrink-0 font-black text-white text-xl"
+                  style={{
+                    width: 48, height: 48, borderRadius: 14,
+                    background: customInputVal.trim()
+                      ? 'linear-gradient(135deg,#10b981,#059669)'
+                      : '#e2e8f0',
+                    color: customInputVal.trim() ? '#fff' : '#94a3b8',
+                    transition: 'background 0.15s',
+                    touchAction: 'manipulation',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                  onClick={onAddCustom}
+                >+</button>
+              </div>
             </div>
-          </div>
+          )}
+
+          <div style={{ height: 24 }} />
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
-// ─── MAIN ───
+// ─────────────────────────────────────────────
+// MAIN
+// ─────────────────────────────────────────────
 const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }) => {
   const t = TRANSLATIONS[language];
   const today = getTodayStr();
 
-  const [expandedId, setExpandedId] = useState<GoalCategoryId | null>(null);
+  const [openCatId, setOpenCatId] = useState<GoalCategoryId | null>(null);
   const [customInputs, setCustomInputs] = useState<Record<string, string>>({});
   const [floatXp, setFloatXp] = useState<number | null>(null);
 
@@ -324,102 +500,131 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
   const totalXpToday = todayRecords.filter(r => r.completed).reduce((s, r) => s + r.xpEarned, 0);
   const progressPct = Math.round((doneCount / GOAL_CATEGORIES.length) * 100);
 
-  const handleToggle = useCallback((catId: GoalCategoryId) => {
-    setExpandedId(prev => (prev === catId ? null : catId));
-  }, []);
-
-  const handleSelect = useCallback((catId: GoalCategoryId, goalId: string, goalText: string, xp: number) => {
-    const rec = getTodayCategoryRecord(userData.dailyGoalRecords, today, catId);
-    if (rec?.completed) return;
-    const records = getTodayGoalRecords(userData.dailyGoalRecords, today);
-    const updated = [
-      ...records.filter(r => r.categoryId !== catId),
-      { categoryId: catId, goalId, goalText, completed: false, xpEarned: xp } as DailyGoalRecord,
-    ];
-    setUserData(prev => ({
-      ...(prev as UserData),
-      dailyGoalRecords: { ...(prev as UserData).dailyGoalRecords, [today]: updated },
-    }) as UserData);
-  }, [userData.dailyGoalRecords, today, setUserData]);
-
-  const handleComplete = useCallback((catId: GoalCategoryId) => {
-    const records = getTodayGoalRecords(userData.dailyGoalRecords, today);
-    const rec = records.find(r => r.categoryId === catId);
-    if (!rec || rec.completed) return;
-    const updated = records.map(r =>
-      r.categoryId === catId ? { ...r, completed: true, completedAt: new Date().toISOString() } : r
-    );
-    setUserData(prev => ({
-      ...(prev as UserData),
-      xp: ((prev as UserData).xp || 0) + rec.xpEarned,
-      dailyGoalRecords: { ...(prev as UserData).dailyGoalRecords, [today]: updated },
-    }) as UserData);
-    setFloatXp(rec.xpEarned);
-    setExpandedId(null);
-  }, [userData.dailyGoalRecords, today, setUserData]);
-
-  const handleAddCustom = useCallback((catId: GoalCategoryId) => {
-    const text = (customInputs[catId] ?? '').trim();
-    if (!text) return;
-    const newItem: CustomGoalItem = { id: `custom-${Date.now()}`, text, xp: 30, categoryId: catId };
-    setUserData(prev => ({
-      ...(prev as UserData),
-      goalCustomItems: {
-        ...((prev as UserData).goalCustomItems ?? {}),
-        [catId]: [...((prev as UserData).goalCustomItems?.[catId] ?? []), newItem],
-      },
-    }) as UserData);
-    setCustomInputs(prev => ({ ...prev, [catId]: '' }));
-  }, [customInputs, setUserData]);
-
-  const handleDeleteCustom = useCallback((catId: GoalCategoryId, itemId: string) => {
-    setUserData(prev => ({
-      ...(prev as UserData),
-      goalCustomItems: {
-        ...((prev as UserData).goalCustomItems ?? {}),
-        [catId]: ((prev as UserData).goalCustomItems?.[catId] ?? []).filter(i => i.id !== itemId),
-      },
-    }) as UserData);
-  }, [setUserData]);
-
-  const getRecord = (catId: GoalCategoryId) =>
-    getTodayCategoryRecord(userData.dailyGoalRecords, today, catId);
+  const getRecord = useCallback(
+    (catId: GoalCategoryId) => getTodayCategoryRecord(userData.dailyGoalRecords, today, catId),
+    [userData.dailyGoalRecords, today]
+  );
   const getStreak = (catId: GoalCategoryId) =>
     (userData.goalStreaks as Record<string, number> | undefined)?.[catId] ?? 0;
 
+  const handleSelect = useCallback(
+    (catId: GoalCategoryId, goalId: string, goalText: string, xp: number) => {
+      const rec = getTodayCategoryRecord(userData.dailyGoalRecords, today, catId);
+      if (rec?.completed) return;
+      const records = getTodayGoalRecords(userData.dailyGoalRecords, today);
+      const updated = [
+        ...records.filter(r => r.categoryId !== catId),
+        { categoryId: catId, goalId, goalText, completed: false, xpEarned: xp } as DailyGoalRecord,
+      ];
+      setUserData(prev => ({
+        ...(prev as UserData),
+        dailyGoalRecords: { ...(prev as UserData).dailyGoalRecords, [today]: updated },
+      }) as UserData);
+    },
+    [userData.dailyGoalRecords, today, setUserData]
+  );
+
+  const handleComplete = useCallback(
+    (catId: GoalCategoryId) => {
+      const records = getTodayGoalRecords(userData.dailyGoalRecords, today);
+      const rec = records.find(r => r.categoryId === catId);
+      if (!rec || rec.completed) return;
+      const updated = records.map(r =>
+        r.categoryId === catId ? { ...r, completed: true, completedAt: new Date().toISOString() } : r
+      );
+      setUserData(prev => ({
+        ...(prev as UserData),
+        xp: ((prev as UserData).xp || 0) + rec.xpEarned,
+        dailyGoalRecords: { ...(prev as UserData).dailyGoalRecords, [today]: updated },
+      }) as UserData);
+      setFloatXp(rec.xpEarned);
+      setOpenCatId(null);
+    },
+    [userData.dailyGoalRecords, today, setUserData]
+  );
+
+  const handleAddCustom = useCallback(
+    (catId: GoalCategoryId) => {
+      const text = (customInputs[catId] ?? '').trim();
+      if (!text) return;
+      const newItem: CustomGoalItem = { id: `custom-${Date.now()}`, text, xp: 30, categoryId: catId };
+      setUserData(prev => ({
+        ...(prev as UserData),
+        goalCustomItems: {
+          ...((prev as UserData).goalCustomItems ?? {}),
+          [catId]: [...((prev as UserData).goalCustomItems?.[catId] ?? []), newItem],
+        },
+      }) as UserData);
+      setCustomInputs(prev => ({ ...prev, [catId]: '' }));
+    },
+    [customInputs, setUserData]
+  );
+
+  const handleDeleteCustom = useCallback(
+    (catId: GoalCategoryId, itemId: string) => {
+      setUserData(prev => ({
+        ...(prev as UserData),
+        goalCustomItems: {
+          ...((prev as UserData).goalCustomItems ?? {}),
+          [catId]: ((prev as UserData).goalCustomItems?.[catId] ?? []).filter(i => i.id !== itemId),
+        },
+      }) as UserData);
+    },
+    [setUserData]
+  );
+
+  const openCat = openCatId ? GOAL_CATEGORIES.find(c => c.id === openCatId) ?? null : null;
+  const openRec = openCatId ? getRecord(openCatId) : undefined;
+  const openCustomItems: CustomGoalItem[] = openCatId ? (userData.goalCustomItems?.[openCatId] ?? []) : [];
+
   return (
-    <div className="pb-28 pt-1">
+    <div className="pb-28 pt-2">
       <style>{`
-        @keyframes xpFloat {
-          0%   { opacity:1; transform:translateX(-50%) translateY(0) scale(1.2); }
-          70%  { opacity:1; transform:translateX(-50%) translateY(-70px) scale(1); }
-          100% { opacity:0; transform:translateX(-50%) translateY(-100px) scale(0.8); }
+        @keyframes xpPop {
+          0%   { opacity:0; transform:translateX(-50%) translateY(20px) scale(0.8); }
+          20%  { opacity:1; transform:translateX(-50%) translateY(0) scale(1.05); }
+          70%  { opacity:1; transform:translateX(-50%) translateY(-50px) scale(1); }
+          100% { opacity:0; transform:translateX(-50%) translateY(-80px) scale(0.9); }
         }
+        @keyframes sheetUp {
+          from { transform: translateY(100%); }
+          to   { transform: translateY(0); }
+        }
+        * { -webkit-tap-highlight-color: transparent; }
       `}</style>
 
-      {floatXp !== null && <XpFloatAnim xp={floatXp} onDone={() => setFloatXp(null)} />}
+      {floatXp !== null && <XpFloat xp={floatXp} onDone={() => setFloatXp(null)} />}
 
-      {/* ─── ШАПКА ─── */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[15px] font-black text-slate-800">
-            {language === 'kk' ? 'Күнделікті мақсаттар' : 'Ежедневные цели'}
-          </h2>
-          <div className="flex items-center gap-2">
-            {totalXpToday > 0 && (
-              <span className="bg-emerald-50 text-emerald-600 text-[12px] font-black px-2.5 py-1 rounded-full border border-emerald-100">
-                +{totalXpToday} XP
-              </span>
-            )}
-            <span className="text-[13px] font-bold text-slate-400">
-              {doneCount}/{GOAL_CATEGORIES.length}
-            </span>
+      {/* ── Шапка ── */}
+      <div className="mb-5">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <h2 className="text-[18px] font-black text-slate-900 leading-tight">
+              {language === 'kk' ? 'Күнделікті мақсаттар' : 'Ежедневные цели'}
+            </h2>
+            <p className="text-[12px] text-slate-400 mt-0.5">
+              {language === 'kk'
+                ? `Бүгін ${doneCount} / ${GOAL_CATEGORIES.length} мақсат орындалды`
+                : `Сегодня выполнено ${doneCount} / ${GOAL_CATEGORIES.length}`}
+            </p>
           </div>
+          {totalXpToday > 0 && (
+            <div
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+              style={{ background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', border: '1.5px solid #6ee7b7' }}
+            >
+              <span className="text-emerald-600 font-black text-[13px]">+{totalXpToday} XP</span>
+            </div>
+          )}
         </div>
-        {/* Прогресс-бар */}
-        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+
+        {/* Прогресс */}
+        <div
+          className="relative h-2.5 rounded-full overflow-hidden"
+          style={{ background: '#f1f5f9' }}
+        >
           <div
-            className="h-full rounded-full transition-all duration-700"
+            className="absolute left-0 top-0 h-full rounded-full transition-all duration-700"
             style={{
               width: `${progressPct}%`,
               background:
@@ -433,50 +638,59 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
             }}
           />
         </div>
-      </div>
 
-      {/* ─── ЛИСТ категорий ─── */}
-      <div className="space-y-2">
-        {GOAL_CATEGORIES.map((cat) => {
-          const rec = getRecord(cat.id);
-          const isOpen = expandedId === cat.id;
-          const customItems: CustomGoalItem[] = userData.goalCustomItems?.[cat.id] ?? [];
-
-          return (
-            <div
-              key={cat.id}
-              className="bg-white rounded-[1.4rem] border border-slate-100 shadow-sm overflow-hidden"
-            >
-              <HabitRow
-                cat={cat}
-                language={language}
-                rec={rec}
-                customItems={customItems}
-                customInputVal={customInputs[cat.id] ?? ''}
-                streak={getStreak(cat.id)}
-                isOpen={isOpen}
-                onToggle={() => handleToggle(cat.id)}
-                onSelect={(goalId, goalText, xp) => handleSelect(cat.id, goalId, goalText, xp)}
-                onComplete={() => handleComplete(cat.id)}
-                onAddCustom={() => handleAddCustom(cat.id)}
-                onDeleteCustom={(id) => handleDeleteCustom(cat.id, id)}
-                onCustomInputChange={(val) => setCustomInputs(prev => ({ ...prev, [cat.id]: val }))}
-                t={t}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ─── Подсказка когда всё выполнено ─── */}
-      {progressPct === 100 && (
-        <div className="mt-6 bg-emerald-50 border border-emerald-200 rounded-[1.4rem] p-5 text-center">
-          <p className="text-3xl mb-2">🎉</p>
-          <p className="font-black text-emerald-800 text-[15px]">
-            {language === 'kk' ? 'Барлық мақсаттар орындалды!' : 'Все цели выполнены!'}
+        {/* Мотивационная фраза */}
+        {progressPct === 0 && (
+          <p className="text-[12px] text-slate-400 mt-2 text-center">
+            {language === 'kk' ? '🌙 Бүгінгі мақсаттарыңызды таңдаңыз' : '🌙 Выберите цели на сегодня'}
           </p>
-          <p className="text-[12px] text-emerald-600 mt-1">+{totalXpToday} XP сегодня</p>
-        </div>
+        )}
+        {progressPct > 0 && progressPct < 100 && (
+          <p className="text-[12px] text-amber-500 font-semibold mt-2 text-center">
+            {language === 'kk'
+              ? `💪 Жалғастырыңыз! ${GOAL_CATEGORIES.length - doneCount} мақсат қалды`
+              : `💪 Продолжайте! Осталось ${GOAL_CATEGORIES.length - doneCount}`}
+          </p>
+        )}
+        {progressPct === 100 && (
+          <p className="text-[12px] text-emerald-500 font-black mt-2 text-center">
+            🎉 {language === 'kk' ? 'Барлық мақсат орындалды! Керемет!' : 'Все цели выполнены! Отлично!'}
+          </p>
+        )}
+      </div>
+
+      {/* ── Список категорий ── */}
+      <div className="space-y-2.5">
+        {GOAL_CATEGORIES.map(cat => (
+          <CategoryRow
+            key={cat.id}
+            cat={cat}
+            language={language}
+            rec={getRecord(cat.id)}
+            streak={getStreak(cat.id)}
+            t={t}
+            onPress={() => setOpenCatId(cat.id)}
+            onDone={() => handleComplete(cat.id)}
+          />
+        ))}
+      </div>
+
+      {/* ── Bottom Sheet ── */}
+      {openCat && (
+        <GoalSheet
+          cat={openCat}
+          language={language}
+          rec={openRec}
+          customItems={openCustomItems}
+          customInputVal={customInputs[openCatId!] ?? ''}
+          onClose={() => setOpenCatId(null)}
+          onSelect={(goalId, goalText, xp) => handleSelect(openCatId!, goalId, goalText, xp)}
+          onComplete={() => handleComplete(openCatId!)}
+          onAddCustom={() => handleAddCustom(openCatId!)}
+          onDeleteCustom={(id) => handleDeleteCustom(openCatId!, id)}
+          onCustomInputChange={(val) => setCustomInputs(prev => ({ ...prev, [openCatId!]: val }))}
+          t={t}
+        />
       )}
     </div>
   );
