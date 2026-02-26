@@ -534,57 +534,44 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
       </div>
 
       {/* ── XP Ережелері ── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-        borderRadius: 28,
-        padding: '20px',
-        marginTop: 8,
-      }}>
-        <p style={{ fontSize: 11, fontWeight: 900, color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 14px' }}>
-          ⭐ {lang === 'kk' ? 'XP Ережелері' : 'Правила XP'}
+      <div className="px-5 py-4 rounded-[1.75rem] bg-slate-50 border border-slate-100" style={{ marginTop: 8 }}>
+
+        {/* Заголовок */}
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 12px' }}>
+          ℹ️ {lang === 'kk' ? 'XP Ережелері' : 'Правила XP'}
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+        {/* Строки категорий */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {GOAL_CATEGORIES.map(cat => {
-            const maxXp = Math.max(...cat.templates.map(t => t.xp));
-            const minXp = Math.min(...cat.templates.map(t => t.xp));
+            const maxXp = Math.max(...cat.templates.map(tmpl => tmpl.xp));
+            const minXp = Math.min(...cat.templates.map(tmpl => tmpl.xp));
             const rec = getLocalRec(cat.id);
             const isDone = rec?.completed === true;
+            const xpLabel = minXp === maxXp ? `+${maxXp} XP` : `+${minXp}–${maxXp} XP`;
             return (
-              <div key={cat.id} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '10px 14px',
-                background: isDone ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.04)',
-                borderRadius: 16,
-                border: `1px solid ${isDone ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.06)'}`,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 18 }}>{isDone ? '✅' : cat.icon}</span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: isDone ? '#34d399' : '#94a3b8' }}>
-                    {lang === 'kk' ? cat.name_kk : cat.name_ru}
-                  </span>
-                </div>
-                <span style={{ fontSize: 12, fontWeight: 900, color: isDone ? '#34d399' : '#475569' }}>
-                  {isDone && rec ? `+${rec.xpEarned} XP` : minXp === maxXp ? `+${maxXp} XP` : `+${minXp}–${maxXp} XP`}
+              <div key={cat.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 12, color: '#64748b' }}>
+                  {cat.icon} {lang === 'kk' ? cat.name_kk : cat.name_ru}
+                </span>
+                <span style={{ fontSize: 12, fontWeight: 900, color: isDone ? '#10b981' : '#94a3b8' }}>
+                  {isDone && rec ? `✓ +${rec.xpEarned} XP` : xpLabel}
                 </span>
               </div>
             );
           })}
         </div>
 
-        {xpToday > 0 && (
-          <div style={{
-            marginTop: 14, padding: '12px 16px',
-            background: 'rgba(16,185,129,0.15)',
-            border: '1px solid rgba(16,185,129,0.3)',
-            borderRadius: 16,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>
-              {lang === 'kk' ? 'Бүгін жиналды' : 'Сегодня заработано'}
-            </span>
-            <span style={{ fontSize: 16, fontWeight: 900, color: '#34d399' }}>+{xpToday} XP</span>
-          </div>
-        )}
+        {/* Итог */}
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: 11, color: '#94a3b8' }}>
+            {lang === 'kk' ? 'Бүгін жиналды' : 'Сегодня заработано'}
+          </span>
+          <span style={{ fontSize: 12, fontWeight: 900, color: xpToday > 0 ? '#10b981' : '#94a3b8' }}>
+            {doneCount}/{GOAL_CATEGORIES.length} · {xpToday} XP
+          </span>
+        </div>
+
       </div>
 
       {/* ── Bottom Sheet ── */}
