@@ -31,7 +31,9 @@ interface BackendUserData {
 
 const STORAGE_KEY = 'ramadan_tracker_data_v4';
 
-// ─── Безопасная нормализация UserData ──────────────────────────────────
+// ─── Безопасная нормализация UserData ────────────────────────────────────────
+// Гарантирует что критические поля всегда правильного типа,
+// даже если сервер вернул null / undefined / неправильный тип.
 function normalizeUserData(raw: UserData): UserData {
   // language должен быть обязательно валидным,
   // если пришло что-то другое — фоллбэк на 'kk'
@@ -133,7 +135,7 @@ const App: React.FC = () => {
   const userDataRef = useRef(userData);
   useEffect(() => { userDataRef.current = userData; }, [userData]);
 
-  // ─── Инициализация из сервера ──────────────────────────────────────────
+  // ─── Инициализация из сервера ──────────────────────────────────────────────
   useEffect(() => {
     if (initialUserData) {
       const correctedData = normalizeUserData(initialUserData);
@@ -205,7 +207,7 @@ const App: React.FC = () => {
     document.body.scrollTop = savedPos;
   }, [currentView, selectedBasicDate, selectedPreparationDay]);
 
-  // ─── Защищённый доступ к переводам — никогда не вернёт undefined ─────────────
+  // ─── Защищённый доступ к переводам — никогда не вернёт undefined ──────────
   const lang: Language = userData.language === 'kk' || userData.language === 'ru'
     ? userData.language
     : 'kk';
@@ -311,6 +313,7 @@ const App: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
+          // ─── Нормализуем ответ сервера перед setUserData ──────────────────
           const validatedData = normalizeUserData(data.data as UserData);
           setUserData(validatedData);
         }
@@ -441,7 +444,7 @@ const App: React.FC = () => {
     setUserData(prev => ({ ...prev }));
   }, []);
 
-  // ─── checkBadges: защищён от любого мусора ──────────────────────────────
+  // ─── checkBadges: защищён от любого мусора в unlockedBadges ─────────────
   const checkBadges = (data: UserData) => {
     const earnedBadges = Array.isArray(data.unlockedBadges) ? [...data.unlockedBadges] : [];
     let newlyUnlockedId: string | null = null;
@@ -524,12 +527,23 @@ const App: React.FC = () => {
     setTimeout(() => syncToServerFn(), 100);
   }, [syncToServerFn]);
 
-  const handleUserDataUpdate = (newData: UserData) => {
-    const normalized = normalizeUserData(newData);
-    const newBadges = checkBadges(normalized);
-    if (newBadges) normalized.unlockedBadges = newBadges;
-    setUserData(normalized);
-  };
+  // ─── handleUserDataUpdate: поддерживает как прямой UserData,
+  //     так и функциональный апдейт (prev: UserData) => UserData
+  //     Это нужно для TasksList, QuranTracker и др. компонентов,
+  //     которые вызывают setUserData(p => ({ ...p, xp: ... }))
+  const handleUserDataUpdate = useCallback(
+    (updater: UserData | ((prev: UserData) => UserData)) => {
+      setUserData(prev => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        const normalized = normalizeUserData(next);
+        const newBadges = checkBadges(normalized);
+        if (newBadges) normalized.unlockedBadges = newBadges;
+        return normalized;
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   const renderView = () => {
     const dayData = userData.progress[selectedDay] || INITIAL_DAY_PROGRESS(selectedDay);
