@@ -1,7 +1,6 @@
-
-import React, { useState } from 'react';
-import { UserData, Language, CustomTask, DayProgress } from '../src/types/types';
-import { TRANSLATIONS, INITIAL_DAY_PROGRESS } from '../constants';
+import React, { useState, useMemo } from 'react';
+import { UserData, Language, GoalCategoryId, DailyGoalRecord, CustomGoalItem } from '../src/types/types';
+import { TRANSLATIONS, GOAL_CATEGORIES, GoalCategory, GoalTemplate, getTodayCategoryRecord, getTodayGoalRecords } from '../constants';
 
 interface TasksListProps {
   language: Language;
@@ -9,341 +8,431 @@ interface TasksListProps {
   setUserData: (data: UserData) => void;
 }
 
+// ─── Вспомогательные типы ───
+type CardStatus = 'empty' | 'selected' | 'done';
+
+interface CategoryCardState {
+  category: GoalCategory;
+  status: CardStatus;
+  record?: DailyGoalRecord;
+}
+
+// ─── Получить текущую дату в формате YYYY-MM-DD по часовому поясу пользователя ───
+function getTodayStr(): string {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return new Date().toLocaleDateString('en-CA', { timeZone: tz });
+}
+
+// ─── Главный компонент ───
 const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }) => {
   const t = TRANSLATIONS[language];
-  const [newTaskText, setNewTaskText] = useState('');
-  const [showGoalSettings, setShowGoalSettings] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingText, setEditingText] = useState('');
+  const today = getTodayStr();
 
-  // ✅ Используем реальную дату вместо Ramadan day
-  const todayDateStr = new Date().toISOString().split('T')[0]; // "2026-02-15"
-  const dayData = userData.basicProgress?.[todayDateStr] || { 
-    quranPages: 0, 
-    charityAmount: 0 
-  };
+  // Активная модалка (какая категория открыта)
+  const [openCategoryId, setOpenCategoryId] = useState<GoalCategoryId | null>(null);
+  // Инпут для добавления кастомной цели
+  const [customInput, setCustomInput] = useState('');
 
-  const getTotalQuranPages = () => {
-    let total = 0;
-    // ✅ Только из basicProgress (универсальные цели)
-    if (userData.basicProgress) {
-      Object.values(userData.basicProgress).forEach((day: any) => {
-        total += day.quranPages || 0;
-      });
-    }
-    return total;
-  };
+  // ─── Состояние карточек — вычисляем из dailyGoalRecords ───
+  const cardStates = useMemo((): CategoryCardState[] => {
+    return GOAL_CATEGORIES.map(cat => {
+      const record = getTodayCategoryRecord(userData.dailyGoalRecords, today, cat.id);
+      let status: CardStatus = 'empty';
+      if (record) {
+        status = record.completed ? 'done' : 'selected';
+      }
+      return { category: cat, status, record };
+    });
+  }, [userData.dailyGoalRecords, today]);
 
-  const getTotalCharity = () => {
-    let total = 0;
-    // ✅ Только из basicProgress (универсальные цели)
-    if (userData.basicProgress) {
-      Object.values(userData.basicProgress).forEach((day: any) => {
-        total += day.charityAmount || 0;
-      });
-    }
-    return total;
-  };
+  // ─── Счётчик: сколько категорий закрыто сегодня ───
+  const doneCount = cardStates.filter(c => c.status === 'done').length;
+  const totalXpToday = useMemo(() => {
+    return getTodayGoalRecords(userData.dailyGoalRecords, today)
+      .filter(r => r.completed)
+      .reduce((sum, r) => sum + r.xpEarned, 0);
+  }, [userData.dailyGoalRecords, today]);
 
-  const totalQuranPages = getTotalQuranPages();
-  const totalCharity = getTotalCharity();
+  // Текущая открытая категория
+  const openCategory = openCategoryId
+    ? GOAL_CATEGORIES.find(c => c.id === openCategoryId) ?? null
+    : null;
 
-  const [quranPagesInput, setQuranPagesInput] = useState(
-    dayData.quranPages && dayData.quranPages > 0 ? dayData.quranPages.toString() : ''
-  );
-  const [charityInput, setCharityInput] = useState(
-    dayData.charityAmount && dayData.charityAmount > 0 ? dayData.charityAmount.toString() : ''
-  );
+  // Кастомные цели для открытой категории
+  const openCategoryCustomItems: CustomGoalItem[] = openCategoryId
+    ? (userData.goalCustomItems?.[openCategoryId] ?? [])
+    : [];
 
-  const updateProgress = (updates: { quranPages?: number; charityAmount?: number; quranRead?: boolean; charity?: boolean }) => {
-    const todayDateStr = new Date().toISOString().split('T')[0];
-    const existing = userData.basicProgress?.[todayDateStr] || { quranPages: 0, charityAmount: 0 };
-    
+  // Запись для открытой категории на сегодня
+  const openCategoryRecord = openCategoryId
+    ? getTodayCategoryRecord(userData.dailyGoalRecords, today, openCategoryId)
+    : undefined;
+
+  // ─── Выбор задачи из шаблона или кастомной ───
+  const handleSelectGoal = (goalId: string, goalText: string, xp: number) => {
+    if (!openCategoryId) return;
+
+    // ЗащИТА 1: если уже есть выполненная запись — блокируем
+    if (openCategoryRecord?.completed) return;
+
+    const newRecord: DailyGoalRecord = {
+      categoryId: openCategoryId,
+      goalId,
+      goalText,
+      completed: false,
+      xpEarned: 0, // XP ещё не начислен — только при выполнении
+    };
+
+    const todayRecords = getTodayGoalRecords(userData.dailyGoalRecords, today);
+
+    // ЗащИТА 2: заменяем только если задача ещё не выполнена (completed: false)
+    const updatedRecords = [
+      ...todayRecords.filter(r => r.categoryId !== openCategoryId),
+      { ...newRecord, xpEarned: xp } // xp запоминаем для момента выполнения
+    ];
+
     setUserData({
       ...userData,
-      basicProgress: {
-        ...userData.basicProgress,
-        [todayDateStr]: { ...existing, ...updates }
+      dailyGoalRecords: {
+        ...userData.dailyGoalRecords,
+        [today]: updatedRecords
+      }
+    });
+
+    setOpenCategoryId(null);
+  };
+
+  // ─── Отметка выполнения ───
+  const handleComplete = (categoryId: GoalCategoryId) => {
+    const todayRecords = getTodayGoalRecords(userData.dailyGoalRecords, today);
+    const record = todayRecords.find(r => r.categoryId === categoryId);
+
+    // ЗащИТА 3: задача должна быть выбрана и ещё не выполнена
+    if (!record || record.completed) return;
+
+    // ЗащИТА 4: проверяем что 1 запись на категорию в день
+    const completedInCategory = todayRecords.filter(
+      r => r.categoryId === categoryId && r.completed
+    ).length;
+    if (completedInCategory > 0) return; // Уже выполнено сегодня
+
+    const xpToAdd = record.xpEarned;
+
+    const updatedRecords = todayRecords.map(r =>
+      r.categoryId === categoryId
+        ? { ...r, completed: true, completedAt: new Date().toISOString() }
+        : r
+    );
+
+    // ЗащИТА 5: XP начисляем один раз через prev — не через переменную
+    setUserData(prev => ({
+      ...prev,
+      xp: (prev.xp || 0) + xpToAdd,
+      dailyGoalRecords: {
+        ...prev.dailyGoalRecords,
+        [today]: updatedRecords
+      }
+    }) as UserData);
+  };
+
+  // ─── Добавить кастомную цель ───
+  const handleAddCustom = () => {
+    if (!openCategoryId || !customInput.trim()) return;
+    const newItem: CustomGoalItem = {
+      id: `custom-${Date.now()}`,
+      text: customInput.trim(),
+      xp: 30,
+      categoryId: openCategoryId
+    };
+    setUserData({
+      ...userData,
+      goalCustomItems: {
+        ...(userData.goalCustomItems ?? {}) as Record<GoalCategoryId, CustomGoalItem[]>,
+        [openCategoryId]: [
+          ...(userData.goalCustomItems?.[openCategoryId] ?? []),
+          newItem
+        ]
+      }
+    });
+    setCustomInput('');
+  };
+
+  // ─── Удалить кастомную цель ───
+  const handleDeleteCustom = (itemId: string) => {
+    if (!openCategoryId) return;
+    setUserData({
+      ...userData,
+      goalCustomItems: {
+        ...(userData.goalCustomItems ?? {}) as Record<GoalCategoryId, CustomGoalItem[]>,
+        [openCategoryId]: (userData.goalCustomItems?.[openCategoryId] ?? []).filter(i => i.id !== itemId)
       }
     });
   };
 
-  const handleGoalLimitUpdate = (key: 'dailyQuranGoal' | 'dailyCharityGoal', val: string) => {
-    const num = parseInt(val.replace(/[^0-9]/g, '')) || 0;
-    setUserData({ ...userData, [key]: num });
+  // ─── Открыть модалку категории ───
+  const handleOpenCategory = (categoryId: GoalCategoryId, status: CardStatus) => {
+    // Если выполнено — только смотреть, а не менять задачу (открываем, но выбор заблокирован)
+    setOpenCategoryId(categoryId);
   };
 
-  const handleQuranPagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/[^0-9]/g, '');
-    const cleaned = val.replace(/^0+/, '') || '';
-    setQuranPagesInput(cleaned);
-    const pages = parseInt(cleaned) || 0;
-    updateProgress({ quranPages: pages, quranRead: pages > 0 });
+  // ─── Цвета карточек ───
+  const cardStyle: Record<CardStatus, string> = {
+    empty: 'bg-white border-slate-100 shadow-sm',
+    selected: 'bg-amber-50 border-amber-200',
+    done: 'bg-emerald-50 border-emerald-200'
   };
-
-  const handleCharityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/[^0-9]/g, '');
-    const cleaned = val.replace(/^0+/, '') || '';
-    setCharityInput(cleaned);
-    const amount = parseInt(cleaned) || 0;
-    updateProgress({ charityAmount: amount, charity: amount > 0 });
+  const iconBg: Record<CardStatus, string> = {
+    empty: 'bg-slate-100',
+    selected: 'bg-amber-100',
+    done: 'bg-emerald-100'
   };
-
-  const addCustomGoal = () => {
-    if (!newTaskText.trim()) return;
-    const newTask: CustomTask = {
-      id: `custom-${Date.now()}`,
-      text: newTaskText.trim(),
-      completed: false
-    };
-    setUserData({
-      ...userData,
-      customTasks: [...(userData.customTasks || []), newTask]
-    });
-    setNewTaskText('');
-  };
-
-  const toggleGoal = (id: string) => {
-    const next = (userData.customTasks || []).map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    );
-    setUserData({ ...userData, customTasks: next });
-  };
-
-  const deleteGoal = (id: string) => {
-    const next = (userData.customTasks || []).filter(task => task.id !== id);
-    setUserData({ ...userData, customTasks: next });
-  };
-
-  const startEditing = (task: CustomTask) => {
-    setEditingId(task.id);
-    setEditingText(task.text);
-  };
-
-  const saveEdit = () => {
-    if (!editingId) return;
-    const next = (userData.customTasks || []).map(task => 
-      task.id === editingId ? { ...task, text: editingText } : task
-    );
-    setUserData({ ...userData, customTasks: next });
-    setEditingId(null);
-  };
-
-  const handleInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    setTimeout(() => {
-      e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 300);
-  };
-
-  const quranGoalPercent = Math.min(100, Math.round(((dayData.quranPages || 0) / (userData?.dailyQuranGoal || 1)) * 100));
-  const charityGoalPercent = Math.min(100, Math.round(((dayData.charityAmount || 0) / (userData?.dailyCharityGoal || 1)) * 100));
-
-  const allGoals = userData.customTasks || [];
-  const totalCompleted = allGoals.filter(g => g.completed).length;
-  const totalPossible = allGoals.length;
-  const overallPercent = totalPossible > 0 ? Math.round((totalCompleted / totalPossible) * 100) : 0;
 
   return (
     <div className="space-y-6 pb-8 pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {/* Daily Limits Summary Card */}
-      <section className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
-        <div className="flex justify-between items-center mb-6 px-1">
-           <h4 className="text-[12px] font-black text-slate-800 tracking-widest uppercase">{t.goalsTitle}</h4>
-           <button onClick={() => setShowGoalSettings(!showGoalSettings)} className="text-emerald-600 text-[10px] font-black uppercase underline decoration-emerald-200">
-             {showGoalSettings ? 'Жабу' : 'Баптау'}
-           </button>
-        </div>
 
-        {showGoalSettings && (
-          <div className="grid grid-cols-2 gap-4 mb-8 p-5 bg-slate-50 rounded-[2rem] animate-in fade-in zoom-in duration-300">
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{t.goalsQuran}</label>
-              <input 
-                type="text" 
-                inputMode="numeric"
-                value={userData?.dailyQuranGoal || ''} 
-                onChange={(e) => handleGoalLimitUpdate('dailyQuranGoal', e.target.value)}
-                onFocus={handleInputFocus}
-                className="w-full bg-white border border-slate-100 rounded-xl px-4 py-3 text-xs font-black text-slate-700 outline-none"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-tight">{t.goalsCharity}</label>
-              <input 
-                type="text" 
-                inputMode="numeric"
-                value={userData?.dailyCharityGoal || ''} 
-                onChange={(e) => handleGoalLimitUpdate('dailyCharityGoal', e.target.value)}
-                onFocus={handleInputFocus}
-                className="w-full bg-white border border-slate-100 rounded-xl px-4 py-3 text-xs font-black text-slate-700 outline-none"
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-8 px-1">
-           <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                 <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-xl">📖</div>
-                    <div>
-                      <span className="text-[11px] font-black text-slate-800 uppercase block mb-1">{t.goalsQuran}</span>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">{quranGoalPercent}% ОРЫНДАЛДЫ</span>
-                    </div>
-                 </div>
-                 <div className="flex items-center space-x-2">
-                    <input 
-                      type="text" 
-                      inputMode="numeric"
-                      value={quranPagesInput} 
-                      onChange={handleQuranPagesChange}
-                      onFocus={handleInputFocus}
-                      placeholder="0"
-                      className="w-14 bg-slate-50 border border-slate-100 rounded-xl py-2 px-2 text-xs font-black text-center outline-none"
-                    />
-                    <span className="text-[10px] font-black text-slate-300">/ {userData?.dailyQuranGoal}</span>
-                 </div>
-              </div>
-              <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
-                 <div className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000" style={{ width: `${quranGoalPercent}%` }}></div>
-              </div>
-              {/* ✅ ДОБАВИТЬ: Общее количество */}
-              <div className="flex justify-between items-center pt-2 border-t border-slate-100">
-                <span className="text-[10px] font-black text-slate-400 uppercase">Барлығы:</span>
-                <span className="text-[11px] font-black text-emerald-600">{totalQuranPages} бет</span>
-              </div>
-           </div>
-
-           <div className="space-y-3">
-             <div className="flex justify-between items-center">
-               <div className="flex items-center space-x-3">
-                 <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center text-xl">💎</div>
-                 <div>
-                   <span className="text-[11px] font-black text-slate-800 uppercase block mb-1">{t.goalsCharity}</span>
-                   <span className="text-[9px] font-bold text-slate-400 uppercase">{charityGoalPercent}% ОРЫНДАЛДЫ</span>
-                 </div>
-               </div>
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="text" 
-                  inputMode="numeric"
-                  value={charityInput} 
-                  onChange={handleCharityChange}
-                  onFocus={handleInputFocus}
-                  placeholder="0"
-                  className="w-16 bg-slate-50 border border-slate-100 rounded-xl py-2 px-2 text-xs font-black text-center outline-none"
-                />
-                <span className="text-[10px] font-black text-slate-300">/ {userData?.dailyCharityGoal} ₸</span>
-              </div>
-            </div>
-            <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-1000" style={{ width: `${charityGoalPercent}%` }}></div>
-            </div>
-            {/* ✅ ДОБАВИТЬ: Общее количество */}
-            <div className="flex justify-between items-center pt-2 border-t border-slate-100">
-              <span className="text-[10px] font-black text-slate-400 uppercase">Барлығы:</span>
-              <span className="text-[11px] font-black text-amber-600">{totalCharity.toLocaleString()} ₸</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Ramadan Goals List */}
-      <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100 space-y-6">
-        <div className="flex justify-between items-end">
+      {/* Шапка: сводка дня */}
+      <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-100">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+          {t.goalsSectionTitle}
+        </p>
+        <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-black text-slate-800 leading-tight uppercase">{t.tasksTitle}</h2>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{totalCompleted} / {totalPossible} МАҚСАТ ОРЫНДАЛДЫ</p>
+            <p className="text-2xl font-black text-slate-800">
+              {doneCount} <span className="text-slate-300">/</span> {GOAL_CATEGORIES.length}
+            </p>
+            <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase">
+              {t.goalsCompletedToday}
+            </p>
           </div>
-          <div className="text-right">
-             <span className="text-2xl font-black text-emerald-600">{overallPercent}%</span>
-          </div>
-        </div>
-        
-        <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
-           <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${overallPercent}%` }}></div>
-        </div>
-
-        {/* Add Goal Input */}
-        <div className="bg-slate-50 p-2 rounded-2xl flex items-center space-x-2 border border-slate-100">
-          <input 
-            type="text"
-            value={newTaskText}
-            onChange={(e) => setNewTaskText(e.target.value)}
-            onFocus={handleInputFocus}
-            onKeyPress={(e) => e.key === 'Enter' && addCustomGoal()}
-            placeholder={t.tasksAddPlaceholder}
-            className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium px-3 outline-none"
-          />
-          <button 
-            onClick={addCustomGoal}
-            className="bg-emerald-600 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-100 active:scale-90"
-          >
-            +
-          </button>
-        </div>
-
-        {/* Goals Grid */}
-        <div className="space-y-3">
-          {allGoals.map((goal) => (
-            <div 
-              key={goal.id}
-              className={`group p-4 rounded-[1.8rem] border transition-all flex items-center justify-between ${
-                goal.completed ? 'bg-emerald-50 border-emerald-100' : 'bg-white border-slate-100 shadow-sm'
-              }`}
-            >
-              <div className="flex items-center space-x-3 flex-1">
-                <div 
-                  onClick={() => toggleGoal(goal.id)}
-                  className={`w-6 h-6 rounded-lg border-2 flex-shrink-0 flex items-center justify-center transition-all cursor-pointer ${
-                    goal.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 bg-white'
-                  }`}
-                >
-                  {goal.completed && <span className="text-[12px] font-black">✓</span>}
-                </div>
-                
-                {editingId === goal.id ? (
-                  <input 
-                    type="text"
-                    autoFocus
-                    value={editingText}
-                    onChange={(e) => setEditingText(e.target.value)}
-                    onBlur={saveEdit}
-                    onKeyPress={(e) => e.key === 'Enter' && saveEdit()}
-                    onFocus={handleInputFocus}
-                    className="flex-1 bg-white border border-emerald-200 rounded-lg px-2 py-1 text-sm font-medium outline-none"
-                  />
-                ) : (
-                  <p 
-                    onClick={() => toggleGoal(goal.id)}
-                    className={`text-sm font-medium leading-tight cursor-pointer ${goal.completed ? 'text-emerald-900 line-through opacity-50' : 'text-slate-700'}`}
-                  >
-                    {goal.text}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {editingId !== goal.id && (
-                  <button 
-                    onClick={() => startEditing(goal)}
-                    className="p-2 text-slate-300 hover:text-emerald-600 transition-colors"
-                  >
-                    ✏️
-                  </button>
-                )}
-                <button 
-                  onClick={() => deleteGoal(goal.id)}
-                  className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
+          {totalXpToday > 0 && (
+            <div className="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-2xl">
+              <p className="text-emerald-700 font-black text-sm">+{totalXpToday} XP</p>
+              <p className="text-[9px] font-bold text-emerald-400 uppercase">{t.goalsXpReward}</p>
             </div>
-          ))}
+          )}
+        </div>
+        {/* Прогресс-бар */}
+        <div className="mt-4 w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-700"
+            style={{ width: `${Math.round((doneCount / GOAL_CATEGORIES.length) * 100)}%` }}
+          />
         </div>
       </div>
+
+      {/* Сетка 6 карточек */}
+      <div className="grid grid-cols-2 gap-4">
+        {cardStates.map(({ category, status, record }) => (
+          <button
+            key={category.id}
+            onClick={() => handleOpenCategory(category.id, status)}
+            className={`rounded-[2.5rem] border-2 p-5 text-left transition-all active:scale-95 ${
+              cardStyle[status]
+            }`}
+          >
+            {/* Иконка */}
+            <div className={`w-12 h-12 rounded-2xl ${iconBg[status]} flex items-center justify-center text-2xl mb-3`}>
+              {status === 'done' ? '✅' : category.icon}
+            </div>
+
+            {/* Название */}
+            <p className="text-[11px] font-black text-slate-700 uppercase tracking-wider">
+              {language === 'kk' ? category.name_kk : category.name_ru}
+            </p>
+
+            {/* Статус / текст задачи */}
+            {status === 'empty' && (
+              <p className="text-[9px] font-bold text-slate-400 mt-1">Таңдау →</p>
+            )}
+            {status === 'selected' && record && (
+              <p className="text-[9px] font-bold text-amber-600 mt-1 leading-tight line-clamp-2">
+                {record.goalText}
+              </p>
+            )}
+            {status === 'done' && record && (
+              <>
+                <p className="text-[9px] font-bold text-emerald-600 mt-1 leading-tight line-clamp-2">
+                  {record.goalText}
+                </p>
+                <p className="text-[9px] font-black text-emerald-500 mt-1">+{record.xpEarned} XP</p>
+              </>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* ─── МОДАЛКА ВЫБОРА ЗАДАЧИ ─── */}
+      {openCategory && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center"
+          style={{ background: 'rgba(0,0,0,0.45)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setOpenCategoryId(null); }}
+        >
+          <div
+            className="w-full max-w-md bg-white rounded-t-[3rem] p-6 pb-10 animate-in slide-in-from-bottom-10 duration-300"
+            style={{ maxHeight: '85vh', overflowY: 'auto' }}
+          >
+            {/* Шапка модалки */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center space-x-3">
+                <span className="text-3xl">{openCategory.icon}</span>
+                <div>
+                  <p className="font-black text-slate-800 text-base">
+                    {language === 'kk' ? openCategory.name_kk : openCategory.name_ru}
+                  </p>
+                  {openCategoryRecord?.completed ? (
+                    <p className="text-[10px] font-black text-emerald-600 uppercase">
+                      ✅ {t.goalsCompletedToday}
+                    </p>
+                  ) : openCategoryRecord ? (
+                    <p className="text-[10px] font-black text-amber-500 uppercase">
+                      {t.goalsChooseTask}
+                    </p>
+                  ) : (
+                    <p className="text-[10px] font-black text-slate-400 uppercase">
+                      {t.goalsChooseTask}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setOpenCategoryId(null)}
+                className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-black active:scale-90"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Если выполнено — заблокированный резюме */}
+            {openCategoryRecord?.completed ? (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-[2rem] p-5 text-center">
+                <p className="text-3xl mb-2">✅</p>
+                <p className="font-black text-emerald-800 text-sm">{openCategoryRecord.goalText}</p>
+                <p className="text-[10px] font-bold text-emerald-500 mt-1 uppercase">+{openCategoryRecord.xpEarned} XP {t.goalsXpReward}</p>
+                <p className="text-[9px] font-bold text-emerald-400 mt-3 uppercase">{t.goalsLockedMsg}</p>
+              </div>
+            ) : (
+              <>
+                {/* Если задача уже выбрана — чекбокс */}
+                {openCategoryRecord && !openCategoryRecord.completed && (
+                  <div className="mb-5 bg-amber-50 border border-amber-200 rounded-[2rem] p-4 flex items-center justify-between">
+                    <div className="flex-1 pr-3">
+                      <p className="text-[10px] font-black text-amber-600 uppercase mb-1">{t.goalsChooseTask}</p>
+                      <p className="font-bold text-slate-800 text-sm leading-tight">{openCategoryRecord.goalText}</p>
+                      <p className="text-[10px] font-black text-amber-500 mt-1">+{openCategoryRecord.xpEarned} XP</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        handleComplete(openCategoryRecord.categoryId);
+                        setOpenCategoryId(null);
+                      }}
+                      className="bg-emerald-600 text-white text-[11px] font-black px-4 py-3 rounded-2xl active:scale-90 shrink-0"
+                    >
+                      {t.goalsDoneBtn}
+                    </button>
+                  </div>
+                )}
+
+                {/* Шаблонные цели */}
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                  {t.goalsTemplates}
+                </p>
+                <div className="space-y-2 mb-5">
+                  {openCategory.templates.map((tmpl: GoalTemplate) => {
+                    const isSelected = openCategoryRecord?.goalId === tmpl.id && !openCategoryRecord.completed;
+                    return (
+                      <button
+                        key={tmpl.id}
+                        onClick={() => handleSelectGoal(tmpl.id, language === 'kk' ? tmpl.text_kk : tmpl.text_ru, tmpl.xp)}
+                        disabled={!!openCategoryRecord?.completed}
+                        className={`w-full text-left flex items-center justify-between p-4 rounded-[1.5rem] border transition-all active:scale-95 ${
+                          isSelected
+                            ? 'bg-amber-50 border-amber-300'
+                            : 'bg-slate-50 border-slate-100 hover:border-emerald-200'
+                        }`}
+                      >
+                        <span className={`text-sm font-semibold leading-tight flex-1 pr-3 ${
+                          isSelected ? 'text-amber-800' : 'text-slate-700'
+                        }`}>
+                          {language === 'kk' ? tmpl.text_kk : tmpl.text_ru}
+                        </span>
+                        <span className={`text-[10px] font-black shrink-0 ${
+                          isSelected ? 'text-amber-600' : 'text-emerald-600'
+                        }`}>
+                          +{tmpl.xp} XP
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Кастомные цели */}
+                {openCategoryCustomItems.length > 0 && (
+                  <>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                      {t.goalsMyGoals}
+                    </p>
+                    <div className="space-y-2 mb-5">
+                      {openCategoryCustomItems.map((item) => {
+                        const isSelected = openCategoryRecord?.goalId === item.id && !openCategoryRecord.completed;
+                        return (
+                          <div key={item.id} className={`flex items-center justify-between p-4 rounded-[1.5rem] border transition-all ${
+                            isSelected ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-100'
+                          }`}>
+                            <button
+                              className="flex-1 text-left pr-3"
+                              onClick={() => handleSelectGoal(item.id, item.text, item.xp)}
+                              disabled={!!openCategoryRecord?.completed}
+                            >
+                              <span className={`text-sm font-semibold leading-tight block ${
+                                isSelected ? 'text-amber-800' : 'text-slate-700'
+                              }`}>{item.text}</span>
+                              <span className="text-[10px] font-black text-emerald-600">+{item.xp} XP</span>
+                            </button>
+                            {!openCategoryRecord?.completed && (
+                              <button
+                                onClick={() => handleDeleteCustom(item.id)}
+                                className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs active:scale-90 shrink-0"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+
+                {/* Добавить свою цель */}
+                {!openCategoryRecord?.completed && (
+                  <>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                      {t.goalsAddCustom}
+                    </p>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={customInput}
+                        onChange={e => setCustomInput(e.target.value)}
+                        onKeyPress={e => e.key === 'Enter' && handleAddCustom()}
+                        placeholder={t.goalsCustomPlaceholder}
+                        className="flex-1 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 text-sm font-medium outline-none focus:border-emerald-300"
+                      />
+                      <button
+                        onClick={handleAddCustom}
+                        className="bg-emerald-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl active:scale-90 shrink-0"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
