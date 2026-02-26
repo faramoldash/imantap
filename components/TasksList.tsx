@@ -34,6 +34,8 @@ const XpPop: React.FC<{ xp: number; onDone: () => void }> = ({ xp, onDone }) => 
 };
 
 // ─── Строка категории ───────────────────────────────────────────────────
+// FIX #4: внешний контейнер — <div role="button">, а не <button>,
+// чтобы вложенная кнопка «Орындадым» работала корректно в iOS/Telegram WebView.
 const CategoryRow: React.FC<{
   cat: GoalCategory; lang: Language; rec?: DailyGoalRecord; streak: number;
   onOpen: () => void; onDone: () => void; t: Record<string, string>;
@@ -44,11 +46,29 @@ const CategoryRow: React.FC<{
   const bg       = done ? '#ecfdf5' : selected ? '#fefce8' : '#ffffff';
   const border   = done ? '#6ee7b7' : selected ? '#fde68a' : '#f1f5f9';
   const shadow   = done ? '0 2px 8px rgba(16,185,129,.12)' : selected ? '0 2px 8px rgba(234,179,8,.12)' : '0 1px 4px rgba(0,0,0,.05)';
+
   return (
     <div style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 18, boxShadow: shadow, overflow: 'hidden' }}>
-      <button type="button"
-        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}
-        onClick={onOpen}>
+      {/* FIX #4: div role="button" вместо <button>, чтобы не было <button> внутри <button> */}
+      <div
+        role="button"
+        tabIndex={0}
+        style={{
+          touchAction: 'manipulation',
+          WebkitTapHighlightColor: 'transparent',
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          padding: '14px 16px',
+          textAlign: 'left',
+          background: 'none',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+        onClick={onOpen}
+        onKeyDown={e => e.key === 'Enter' && onOpen()}
+      >
         <div style={{ width: 44, height: 44, borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, background: done ? '#d1fae5' : selected ? '#fef9c3' : '#f8fafc' }}>
           {done ? '✅' : cat.icon}
         </div>
@@ -64,9 +84,23 @@ const CategoryRow: React.FC<{
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
           {done && rec && rec.xpEarned > 0 && <span style={{ fontSize: 12, fontWeight: 900, color: '#10b981' }}>+{rec.xpEarned} XP</span>}
           {selected && (
-            <button type="button"
-              style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', background: 'linear-gradient(135deg,#10b981,#059669)', color: '#fff', fontWeight: 900, fontSize: 12, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer' }}
-              onClick={e => { e.stopPropagation(); onDone(); }}>
+            // Теперь это законная вложенная <button> — родитель div, не button
+            <button
+              type="button"
+              style={{
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent',
+                background: 'linear-gradient(135deg,#10b981,#059669)',
+                color: '#fff',
+                fontWeight: 900,
+                fontSize: 12,
+                padding: '8px 14px',
+                borderRadius: 12,
+                border: 'none',
+                cursor: 'pointer',
+              }}
+              onClick={e => { e.stopPropagation(); onDone(); }}
+            >
               {t.goalsDoneBtn || 'Орындадым ✓'}
             </button>
           )}
@@ -76,7 +110,7 @@ const CategoryRow: React.FC<{
             </svg>
           )}
         </div>
-      </button>
+      </div>
     </div>
   );
 };
@@ -112,26 +146,24 @@ const GoalSheet: React.FC<{
   const name     = lang === 'kk' ? cat.name_kk : cat.name_ru;
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Высота видимой области — обновляется когда открывается клавиатура
-  const vpHeight = useViewportHeight();
-  // Sheet занимает не больше 88% от видимой области (включая клавиатуру как часть vpHeight)
+  const vpHeight  = useViewportHeight();
   const sheetMaxH = Math.floor(vpHeight * 0.88);
 
   return (
-    // Overlay: полный экран, но sheet ограничен высотой vpHeight
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', background: 'rgba(15,23,42,.5)' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', background: 'rgba(15,23,42,.5)', overflow: 'hidden' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         style={{
-          background: '#fff', borderRadius: '22px 22px 0 0',
-          // Ключ: maxHeight = 88% от visualViewport.height
-          // Когда клавиатура открывается — vpHeight уменьшается — sheet сжимается
+          background: '#fff',
+          borderRadius: '22px 22px 0 0',
           maxHeight: sheetMaxH,
-          display: 'flex', flexDirection: 'column',
+          display: 'flex',
+          flexDirection: 'column',
           animation: 'sheetUp .26s cubic-bezier(.22,1,.36,1)',
           transition: 'max-height .25s ease',
+          overflow: 'hidden',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -149,8 +181,10 @@ const GoalSheet: React.FC<{
             <div>
               <p style={{ fontWeight: 900, fontSize: 16, color: '#0f172a', margin: 0 }}>{name}</p>
               <p style={{ fontSize: 11, margin: 0, fontWeight: 600, color: done ? '#10b981' : selected ? '#d97706' : '#94a3b8' }}>
-                {done ? (lang === 'kk' ? '✓ Орындалды' : '✓ Выполнено')
-                  : selected ? (lang === 'kk' ? 'Мақсат таңдалды' : 'Цель выбрана')
+                {done
+                  ? (lang === 'kk' ? '✓ Орындалды' : '✓ Выполнено')
+                  : selected
+                  ? (lang === 'kk' ? 'Мақсат таңдалды' : 'Цель выбрана')
                   : (lang === 'kk' ? 'Мақсат таңдаңыз' : 'Выберите цель')}
               </p>
             </div>
@@ -264,13 +298,14 @@ const GoalSheet: React.FC<{
                   type="text"
                   value={inputVal}
                   onChange={e => onInputChange(e.target.value)}
-                  onKeyPress={e => e.key === 'Enter' && onAddCustom()}
+                  // FIX #5: onKeyPress устарел → onKeyDown
+                  onKeyDown={e => e.key === 'Enter' && onAddCustom()}
                   placeholder={lang === 'kk' ? 'Мақсатыңызды жазыңыз...' : 'Напишите цель...'}
                   style={{ flex: 1, fontSize: 14, background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '12px 16px', outline: 'none' }}
                   onFocus={e => {
                     (e.target as HTMLInputElement).style.borderColor = '#10b981';
-                    // После того как sheet сжался — прокрутить до инпута
-                    setTimeout(() => inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+                    // FIX #7: уменьшена задержка 400ms → 200ms для Android
+                    setTimeout(() => inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
                   }}
                   onBlur={e => { (e.target as HTMLInputElement).style.borderColor = '#e2e8f0'; }}
                 />
@@ -289,7 +324,16 @@ const GoalSheet: React.FC<{
 // ─── MAIN ────────────────────────────────────────────────────────────────
 const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) => {
   const t   = TRANSLATIONS[lang] as Record<string, string>;
-  const day = todayStr();
+
+  // FIX #3: day пересчитывается каждую минуту, чтобы при смене дня данные сбросились
+  const [day, setDay] = useState(todayStr);
+  useEffect(() => {
+    const id = setInterval(() => {
+      const newDay = todayStr();
+      setDay(prev => prev !== newDay ? newDay : prev);
+    }, 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const [localRecords, setLocalRecords] = useState<DailyGoalRecord[]>(
     () => getTodayGoalRecords(userData.dailyGoalRecords, day)
@@ -298,7 +342,17 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
     () => (userData.goalCustomItems as Record<string, CustomGoalItem[]>) || {}
   );
 
+  // FIX #3: когда day меняется — сразу обновляем localRecords под новый день
   const lastSyncedRef = useRef(JSON.stringify(getTodayGoalRecords(userData.dailyGoalRecords, day)));
+  useEffect(() => {
+    const incoming = getTodayGoalRecords(userData.dailyGoalRecords, day);
+    const str = JSON.stringify(incoming);
+    lastSyncedRef.current = str;
+    setLocalRecords(incoming);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [day]);
+
+  // При входящих изменениях userData — синкаем только если изменилось снаружи
   useEffect(() => {
     const incoming = getTodayGoalRecords(userData.dailyGoalRecords, day);
     const str = JSON.stringify(incoming);
@@ -314,6 +368,9 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
   const [sheetCatId, setSheetCatId] = useState<GoalCategoryId | null>(null);
   const [inputs,     setInputs]     = useState<Record<string, string>>({});
   const [floatXp,    setFloatXp]    = useState<number | null>(null);
+
+  // FIX #1: Set для блокировки повторного handleDone пока выполняется первый
+  const processingRef = useRef<Set<string>>(new Set());
 
   const doneCount   = localRecords.filter(r => r.completed).length;
   const xpToday     = localRecords.filter(r => r.completed).reduce((s, r) => s + r.xpEarned, 0);
@@ -341,14 +398,28 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
   }, [localRecords, applyRecords]);
 
   const handleDone = useCallback((catId: GoalCategoryId) => {
+    // FIX #1: блокируем повторный вызов от double-tap, пока не пройдёт 1 секунда
+    if (processingRef.current.has(catId)) return;
+    processingRef.current.add(catId);
+    setTimeout(() => processingRef.current.delete(catId), 1000);
+
     const rec = localRecords.find(r => r.categoryId === catId);
-    if (!rec || rec.completed) return;
-    const next = localRecords.map(r => r.categoryId === catId ? { ...r, completed: true, completedAt: new Date().toISOString() } : r);
+    if (!rec || rec.completed) { processingRef.current.delete(catId); return; }
+
+    const next = localRecords.map(r =>
+      r.categoryId === catId ? { ...r, completed: true, completedAt: new Date().toISOString() } : r
+    );
     const streaks = { ...((userData.goalStreaks as Record<string, any>) ?? {}) };
     const cur = streaks[catId] ?? { current: 0, longest: 0, lastCompletedDate: '' };
-    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
+    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-CA', {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
     const newCurrent = cur.lastCompletedDate === yesterday ? cur.current + 1 : 1;
-    streaks[catId] = { current: newCurrent, longest: Math.max(newCurrent, cur.longest || 0), lastCompletedDate: day };
+    streaks[catId] = {
+      current: newCurrent,
+      longest: Math.max(newCurrent, cur.longest || 0),
+      lastCompletedDate: day,
+    };
     lastSyncedRef.current = JSON.stringify(next);
     setLocalRecords(next);
     setUserData(p => ({
@@ -370,7 +441,10 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
     setLocalCustom(updated);
     setUserData(p => ({
       ...(p as UserData),
-      goalCustomItems: { ...((p as UserData).goalCustomItems ?? {}), [catId]: [...((p as UserData).goalCustomItems?.[catId] ?? []), item] },
+      goalCustomItems: {
+        ...((p as UserData).goalCustomItems ?? {}),
+        [catId]: [...((p as UserData).goalCustomItems?.[catId] ?? []), item],
+      },
     } as UserData));
     setInputs(prev => ({ ...prev, [catId]: '' }));
   }, [inputs, localCustom, setUserData]);
@@ -381,7 +455,10 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
     setLocalCustom(updated);
     setUserData(p => ({
       ...(p as UserData),
-      goalCustomItems: { ...((p as UserData).goalCustomItems ?? {}), [catId]: ((p as UserData).goalCustomItems?.[catId] ?? []).filter(i => i.id !== itemId) },
+      goalCustomItems: {
+        ...((p as UserData).goalCustomItems ?? {}),
+        [catId]: ((p as UserData).goalCustomItems?.[catId] ?? []).filter(i => i.id !== itemId),
+      },
     } as UserData));
   }, [localCustom, setUserData]);
 
@@ -414,7 +491,9 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
               {lang === 'kk' ? 'Күнделікті мақсаттар' : 'Ежедневные цели'}
             </h2>
             <p style={{ fontSize: 12, color: '#94a3b8', margin: '3px 0 0' }}>
-              {lang === 'kk' ? `Бүгін ${doneCount} / ${GOAL_CATEGORIES.length} орындалды` : `Сегодня выполнено ${doneCount} / ${GOAL_CATEGORIES.length}`}
+              {lang === 'kk'
+                ? `Бүгін ${doneCount} / ${GOAL_CATEGORIES.length} орындалды`
+                : `Сегодня выполнено ${doneCount} / ${GOAL_CATEGORIES.length}`}
             </p>
           </div>
           {xpToday > 0 && (
@@ -427,13 +506,16 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
           <div style={{
             height: '100%', borderRadius: 10, transition: 'width .7s cubic-bezier(.22,1,.36,1)',
             width: `${progressPct}%`,
-            background: progressPct === 100 ? 'linear-gradient(90deg,#10b981,#059669)'
-              : progressPct > 50 ? 'linear-gradient(90deg,#f59e0b,#10b981)'
-              : progressPct > 0  ? 'linear-gradient(90deg,#fbbf24,#f59e0b)' : 'transparent',
+            background:
+              progressPct === 100 ? 'linear-gradient(90deg,#10b981,#059669)'
+              : progressPct > 50  ? 'linear-gradient(90deg,#f59e0b,#10b981)'
+              : progressPct > 0   ? 'linear-gradient(90deg,#fbbf24,#f59e0b)' : 'transparent',
           }} />
         </div>
-        <p style={{ fontSize: 12, textAlign: 'center', margin: '8px 0 0', fontWeight: 600,
-          color: progressPct === 100 ? '#10b981' : progressPct > 0 ? '#f59e0b' : '#cbd5e1' }}>
+        <p style={{
+          fontSize: 12, textAlign: 'center', margin: '8px 0 0', fontWeight: 600,
+          color: progressPct === 100 ? '#10b981' : progressPct > 0 ? '#f59e0b' : '#cbd5e1',
+        }}>
           {progressPct === 100
             ? `🎉 ${lang === 'kk' ? 'Барлық мақсаттар орындалды!' : 'Все цели выполнены!'}`
             : progressPct > 0
