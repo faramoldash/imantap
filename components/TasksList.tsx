@@ -389,6 +389,7 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
   const handleSelect = useCallback((catId: GoalCategoryId, goalId: string, goalText: string, xp: number) => {
     if (localRecords.find(r => r.categoryId === catId)?.completed) return;
     applyRecords([...localRecords.filter(r => r.categoryId !== catId), { categoryId: catId, goalId, goalText, completed: false, xpEarned: xp }]);
+    setSheetCatId(null);  // ✅ закрыть шит
   }, [localRecords, applyRecords]);
 
   const handleDeselect = useCallback((catId: GoalCategoryId) => {
@@ -424,7 +425,6 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
     setLocalRecords(next);
     setUserData(p => ({
       ...(p as UserData),
-      xp: ((p as UserData).xp || 0) + rec.xpEarned,
       dailyGoalRecords: { ...(p as UserData).dailyGoalRecords, [day]: next },
       goalStreaks: streaks as UserData['goalStreaks'],
     } as UserData));
@@ -484,38 +484,58 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
       {floatXp !== null && floatXp > 0 && <XpPop xp={floatXp} onDone={() => setFloatXp(null)} />}
 
       {/* ── Шапка ── */}
-      <div style={{ marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        borderRadius: 22,
+        padding: '18px 20px 16px',
+        marginBottom: 20,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Декоративные круги */}
+        <div style={{ position: 'absolute', top: -24, right: -24, width: 100, height: 100, borderRadius: '50%', background: 'rgba(16,185,129,0.12)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -16, left: 60, width: 60, height: 60, borderRadius: '50%', background: 'rgba(251,191,36,0.08)', pointerEvents: 'none' }} />
+
+        {/* Верхняя строка */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
-            <h2 style={{ fontWeight: 900, fontSize: 18, color: '#0f172a', margin: 0 }}>
+            <h2 style={{ fontWeight: 900, fontSize: 18, color: '#f8fafc', margin: 0, letterSpacing: '-0.3px' }}>
               {lang === 'kk' ? 'Күнделікті мақсаттар' : 'Ежедневные цели'}
             </h2>
-            <p style={{ fontSize: 12, color: '#94a3b8', margin: '3px 0 0' }}>
+            <p style={{ fontSize: 12, color: '#94a3b8', margin: '3px 0 0', fontWeight: 500 }}>
               {lang === 'kk'
                 ? `Бүгін ${doneCount} / ${GOAL_CATEGORIES.length} орындалды`
                 : `Сегодня выполнено ${doneCount} / ${GOAL_CATEGORIES.length}`}
             </p>
           </div>
-          {xpToday > 0 && (
-            <div style={{ background: '#ecfdf5', border: '1.5px solid #6ee7b7', borderRadius: 20, padding: '5px 12px' }}>
-              <span style={{ fontWeight: 900, fontSize: 13, color: '#10b981' }}>+{xpToday} XP</span>
-            </div>
-          )}
-        </div>
-        <div style={{ height: 10, borderRadius: 10, background: '#f1f5f9', overflow: 'hidden' }}>
           <div style={{
-            height: '100%', borderRadius: 10, transition: 'width .7s cubic-bezier(.22,1,.36,1)',
+            background: xpToday > 0 ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)',
+            border: `1.5px solid ${xpToday > 0 ? 'rgba(16,185,129,0.4)' : 'rgba(255,255,255,0.1)'}`,
+            borderRadius: 20, padding: '5px 12px',
+          }}>
+            <span style={{ fontWeight: 900, fontSize: 13, color: xpToday > 0 ? '#34d399' : '#475569' }}>
+              {xpToday > 0 ? `+${xpToday} XP` : '0 XP'}
+            </span>
+          </div>
+        </div>
+
+        {/* Прогресс-бар */}
+        <div style={{ height: 8, borderRadius: 8, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginBottom: 10 }}>
+          <div style={{
+            height: '100%', borderRadius: 8,
+            transition: 'width .7s cubic-bezier(.22,1,.36,1)',
             width: `${progressPct}%`,
             background:
-              progressPct === 100 ? 'linear-gradient(90deg,#10b981,#059669)'
+              progressPct === 100 ? 'linear-gradient(90deg,#10b981,#34d399)'
               : progressPct > 50  ? 'linear-gradient(90deg,#f59e0b,#10b981)'
-              : progressPct > 0   ? 'linear-gradient(90deg,#fbbf24,#f59e0b)' : 'transparent',
+              : progressPct > 0   ? 'linear-gradient(90deg,#fbbf24,#f59e0b)'
+              : 'transparent',
+            boxShadow: progressPct > 0 ? '0 0 8px rgba(16,185,129,0.4)' : 'none',
           }} />
         </div>
-        <p style={{
-          fontSize: 12, textAlign: 'center', margin: '8px 0 0', fontWeight: 600,
-          color: progressPct === 100 ? '#10b981' : progressPct > 0 ? '#f59e0b' : '#cbd5e1',
-        }}>
+
+        {/* Статус */}
+        <p style={{ fontSize: 12, margin: 0, fontWeight: 600, color: progressPct === 100 ? '#34d399' : progressPct > 0 ? '#fbbf24' : '#475569' }}>
           {progressPct === 100
             ? `🎉 ${lang === 'kk' ? 'Барлық мақсаттар орындалды!' : 'Все цели выполнены!'}`
             : progressPct > 0

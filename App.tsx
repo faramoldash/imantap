@@ -55,7 +55,7 @@ function normalizeUserData(raw: UserData): UserData {
     basicProgress:       raw.basicProgress       || {},
     dailyGoalRecords:    raw.dailyGoalRecords     || {},
     goalCustomItems:    (raw.goalCustomItems      || {}) as Record<GoalCategoryId, CustomGoalItem[]>,
-    goalStreaks:         (raw.goalStreaks          || {}) as Record<GoalCategoryId, number>,
+    goalStreaks: (raw.goalStreaks || {}) as Record<GoalCategoryId, { current: number; longest: number; lastCompletedDate: string }>,
     startDate:           raw.startDate            || RAMADAN_START_DATE,
     lastActiveDate:      raw.lastActiveDate        || '',
     subscriptionExpiresAt: raw.subscriptionExpiresAt || null,
@@ -107,7 +107,7 @@ const App: React.FC = () => {
       daysLeft: null,
       dailyGoalRecords: {},
       goalCustomItems: {} as Record<GoalCategoryId, CustomGoalItem[]>,
-      goalStreaks: {} as Record<GoalCategoryId, number>,
+      goalStreaks: {} as Record<GoalCategoryId, { current: number; longest: number; lastCompletedDate: string }>,
     };
   }, []);
 
@@ -540,9 +540,10 @@ const App: React.FC = () => {
         if (newBadges) normalized.unlockedBadges = newBadges;
         return normalized;
       });
+      // ✅ Добавь эту строку:
+      setTimeout(() => syncToServerFn(), 300);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [syncToServerFn]  // ← добавь в deps
   );
 
   const renderView = () => {
