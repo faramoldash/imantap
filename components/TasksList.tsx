@@ -1,6 +1,13 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { UserData, Language, GoalCategoryId, DailyGoalRecord, CustomGoalItem } from '../src/types/types';
-import { TRANSLATIONS, GOAL_CATEGORIES, GoalCategory, GoalTemplate, getTodayCategoryRecord, getTodayGoalRecords } from '../constants';
+import {
+  TRANSLATIONS,
+  GOAL_CATEGORIES,
+  GoalCategory,
+  GoalTemplate,
+  getTodayCategoryRecord,
+  getTodayGoalRecords,
+} from '../constants';
 
 interface TasksListProps {
   language: Language;
@@ -8,20 +15,12 @@ interface TasksListProps {
   setUserData: (data: UserData | ((prev: UserData) => UserData)) => void;
 }
 
-type CardStatus = 'empty' | 'selected' | 'done';
-
-interface CategoryCardState {
-  category: GoalCategory;
-  status: CardStatus;
-  record?: DailyGoalRecord;
-}
-
 function getTodayStr(): string {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return new Date().toLocaleDateString('en-CA', { timeZone: tz });
 }
 
-// ─── XP float анимация ───
+// ─ XP анимация ──────────────────────────────────
 const XpFloatAnim: React.FC<{ xp: number; onDone: () => void }> = ({ xp, onDone }) => {
   useEffect(() => {
     const t = setTimeout(onDone, 1400);
@@ -37,301 +36,142 @@ const XpFloatAnim: React.FC<{ xp: number; onDone: () => void }> = ({ xp, onDone 
   );
 };
 
-// ─── Body scroll lock (только когда клавиатура НЕ открыта) ───
-function useBodyScrollLock(locked: boolean) {
-  useEffect(() => {
-    if (!locked) return;
-
-    const scrollY =
-      window.scrollY ||
-      document.documentElement.scrollTop ||
-      document.body.scrollTop ||
-      0;
-
-    const prev = {
-      position: document.body.style.position,
-      top: document.body.style.top,
-      left: document.body.style.left,
-      right: document.body.style.right,
-      width: document.body.style.width,
-      overflow: document.body.style.overflow,
-    };
-
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.width = '100%';
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.position = prev.position;
-      document.body.style.top = prev.top;
-      document.body.style.left = prev.left;
-      document.body.style.right = prev.right;
-      document.body.style.width = prev.width;
-      document.body.style.overflow = prev.overflow;
-      window.scrollTo(0, scrollY);
-    };
-  }, [locked]);
-}
-
+// ─ MAIN ─────────────────────────────────────
 const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }) => {
   const t = TRANSLATIONS[language];
   const today = getTodayStr();
 
-  const [openCategoryId, setOpenCategoryId] = useState<GoalCategoryId | null>(null);
-  const [customInput, setCustomInput] = useState('');
+  // Какая категория развёрнута (inline)
+  const [expandedId, setExpandedId] = useState<GoalCategoryId | null>(null);
+  const [customInputs, setCustomInputs] = useState<Record<string, string>>({});
   const [floatXp, setFloatXp] = useState<number | null>(null);
-  const [burst, setBurst] = useState(false);
-  // true когда клавиатура открыта — снимаем body lock чтобы не мешать scroll-into-view
-  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // Блокируем скролл фона только пока клавиатура закрыта
-  useBodyScrollLock(!!openCategoryId && !isKeyboardOpen);
-
-  const modalScrollRef = useRef<HTMLDivElement>(null);
+  // ref на input развёрнутой категории
   const inputRef = useRef<HTMLInputElement>(null);
+  // ref на развёрнутый блок
+  const expandedRef = useRef<HTMLDivElement>(null);
 
-  // Следим за высотой viewport — если уменьшилась >100px → клавиатура открылась
+  // При раскрытии — скроллим блок в видимость
   useEffect(() => {
-    if (!openCategoryId) return;
-
-    const initialHeight = window.visualViewport?.height ?? window.innerHeight;
-
-    const handleResize = () => {
-      const currentHeight = window.visualViewport?.height ?? window.innerHeight;
-      const diff = initialHeight - currentHeight;
-      const keyboardOpen = diff > 100;
-      setIsKeyboardOpen(keyboardOpen);
-
-      // Когда клавиатура открылась — скроллим модалку вниз чтобы input был виден
-      if (keyboardOpen && modalScrollRef.current) {
-        setTimeout(() => {
-          if (modalScrollRef.current) {
-            modalScrollRef.current.scrollTop = modalScrollRef.current.scrollHeight;
-          }
-        }, 100);
-      }
-    };
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', handleResize);
-    } else {
-      window.addEventListener('resize', handleResize);
+    if (expandedId && expandedRef.current) {
+      setTimeout(() => {
+        expandedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 120);
     }
+  }, [expandedId]);
 
-    return () => {
-      if (window.visualViewport) {
-        window.visualViewport.removeEventListener('resize', handleResize);
-      } else {
-        window.removeEventListener('resize', handleResize);
-      }
-      setIsKeyboardOpen(false);
-    };
-  }, [openCategoryId]);
+  // Записи за сегодня
+  const todayRecords = useMemo(
+    () => getTodayGoalRecords(userData.dailyGoalRecords, today),
+    [userData.dailyGoalRecords, today]
+  );
 
-  // Карточки
-  const cardStates = useMemo((): CategoryCardState[] => {
-    return GOAL_CATEGORIES.map(cat => {
-      const record = getTodayCategoryRecord(userData.dailyGoalRecords, today, cat.id);
-      let status: CardStatus = 'empty';
-      if (record) status = record.completed ? 'done' : 'selected';
-      return { category: cat, status, record };
-    });
-  }, [userData.dailyGoalRecords, today]);
+  const doneCount = todayRecords.filter(r => r.completed).length;
+  const totalXpToday = todayRecords
+    .filter(r => r.completed)
+    .reduce((s, r) => s + r.xpEarned, 0);
+  const progressPct = Math.round((doneCount / GOAL_CATEGORIES.length) * 100);
 
-  const doneCount = cardStates.filter(c => c.status === 'done').length;
-  const selectedCount = cardStates.filter(c => c.status === 'selected').length;
-  const totalXpToday = useMemo(() => {
-    return getTodayGoalRecords(userData.dailyGoalRecords, today)
-      .filter(r => r.completed)
-      .reduce((sum, r) => sum + r.xpEarned, 0);
-  }, [userData.dailyGoalRecords, today]);
-
-  const openCategory = openCategoryId
-    ? GOAL_CATEGORIES.find(c => c.id === openCategoryId) ?? null
-    : null;
-  const openCategoryCustomItems: CustomGoalItem[] = openCategoryId
-    ? (userData.goalCustomItems?.[openCategoryId] ?? [])
-    : [];
-  const openCategoryRecord = openCategoryId
-    ? getTodayCategoryRecord(userData.dailyGoalRecords, today, openCategoryId)
-    : undefined;
-
-  // При открытии модалки — скролл наверх
-  useEffect(() => {
-    if (openCategoryId && modalScrollRef.current) {
-      modalScrollRef.current.scrollTop = 0;
-    }
-    if (!openCategoryId) {
-      setIsKeyboardOpen(false);
-      setCustomInput('');
-    }
-  }, [openCategoryId]);
-
-  // ─── Выбор шаблона ───
-  const handleSelectGoal = (goalId: string, goalText: string, xp: number) => {
-    if (!openCategoryId || openCategoryRecord?.completed) return;
-    const todayRecords = getTodayGoalRecords(userData.dailyGoalRecords, today);
-    const updatedRecords = [
-      ...todayRecords.filter(r => r.categoryId !== openCategoryId),
-      { categoryId: openCategoryId, goalId, goalText, completed: false, xpEarned: xp } as DailyGoalRecord,
+  // ─ Выбрать шаблон / кастомную цель
+  const handleSelect = (categoryId: GoalCategoryId, goalId: string, goalText: string, xp: number) => {
+    const rec = getTodayCategoryRecord(userData.dailyGoalRecords, today, categoryId);
+    if (rec?.completed) return;
+    const updated = [
+      ...todayRecords.filter(r => r.categoryId !== categoryId),
+      { categoryId, goalId, goalText, completed: false, xpEarned: xp } as DailyGoalRecord,
     ];
     setUserData(prev => ({
       ...(prev as UserData),
-      dailyGoalRecords: {
-        ...(prev as UserData).dailyGoalRecords,
-        [today]: updatedRecords,
-      },
+      dailyGoalRecords: { ...(prev as UserData).dailyGoalRecords, [today]: updated },
     }) as UserData);
-    // Скроллим наверх чтобы был виден блок «Выбранная цель» + Done
+    // Свернём блок чтобы видеть выбранную цель + кнопку «Орындадым»
     setTimeout(() => {
-      if (modalScrollRef.current) modalScrollRef.current.scrollTop = 0;
-    }, 50);
+      expandedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
   };
 
-  // ─── Выполнение ───
+  // ─ Отметить выполненной
   const handleComplete = (categoryId: GoalCategoryId) => {
-    const todayRecords = getTodayGoalRecords(userData.dailyGoalRecords, today);
-    const record = todayRecords.find(r => r.categoryId === categoryId);
-    if (!record || record.completed) return;
-    const xpToAdd = record.xpEarned;
-    const updatedRecords = todayRecords.map(r =>
+    const rec = todayRecords.find(r => r.categoryId === categoryId);
+    if (!rec || rec.completed) return;
+    const updated = todayRecords.map(r =>
       r.categoryId === categoryId
         ? { ...r, completed: true, completedAt: new Date().toISOString() }
         : r
     );
     setUserData(prev => ({
       ...(prev as UserData),
-      xp: ((prev as UserData).xp || 0) + xpToAdd,
-      dailyGoalRecords: {
-        ...(prev as UserData).dailyGoalRecords,
-        [today]: updatedRecords,
-      },
+      xp: ((prev as UserData).xp || 0) + rec.xpEarned,
+      dailyGoalRecords: { ...(prev as UserData).dailyGoalRecords, [today]: updated },
     }) as UserData);
-    setFloatXp(xpToAdd);
-    setBurst(true);
-    setTimeout(() => setBurst(false), 700);
-    setOpenCategoryId(null);
+    setFloatXp(rec.xpEarned);
+    setExpandedId(null);
   };
 
-  const handleInlineDone = (e: React.MouseEvent, categoryId: GoalCategoryId) => {
-    e.stopPropagation();
-    handleComplete(categoryId);
-  };
-
-  const handleAddCustom = () => {
-    if (!openCategoryId || !customInput.trim()) return;
+  // ─ Добавить кастомную
+  const handleAddCustom = (categoryId: GoalCategoryId) => {
+    const text = (customInputs[categoryId] ?? '').trim();
+    if (!text) return;
     const newItem: CustomGoalItem = {
       id: `custom-${Date.now()}`,
-      text: customInput.trim(),
+      text,
       xp: 30,
-      categoryId: openCategoryId,
+      categoryId,
     };
     setUserData(prev => ({
       ...(prev as UserData),
       goalCustomItems: {
         ...((prev as UserData).goalCustomItems ?? {}),
-        [openCategoryId]: [
-          ...((prev as UserData).goalCustomItems?.[openCategoryId] ?? []),
-          newItem,
-        ],
+        [categoryId]: [...((prev as UserData).goalCustomItems?.[categoryId] ?? []), newItem],
       },
     }) as UserData);
-    setCustomInput('');
-    // После добавления скроллим к новому элементу
-    setTimeout(() => {
-      if (modalScrollRef.current) {
-        modalScrollRef.current.scrollTop = modalScrollRef.current.scrollHeight;
-      }
-    }, 100);
+    setCustomInputs(prev => ({ ...prev, [categoryId]: '' }));
   };
 
-  const handleDeleteCustom = (itemId: string) => {
-    if (!openCategoryId) return;
+  // ─ Удалить кастомную
+  const handleDeleteCustom = (categoryId: GoalCategoryId, itemId: string) => {
     setUserData(prev => ({
       ...(prev as UserData),
       goalCustomItems: {
         ...((prev as UserData).goalCustomItems ?? {}),
-        [openCategoryId]: (
-          (prev as UserData).goalCustomItems?.[openCategoryId] ?? []
-        ).filter(i => i.id !== itemId),
+        [categoryId]: ((prev as UserData).goalCustomItems?.[categoryId] ?? []).filter(
+          i => i.id !== itemId
+        ),
       },
     }) as UserData);
   };
 
-  const getCatStreak = (catId: GoalCategoryId) =>
+  const getRecord = (catId: GoalCategoryId) =>
+    getTodayCategoryRecord(userData.dailyGoalRecords, today, catId);
+
+  const getStreak = (catId: GoalCategoryId) =>
     (userData.goalStreaks as Record<string, number> | undefined)?.[catId] ?? 0;
 
-  const progressPct = Math.round((doneCount / GOAL_CATEGORIES.length) * 100);
-
-  const cardBg: Record<CardStatus, string> = {
-    empty: 'bg-white border-slate-100',
-    selected: 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300',
-    done: 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-300',
-  };
-  const iconBg: Record<CardStatus, string> = {
-    empty: 'bg-slate-100',
-    selected: 'bg-amber-100',
-    done: 'bg-emerald-100',
-  };
-
   return (
-    <div className="space-y-4 pb-10 pt-3">
+    <div className="pb-24 pt-2 space-y-3">
       <style>{`
         @keyframes xpFloat {
-          0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.2); }
-          70%  { opacity: 1; transform: translateX(-50%) translateY(-60px) scale(1); }
-          100% { opacity: 0; transform: translateX(-50%) translateY(-90px) scale(0.8); }
+          0%   { opacity:1; transform:translateX(-50%) translateY(0) scale(1.2); }
+          70%  { opacity:1; transform:translateX(-50%) translateY(-60px) scale(1); }
+          100% { opacity:0; transform:translateX(-50%) translateY(-90px) scale(0.8); }
         }
-        @keyframes burstPop {
-          0%   { transform: scale(1); }
-          35%  { transform: scale(1.06); }
-          100% { transform: scale(1); }
+        @keyframes expandDown {
+          from { opacity:0; transform:translateY(-6px); }
+          to   { opacity:1; transform:translateY(0); }
         }
-        .burst-anim { animation: burstPop 0.55s ease-out; }
-        .modal-scroll {
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-          overscroll-behavior: contain;
-        }
+        .habit-expand { animation: expandDown 0.18s ease-out; }
       `}</style>
 
       {floatXp !== null && <XpFloatAnim xp={floatXp} onDone={() => setFloatXp(null)} />}
 
-      {/* ─── СВОДКА ─── */}
-      <div className={`rounded-[2rem] p-5 bg-white border border-slate-100 shadow-sm transition-all ${
-        burst ? 'burst-anim' : ''
-      }`}>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-          {t.goalsSectionTitle}
-        </p>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-end gap-1.5">
-            <span className="text-3xl font-black text-slate-800 leading-none">{doneCount}</span>
-            <span className="text-lg font-black text-slate-300 mb-0.5">/</span>
-            <span className="text-lg font-black text-slate-400 mb-0.5">{GOAL_CATEGORIES.length}</span>
-            <span className="text-[10px] font-bold text-slate-400 mb-1 ml-1 uppercase">{t.goalsCompletedToday}</span>
-          </div>
-          {totalXpToday > 0 ? (
-            <div className="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-2xl text-center">
-              <p className="text-emerald-700 font-black text-sm">+{totalXpToday} XP</p>
-              <p className="text-[9px] font-bold text-emerald-400 uppercase">{t.goalsXpReward}</p>
-            </div>
-          ) : selectedCount > 0 ? (
-            <div className="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-2xl text-center">
-              <p className="text-amber-600 font-black text-xs">
-                {selectedCount} {language === 'kk' ? 'таңдалды' : 'выбрано'}
-              </p>
-              <p className="text-[9px] font-bold text-amber-400 uppercase">
-                {language === 'kk' ? 'Орындаңыз' : 'Выполните'}
-              </p>
-            </div>
-          ) : null}
-        </div>
-        <div className="flex items-center gap-2.5">
-          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+      {/* ─── ЗАГОЛОВОК ─── */}
+      <div className="px-1">
+        <h2 className="text-[13px] font-black text-slate-800 uppercase tracking-widest">
+          {language === 'kk' ? 'Күнделікті мақсаттар' : 'Ежедневные цели'}
+        </h2>
+        {/* Прогресс-бар */}
+        <div className="mt-2 flex items-center gap-2">
+          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
             <div
               className="h-full rounded-full transition-all duration-700"
               style={{
@@ -345,219 +185,170 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
               }}
             />
           </div>
-          <span className="text-[10px] font-black text-slate-400">{progressPct}%</span>
+          <span className="text-[11px] font-black text-slate-400 shrink-0">
+            {doneCount}/{GOAL_CATEGORIES.length}
+          </span>
+          {totalXpToday > 0 && (
+            <span className="text-[11px] font-black text-emerald-500 shrink-0">+{totalXpToday} XP</span>
+          )}
         </div>
-        {selectedCount > 0 && doneCount < GOAL_CATEGORIES.length && (
-          <div className="mt-3 flex items-center gap-2 bg-amber-50 rounded-2xl px-3 py-2">
-            <span className="text-base">💡</span>
-            <p className="text-[11px] font-semibold text-amber-700">
-              {language === 'kk'
-                ? 'Мақсатты орындап, жасыл батырманы басыңыз'
-                : 'Выполните цель и нажмите зелёную кнопку'}
-            </p>
-          </div>
-        )}
       </div>
 
-      {/* ─── СЕТКА КАРТОЧЕК ─── */}
-      <div className="grid grid-cols-2 gap-3">
-        {cardStates.map(({ category, status, record }) => {
-          const streak = getCatStreak(category.id);
-          const isDone = status === 'done';
-          const isSelected = status === 'selected';
-          const isEmpty = status === 'empty';
+      {/* ─── СПИСОК ─── */}
+      <div className="bg-white rounded-[1.8rem] border border-slate-100 shadow-sm overflow-hidden">
+        {GOAL_CATEGORIES.map((cat, idx) => {
+          const rec = getRecord(cat.id);
+          const isDone = rec?.completed === true;
+          const isSelected = !!rec && !rec.completed;
+          const isOpen = expandedId === cat.id;
+          const streak = getStreak(cat.id);
+          const customItems: CustomGoalItem[] =
+            userData.goalCustomItems?.[cat.id] ?? [];
+          const isLast = idx === GOAL_CATEGORIES.length - 1;
+
           return (
-            <div
-              key={category.id}
-              className={`relative rounded-[1.8rem] border-2 p-4 transition-all duration-200 overflow-hidden ${cardBg[status]}`}
-            >
-              <div className={`absolute -right-5 -top-5 w-20 h-20 rounded-full pointer-events-none ${
-                isDone ? 'bg-emerald-300/10' : isSelected ? 'bg-amber-300/10' : 'bg-slate-200/20'
-              }`} />
-              {streak > 0 && (
-                <div className="absolute top-2.5 right-2.5 flex items-center gap-0.5 bg-orange-50 border border-orange-100 rounded-full px-1.5 py-0.5">
-                  <span className="text-[9px]">🔥</span>
-                  <span className="text-[9px] font-black text-orange-500">{streak}</span>
-                </div>
-              )}
-              <button
-                className="w-full text-left active:scale-95 transition-transform"
-                onClick={() => setOpenCategoryId(category.id)}
+            <div key={cat.id}>
+              {/* ─ ROW ─ */}
+              <div
+                className={`relative transition-colors ${
+                  isDone ? 'bg-emerald-50/60' : isSelected ? 'bg-amber-50/60' : 'bg-white'
+                }`}
               >
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl mb-2.5 ${iconBg[status]}`}>
-                  {isDone ? '✅' : category.icon}
-                </div>
-                <p className="text-[11px] font-black text-slate-700 uppercase tracking-wide leading-tight">
-                  {language === 'kk' ? category.name_kk : category.name_ru}
-                </p>
-                {isEmpty && (
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    {language === 'kk' ? 'Таңдау →' : 'Выбрать →'}
-                  </p>
-                )}
-                {isSelected && record && (
-                  <p className="text-[9px] font-semibold text-amber-700 mt-1 leading-tight line-clamp-2">
-                    {record.goalText}
-                  </p>
-                )}
-                {isDone && record && (
-                  <>
-                    <p className="text-[9px] font-semibold text-emerald-700 mt-1 leading-tight line-clamp-2">
-                      {record.goalText}
-                    </p>
-                    <p className="text-[9px] font-black text-emerald-500 mt-0.5">+{record.xpEarned} XP ✓</p>
-                  </>
-                )}
-              </button>
-              {isSelected && record && (
                 <button
-                  onClick={(e) => handleInlineDone(e, category.id)}
-                  className="mt-2.5 w-full bg-emerald-500 text-white text-[11px] font-black py-2 rounded-xl active:scale-95 transition-all shadow-sm"
+                  className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-slate-50 transition-colors text-left"
+                  onPointerDown={() => {
+                    if (isDone) return;
+                    setExpandedId(isOpen ? null : cat.id);
+                  }}
                 >
-                  {t.goalsDoneBtn || '✓ Орындадым'}
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ─── МОДАЛКА ─── */}
-      {openCategory && (
-        <div
-          className="fixed inset-0 z-[60] flex items-end justify-center"
-          style={{
-            background: 'rgba(15,23,42,0.6)',
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-          }}
-          // ВАЖНО: НЕ вешаем onTouchMove на overlay — это блокирует тапы на кнопки внутри!
-          // Вместо этого блокируем скролл body через useBodyScrollLock
-          onClick={(e) => { if (e.target === e.currentTarget) setOpenCategoryId(null); }}
-        >
-          <div
-            className="w-full max-w-md bg-white rounded-t-[2.5rem] flex flex-col"
-            style={{
-              // Когда клавиатура открыта — уменьшаем высоту модалки
-              // чтобы контент не перекрывался клавиатурой
-              height: isKeyboardOpen ? '60vh' : '85vh',
-              transition: 'height 0.25s ease',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-1 shrink-0">
-              <div className="w-10 h-1 bg-slate-200 rounded-full" />
-            </div>
-
-            {/* Шапка */}
-            <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl ${
-                  openCategoryRecord?.completed ? 'bg-emerald-100' : 'bg-slate-100'
-                }`}>
-                  {openCategoryRecord?.completed ? '✅' : openCategory.icon}
-                </div>
-                <div>
-                  <p className="font-black text-slate-800 text-[15px] leading-tight">
-                    {language === 'kk' ? openCategory.name_kk : openCategory.name_ru}
-                  </p>
-                  <p className={`text-[10px] font-bold ${
-                    openCategoryRecord?.completed
-                      ? 'text-emerald-600'
-                      : openCategoryRecord
-                      ? 'text-amber-500'
-                      : 'text-slate-400'
-                  }`}>
-                    {openCategoryRecord?.completed
-                      ? `✅ ${t.goalsCompletedToday}`
-                      : openCategoryRecord
-                      ? (language === 'kk' ? '⬇ Орындадым басыңыз' : '⬇ Нажмите «Выполнено»')
-                      : (language === 'kk' ? 'Мақсат таңдаңыз' : 'Выберите цель')}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setOpenCategoryId(null)}
-                className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 text-sm font-black shrink-0 active:scale-90"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Скроллируемый контент */}
-            <div
-              ref={modalScrollRef}
-              className="flex-1 min-h-0 modal-scroll px-5 py-4"
-              style={{ touchAction: 'pan-y' }}
-            >
-              <div className="space-y-4 pb-8">
-
-                {openCategoryRecord?.completed ? (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-[1.8rem] p-6 text-center">
-                    <div className="text-4xl mb-3">🎉</div>
-                    <p className="font-black text-emerald-800 text-sm mb-1">{openCategoryRecord.goalText}</p>
-                    <p className="text-[11px] font-bold text-emerald-500">+{openCategoryRecord.xpEarned} XP</p>
-                    <p className="text-[10px] text-slate-400 mt-3">{t.goalsLockedMsg}</p>
+                  {/* Круг-иконка */}
+                  <div
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg shrink-0 ${
+                      isDone
+                        ? 'bg-emerald-100'
+                        : isSelected
+                        ? 'bg-amber-100'
+                        : 'bg-slate-100'
+                    }`}
+                  >
+                    {isDone ? '✅' : cat.icon}
                   </div>
-                ) : (
-                  <>
-                    {/* Выбранная цель + Done */}
-                    {openCategoryRecord && !openCategoryRecord.completed && (
-                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 rounded-[1.6rem] p-4">
-                        <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mb-1.5">
-                          {language === 'kk' ? '✅ Таңдалған мақсат' : '✅ Выбранная цель'}
-                        </p>
-                        <p className="font-semibold text-slate-800 text-sm leading-snug mb-3">
-                          {openCategoryRecord.goalText}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-black text-amber-600">+{openCategoryRecord.xpEarned} XP</span>
-                          <button
-                            onClick={() => handleComplete(openCategoryRecord.categoryId)}
-                            className="bg-emerald-500 text-white text-sm font-black px-5 py-2.5 rounded-2xl active:scale-95 shadow-sm shadow-emerald-200 transition-all"
-                          >
-                            {t.goalsDoneBtn || '✓ Орындадым'}
-                          </button>
+
+                  {/* Текст */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className={`text-[13px] font-bold leading-tight ${
+                        isDone ? 'text-emerald-700 line-through' : 'text-slate-800'
+                      }`}>
+                        {language === 'kk' ? cat.name_kk : cat.name_ru}
+                      </p>
+                      {streak > 0 && (
+                        <span className="text-[10px] font-black text-orange-500">🔥{streak}</span>
+                      )}
+                    </div>
+                    {isDone && rec && (
+                      <p className="text-[11px] text-emerald-600 font-medium mt-0.5 truncate">
+                        {rec.goalText}
+                      </p>
+                    )}
+                    {isSelected && rec && (
+                      <p className="text-[11px] text-amber-600 font-medium mt-0.5 truncate">
+                        {rec.goalText}
+                      </p>
+                    )}
+                    {!isDone && !isSelected && (
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        {language === 'kk' ? 'Мақсат таңдаңыз' : 'Выберите цель'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Правая часть */}
+                  <div className="shrink-0 flex items-center gap-2">
+                    {isSelected && rec && (
+                      <button
+                        onPointerDown={(e) => {
+                          e.stopPropagation();
+                          handleComplete(cat.id);
+                        }}
+                        className="bg-emerald-500 text-white text-[11px] font-black px-3 py-1.5 rounded-xl active:scale-95 transition-all shadow-sm"
+                      >
+                        {t.goalsDoneBtn || 'Орындадым'}
+                      </button>
+                    )}
+                    {isDone && rec && (
+                      <span className="text-[11px] font-black text-emerald-500">+{rec.xpEarned} XP</span>
+                    )}
+                    {!isDone && (
+                      <span className={`text-slate-300 text-sm transition-transform duration-200 ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}>⌄</span>
+                    )}
+                  </div>
+                </button>
+
+                {/* ─ РАЗВЁРНУТАЯ ПАНЕЛЬ ─ */}
+                {isOpen && !isDone && (
+                  <div
+                    ref={expandedRef}
+                    className="habit-expand px-4 pb-4 space-y-4"
+                  >
+                    {/* Выбранная цель */}
+                    {isSelected && rec && (
+                      <div className="flex items-start justify-between gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-black text-amber-500 uppercase tracking-wider mb-1">
+                            {language === 'kk' ? 'Таңдалған мақсат' : 'Выбранная цель'}
+                          </p>
+                          <p className="text-[13px] font-semibold text-slate-800 leading-snug">{rec.goalText}</p>
                         </div>
+                        <button
+                          onPointerDown={(e) => {
+                            e.stopPropagation();
+                            handleComplete(cat.id);
+                          }}
+                          className="bg-emerald-500 text-white text-[12px] font-black px-4 py-2 rounded-xl active:scale-95 shrink-0 shadow-sm"
+                        >
+                          {t.goalsDoneBtn || 'Орындадым'}
+                        </button>
                       </div>
                     )}
 
                     {/* Шаблоны */}
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2.5">
-                        {t.goalsTemplates || 'Шаблондар'}
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">
+                        {language === 'kk' ? 'Шаблондар' : 'Шаблоны'}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {openCategory.templates.map((tmpl: GoalTemplate) => {
-                          const isChosen = openCategoryRecord?.goalId === tmpl.id;
+                        {cat.templates.map((tmpl: GoalTemplate) => {
+                          const chosen = rec?.goalId === tmpl.id;
                           return (
                             <button
                               key={tmpl.id}
                               onPointerDown={(e) => {
-                                // Используем onPointerDown вместо onClick —
-                                // надёжнее работает в Telegram WebView
                                 e.stopPropagation();
-                                handleSelectGoal(
+                                handleSelect(
+                                  cat.id,
                                   tmpl.id,
                                   language === 'kk' ? tmpl.text_kk : tmpl.text_ru,
                                   tmpl.xp
                                 );
                               }}
-                              disabled={!!openCategoryRecord?.completed}
-                              className={`text-left px-3 py-2.5 rounded-2xl border text-[12px] font-semibold transition-all active:scale-95 ${
-                                isChosen
-                                  ? 'bg-amber-400 border-amber-400 text-white shadow-sm'
-                                  : 'bg-slate-50 border-slate-200 text-slate-700 active:bg-emerald-50 active:border-emerald-200'
+                              className={`px-3 py-2 rounded-2xl border text-[12px] font-semibold transition-all active:scale-95 text-left ${
+                                chosen
+                                  ? 'bg-emerald-500 border-emerald-500 text-white'
+                                  : 'bg-slate-50 border-slate-200 text-slate-700 active:bg-emerald-50 active:border-emerald-300'
                               }`}
-                              style={{ maxWidth: '49%' }}
+                              style={{ maxWidth: '60%' }}
                             >
                               <span className="block leading-snug">
                                 {language === 'kk' ? tmpl.text_kk : tmpl.text_ru}
                               </span>
-                              <span className={`text-[10px] font-black block mt-0.5 ${
-                                isChosen ? 'text-white/80' : 'text-emerald-600'
-                              }`}>+{tmpl.xp} XP</span>
+                              <span className={`text-[10px] font-black mt-0.5 block ${
+                                chosen ? 'text-white/80' : 'text-emerald-600'
+                              }`}>
+                                +{tmpl.xp} XP
+                              </span>
                             </button>
                           );
                         })}
@@ -565,43 +356,40 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                     </div>
 
                     {/* Кастомные цели */}
-                    {openCategoryCustomItems.length > 0 && (
+                    {customItems.length > 0 && (
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2.5">
-                          {t.goalsMyGoals || 'Менің мақсаттарым'}
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">
+                          {language === 'kk' ? 'Менің мақсаттарым' : 'Мои цели'}
                         </p>
-                        <div className="space-y-2">
-                          {openCategoryCustomItems.map((item) => {
-                            const isChosen = openCategoryRecord?.goalId === item.id;
+                        <div className="space-y-1.5">
+                          {customItems.map(item => {
+                            const chosen = rec?.goalId === item.id;
                             return (
                               <div
                                 key={item.id}
-                                className={`flex items-center justify-between p-3.5 rounded-[1.5rem] border ${
-                                  isChosen ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-100'
+                                className={`flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-2xl border ${
+                                  chosen ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-50 border-slate-200'
                                 }`}
                               >
                                 <button
-                                  className="flex-1 text-left pr-2"
+                                  className="flex-1 text-left"
                                   onPointerDown={(e) => {
                                     e.stopPropagation();
-                                    handleSelectGoal(item.id, item.text, item.xp);
+                                    handleSelect(cat.id, item.id, item.text, item.xp);
                                   }}
-                                  disabled={!!openCategoryRecord?.completed}
                                 >
-                                  <span className={`text-sm font-semibold block ${
-                                    isChosen ? 'text-amber-800' : 'text-slate-700'
+                                  <span className={`text-[13px] font-semibold block ${
+                                    chosen ? 'text-emerald-800' : 'text-slate-700'
                                   }`}>{item.text}</span>
                                   <span className="text-[10px] font-black text-emerald-600">+{item.xp} XP</span>
                                 </button>
-                                {!openCategoryRecord?.completed && (
-                                  <button
-                                    onPointerDown={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteCustom(item.id);
-                                    }}
-                                    className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs active:scale-90 shrink-0"
-                                  >✕</button>
-                                )}
+                                <button
+                                  onPointerDown={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteCustom(cat.id, item.id);
+                                  }}
+                                  className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-400 text-[10px] active:scale-90 shrink-0"
+                                >✕</button>
                               </div>
                             );
                           })}
@@ -610,45 +398,55 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                     )}
 
                     {/* Добавить свою цель */}
-                    {!openCategoryRecord?.completed && (
-                      <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-                          {t.goalsAddCustom || 'Өз мақсатыңды қос'}
-                        </p>
-                        <div className="flex gap-2">
-                          <input
-                            ref={inputRef}
-                            type="text"
-                            value={customInput}
-                            onChange={e => setCustomInput(e.target.value)}
-                            onKeyPress={e => e.key === 'Enter' && handleAddCustom()}
-                            onFocus={() => {
-                              // При фокусе скроллим к input чтобы клавиатура его не перекрыла
-                              setTimeout(() => {
-                                if (modalScrollRef.current) {
-                                  modalScrollRef.current.scrollTop =
-                                    modalScrollRef.current.scrollHeight;
-                                }
-                              }, 300);
-                            }}
-                            placeholder={t.goalsCustomPlaceholder || 'Мақсат жазыңыз...'}
-                            className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none focus:border-emerald-300 transition-colors"
-                          />
-                          <button
-                            onPointerDown={(e) => {
-                              e.preventDefault(); // предотвращаем потерю фокуса перед добавлением
-                              handleAddCustom();
-                            }}
-                            className="bg-emerald-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black active:scale-90 shrink-0 shadow-sm"
-                          >+</button>
-                        </div>
-                      </div>
-                    )}
-                  </>
+                    <div className="flex gap-2">
+                      <input
+                        ref={expandedId === cat.id ? inputRef : undefined}
+                        type="text"
+                        value={customInputs[cat.id] ?? ''}
+                        onChange={e =>
+                          setCustomInputs(prev => ({ ...prev, [cat.id]: e.target.value }))
+                        }
+                        onKeyPress={e => e.key === 'Enter' && handleAddCustom(cat.id)}
+                        onFocus={() => {
+                          setTimeout(() => {
+                            expandedRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                          }, 300);
+                        }}
+                        placeholder={
+                          language === 'kk' ? 'Өз мақсатыңызды жазыңыз...' : 'Своя цель...'
+                        }
+                        className="flex-1 bg-slate-100 border border-transparent rounded-2xl px-4 py-2.5 text-[13px] outline-none focus:border-emerald-300 transition-colors"
+                      />
+                      <button
+                        onPointerDown={(e) => {
+                          e.preventDefault();
+                          handleAddCustom(cat.id);
+                        }}
+                        className="bg-emerald-500 text-white w-10 h-10 rounded-2xl flex items-center justify-center text-lg font-black active:scale-90 shrink-0"
+                      >+</button>
+                    </div>
+                  </div>
                 )}
               </div>
+
+              {/* Разделитель */}
+              {!isLast && (
+                <div className="h-px bg-slate-100 mx-4" />
+              )}
             </div>
-          </div>
+          );
+        })}
+      </div>
+
+      {/* ─── EMPTY STATE ─── */}
+      {todayRecords.length === 0 && (
+        <div className="text-center py-6 px-4">
+          <p className="text-2xl mb-2">🎯</p>
+          <p className="text-[13px] font-semibold text-slate-400">
+            {language === 'kk'
+              ? 'Жоғары басыңыз — бірінші мақсатты таңдаңыз'
+              : 'Нажмите на пункт, чтобы выбрать цель'}
+          </p>
         </div>
       )}
     </div>
