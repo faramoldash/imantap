@@ -31,35 +31,38 @@ interface BackendUserData {
 
 const STORAGE_KEY = 'ramadan_tracker_data_v4';
 
-// ─── Безопасная нормализация UserData ────────────────────────────────────────
-// Гарантирует что критичные поля всегда правильного типа,
-// даже если сервер вернул null / undefined / неправильный тип.
+// ─── Безопасная нормализация UserData ──────────────────────────────────
 function normalizeUserData(raw: UserData): UserData {
+  // language должен быть обязательно валидным,
+  // если пришло что-то другое — фоллбэк на 'kk'
+  const lang: Language =
+    raw.language === 'kk' || raw.language === 'ru' ? raw.language : 'kk';
+
   return {
     ...raw,
-    unlockedBadges:    Array.isArray(raw.unlockedBadges)    ? raw.unlockedBadges    : [],
-    memorizedNames:    Array.isArray(raw.memorizedNames)    ? raw.memorizedNames    : [],
-    completedJuzs:     Array.isArray(raw.completedJuzs)     ? raw.completedJuzs     : [],
-    earnedJuzXpIds:    Array.isArray(raw.earnedJuzXpIds)    ? raw.earnedJuzXpIds    : [],
-    completedTasks:    Array.isArray(raw.completedTasks)    ? raw.completedTasks    : [],
-    customTasks:       Array.isArray(raw.customTasks)       ? raw.customTasks       : [],
+    language:           lang,
+    unlockedBadges:     Array.isArray(raw.unlockedBadges)         ? raw.unlockedBadges         : [],
+    memorizedNames:     Array.isArray(raw.memorizedNames)         ? raw.memorizedNames         : [],
+    completedJuzs:      Array.isArray(raw.completedJuzs)          ? raw.completedJuzs          : [],
+    earnedJuzXpIds:     Array.isArray(raw.earnedJuzXpIds)         ? raw.earnedJuzXpIds         : [],
+    completedTasks:     Array.isArray(raw.completedTasks)         ? raw.completedTasks         : [],
+    customTasks:        Array.isArray(raw.customTasks)            ? raw.customTasks            : [],
     deletedPredefinedTasks: Array.isArray(raw.deletedPredefinedTasks) ? raw.deletedPredefinedTasks : [],
-    progress:           raw.progress           || {},
-    preparationProgress:raw.preparationProgress|| {},
-    basicProgress:      raw.basicProgress      || {},
-    dailyGoalRecords:   raw.dailyGoalRecords   || {},
-    goalCustomItems:   (raw.goalCustomItems    || {}) as Record<GoalCategoryId, CustomGoalItem[]>,
-    goalStreaks:        (raw.goalStreaks        || {}) as Record<GoalCategoryId, number>,
-    earnedJuzXpIds:    Array.isArray(raw.earnedJuzXpIds) ? raw.earnedJuzXpIds : [],
-    startDate:          raw.startDate          || RAMADAN_START_DATE,
-    lastActiveDate:     raw.lastActiveDate     || '',
+    progress:            raw.progress            || {},
+    preparationProgress: raw.preparationProgress || {},
+    basicProgress:       raw.basicProgress       || {},
+    dailyGoalRecords:    raw.dailyGoalRecords     || {},
+    goalCustomItems:    (raw.goalCustomItems      || {}) as Record<GoalCategoryId, CustomGoalItem[]>,
+    goalStreaks:         (raw.goalStreaks          || {}) as Record<GoalCategoryId, number>,
+    startDate:           raw.startDate            || RAMADAN_START_DATE,
+    lastActiveDate:      raw.lastActiveDate        || '',
     subscriptionExpiresAt: raw.subscriptionExpiresAt || null,
-    currentStreak:      raw.currentStreak      ?? 0,
-    longestStreak:      raw.longestStreak      ?? 0,
-    xp:                 raw.xp                ?? 0,
-    quranKhatams:       raw.quranKhatams       ?? 0,
-    referralCount:      raw.referralCount      ?? 0,
-    registrationDate:   raw.registrationDate   || new Date().toISOString(),
+    currentStreak:       raw.currentStreak         ?? 0,
+    longestStreak:       raw.longestStreak         ?? 0,
+    xp:                  raw.xp                   ?? 0,
+    quranKhatams:        raw.quranKhatams          ?? 0,
+    referralCount:       raw.referralCount         ?? 0,
+    registrationDate:    raw.registrationDate      || new Date().toISOString(),
   };
 }
 
@@ -130,19 +133,13 @@ const App: React.FC = () => {
   const userDataRef = useRef(userData);
   useEffect(() => { userDataRef.current = userData; }, [userData]);
 
-  // ─── Инициализация из сервера ─────────────────────────────────────────────
+  // ─── Инициализация из сервера ──────────────────────────────────────────
   useEffect(() => {
     if (initialUserData) {
       const correctedData = normalizeUserData(initialUserData);
       console.log('📥 Инициализация userData из сервера:', {
+        language: correctedData.language,
         progressDays: Object.keys(correctedData.progress).length,
-        preparationDays: Object.keys(correctedData.preparationProgress).length,
-        basicDays: Object.keys(correctedData.basicProgress).length,
-        currentStreak: correctedData.currentStreak,
-        lastActiveDate: correctedData.lastActiveDate,
-        subscriptionExpiresAt: correctedData.subscriptionExpiresAt,
-        daysLeft: correctedData.daysLeft,
-        dailyGoalRecordDays: Object.keys(correctedData.dailyGoalRecords || {}).length,
         unlockedBadges: correctedData.unlockedBadges.length,
       });
       setUserData(correctedData);
@@ -208,7 +205,11 @@ const App: React.FC = () => {
     document.body.scrollTop = savedPos;
   }, [currentView, selectedBasicDate, selectedPreparationDay]);
 
-  const t = TRANSLATIONS[userData.language];
+  // ─── Защищённый доступ к переводам — никогда не вернёт undefined ─────────────
+  const lang: Language = userData.language === 'kk' || userData.language === 'ru'
+    ? userData.language
+    : 'kk';
+  const t = TRANSLATIONS[lang] ?? TRANSLATIONS['kk'];
 
   useEffect(() => {
     const getAlmatyDay = () => {
@@ -310,7 +311,6 @@ const App: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
-          // ─── Нормализуем ответ сервера перед setUserData ───────────────
           const validatedData = normalizeUserData(data.data as UserData);
           setUserData(validatedData);
         }
@@ -441,7 +441,7 @@ const App: React.FC = () => {
     setUserData(prev => ({ ...prev }));
   }, []);
 
-  // ─── checkBadges: защищён от любого мусора в unlockedBadges ──────────────
+  // ─── checkBadges: защищён от любого мусора ──────────────────────────────
   const checkBadges = (data: UserData) => {
     const earnedBadges = Array.isArray(data.unlockedBadges) ? [...data.unlockedBadges] : [];
     let newlyUnlockedId: string | null = null;
@@ -536,37 +536,37 @@ const App: React.FC = () => {
     switch (currentView) {
       case 'dashboard':
         if (selectedBasicDate) return (
-          <BasicTracker date={selectedBasicDate} language={userData.language} userData={userData}
+          <BasicTracker date={selectedBasicDate} language={lang} userData={userData}
             onUpdate={updateBasicProgress} onBack={() => setSelectedBasicDate(null)} />
         );
         if (selectedPreparationDay) return (
-          <PreparationTracker day={selectedPreparationDay} language={userData.language} userData={userData}
+          <PreparationTracker day={selectedPreparationDay} language={lang} userData={userData}
             onUpdate={updatePreparationProgress} onBack={() => setSelectedPreparationDay(null)} />
         );
         return (
           <Dashboard day={selectedDay} realTodayDay={realTodayDay} ramadanInfo={ramadanInfo}
             data={dayData} allProgress={userData.progress} updateProgress={updateProgress}
             updatePreparationProgress={updatePreparationProgress} updateBasicProgress={updateBasicProgress}
-            language={userData.language} onDaySelect={(d) => setSelectedDay(d)}
+            language={lang} onDaySelect={(d) => setSelectedDay(d)}
             onPreparationDaySelect={(d) => setSelectedPreparationDay(d)}
             onBasicDateSelect={(date) => setSelectedBasicDate(date)}
             xp={userData.xp} userData={userData} setUserData={handleUserDataUpdate} setView={setCurrentView} />
         );
       case 'calendar':
         return <Calendar progress={userData.progress} realTodayDay={realTodayDay} selectedDay={selectedDay}
-          language={userData.language} onSelectDay={(d) => { setSelectedDay(d); setCurrentView('dashboard'); }} />;
+          language={lang} onSelectDay={(d) => { setSelectedDay(d); setCurrentView('dashboard'); }} />;
       case 'quran':
-        return <QuranTracker userData={userData} setUserData={handleUserDataUpdate} language={userData.language} />;
+        return <QuranTracker userData={userData} setUserData={handleUserDataUpdate} language={lang} />;
       case 'tasks':
-        return <TasksList language={userData.language} userData={userData} setUserData={handleUserDataUpdate} />;
+        return <TasksList language={lang} userData={userData} setUserData={handleUserDataUpdate} />;
       case 'profile':
-        return <ProfileView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} onNavigate={handleNavigation} />;
+        return <ProfileView userData={userData} language={lang} setUserData={handleUserDataUpdate} onNavigate={handleNavigation} />;
       case 'names-99':
-        return <NamesMemorizer language={userData.language} userData={userData} setUserData={handleUserDataUpdate} />;
+        return <NamesMemorizer language={lang} userData={userData} setUserData={handleUserDataUpdate} />;
       case 'rewards':
-        return <RewardsView userData={userData} language={userData.language} setUserData={handleUserDataUpdate} onNavigate={handleNavigation} />;
+        return <RewardsView userData={userData} language={lang} setUserData={handleUserDataUpdate} onNavigate={handleNavigation} />;
       case 'circles':
-        return <CirclesView userData={userData} language={userData.language} onNavigate={handleNavigation} navigationData={navigationData} />;
+        return <CirclesView userData={userData} language={lang} onNavigate={handleNavigation} navigationData={navigationData} />;
       default:
         return null;
     }
@@ -583,7 +583,7 @@ const App: React.FC = () => {
             <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-2 border-white/30 animate-ping" />
           </div>
           <h1 className="text-3xl font-black text-white mb-2 tracking-tight">ImanTap</h1>
-          <p className="text-sm font-bold text-white/70">{userData.language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}</p>
+          <p className="text-sm font-bold text-white/70">{lang === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}</p>
           <div className="flex justify-center space-x-2 mt-6">
             {[0, 150, 300].map(d => (
               <div key={d} className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
@@ -594,8 +594,8 @@ const App: React.FC = () => {
     );
   }
 
-  if (!accessData.hasAccess && accessData?.paymentStatus === 'pending') return <PendingScreen language={userData.language} />;
-  if (!isLoading && accessData && !accessData.hasAccess) return <Paywall language={userData.language} />;
+  if (!accessData.hasAccess && accessData?.paymentStatus === 'pending') return <PendingScreen language={lang} />;
+  if (!isLoading && accessData && !accessData.hasAccess) return <Paywall language={lang} />;
 
   const showDemoBanner = accessData?.paymentStatus === 'demo' && !!accessData.demoExpires;
 
@@ -606,7 +606,7 @@ const App: React.FC = () => {
         <div className="sticky top-0 z-50">
           <DemoBanner
             demoExpires={accessData.demoExpires!}
-            language={userData.language}
+            language={lang}
             userId={String(userData.userId)}
           />
         </div>
@@ -661,7 +661,7 @@ const App: React.FC = () => {
       <Navigation
         currentView={currentView}
         setView={setCurrentView}
-        language={userData.language}
+        language={lang}
         isHidden={isKeyboardOpen}
       />
     </div>
