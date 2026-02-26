@@ -31,6 +31,38 @@ interface BackendUserData {
 
 const STORAGE_KEY = 'ramadan_tracker_data_v4';
 
+// ─── Безопасная нормализация UserData ────────────────────────────────────────
+// Гарантирует что критичные поля всегда правильного типа,
+// даже если сервер вернул null / undefined / неправильный тип.
+function normalizeUserData(raw: UserData): UserData {
+  return {
+    ...raw,
+    unlockedBadges:    Array.isArray(raw.unlockedBadges)    ? raw.unlockedBadges    : [],
+    memorizedNames:    Array.isArray(raw.memorizedNames)    ? raw.memorizedNames    : [],
+    completedJuzs:     Array.isArray(raw.completedJuzs)     ? raw.completedJuzs     : [],
+    earnedJuzXpIds:    Array.isArray(raw.earnedJuzXpIds)    ? raw.earnedJuzXpIds    : [],
+    completedTasks:    Array.isArray(raw.completedTasks)    ? raw.completedTasks    : [],
+    customTasks:       Array.isArray(raw.customTasks)       ? raw.customTasks       : [],
+    deletedPredefinedTasks: Array.isArray(raw.deletedPredefinedTasks) ? raw.deletedPredefinedTasks : [],
+    progress:           raw.progress           || {},
+    preparationProgress:raw.preparationProgress|| {},
+    basicProgress:      raw.basicProgress      || {},
+    dailyGoalRecords:   raw.dailyGoalRecords   || {},
+    goalCustomItems:   (raw.goalCustomItems    || {}) as Record<GoalCategoryId, CustomGoalItem[]>,
+    goalStreaks:        (raw.goalStreaks        || {}) as Record<GoalCategoryId, number>,
+    earnedJuzXpIds:    Array.isArray(raw.earnedJuzXpIds) ? raw.earnedJuzXpIds : [],
+    startDate:          raw.startDate          || RAMADAN_START_DATE,
+    lastActiveDate:     raw.lastActiveDate     || '',
+    subscriptionExpiresAt: raw.subscriptionExpiresAt || null,
+    currentStreak:      raw.currentStreak      ?? 0,
+    longestStreak:      raw.longestStreak      ?? 0,
+    xp:                 raw.xp                ?? 0,
+    quranKhatams:       raw.quranKhatams       ?? 0,
+    referralCount:      raw.referralCount      ?? 0,
+    registrationDate:   raw.registrationDate   || new Date().toISOString(),
+  };
+}
+
 const App: React.FC = () => {
   useEffect(() => { initTelegramApp(); }, []);
 
@@ -98,24 +130,10 @@ const App: React.FC = () => {
   const userDataRef = useRef(userData);
   useEffect(() => { userDataRef.current = userData; }, [userData]);
 
+  // ─── Инициализация из сервера ─────────────────────────────────────────────
   useEffect(() => {
     if (initialUserData) {
-      const correctedData: UserData = {
-        ...initialUserData,
-        earnedJuzXpIds: initialUserData.earnedJuzXpIds || [],
-        startDate: RAMADAN_START_DATE,
-        progress: initialUserData.progress || {},
-        preparationProgress: initialUserData.preparationProgress || {},
-        basicProgress: initialUserData.basicProgress || {},
-        currentStreak: initialUserData.currentStreak ?? 0,
-        longestStreak: initialUserData.longestStreak ?? 0,
-        lastActiveDate: initialUserData.lastActiveDate || '',
-        subscriptionExpiresAt: initialUserData.subscriptionExpiresAt || null,
-        daysLeft: initialUserData.daysLeft || null,
-        dailyGoalRecords: initialUserData.dailyGoalRecords || {},
-        goalCustomItems: (initialUserData.goalCustomItems || {}) as Record<GoalCategoryId, CustomGoalItem[]>,
-        goalStreaks: (initialUserData.goalStreaks || {}) as Record<GoalCategoryId, number>,
-      };
+      const correctedData = normalizeUserData(initialUserData);
       console.log('📥 Инициализация userData из сервера:', {
         progressDays: Object.keys(correctedData.progress).length,
         preparationDays: Object.keys(correctedData.preparationProgress).length,
@@ -125,6 +143,7 @@ const App: React.FC = () => {
         subscriptionExpiresAt: correctedData.subscriptionExpiresAt,
         daysLeft: correctedData.daysLeft,
         dailyGoalRecordDays: Object.keys(correctedData.dailyGoalRecords || {}).length,
+        unlockedBadges: correctedData.unlockedBadges.length,
       });
       setUserData(correctedData);
     }
@@ -269,7 +288,7 @@ const App: React.FC = () => {
       language: data.language,
       xp: data.xp,
       hasRedeemedReferral: data.hasRedeemedReferral,
-      unlockedBadges: data.unlockedBadges,
+      unlockedBadges: Array.isArray(data.unlockedBadges) ? data.unlockedBadges : [],
       currentStreak: data.currentStreak,
       longestStreak: data.longestStreak,
       lastActiveDate: data.lastActiveDate,
@@ -291,16 +310,8 @@ const App: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
-          const validatedData: UserData = {
-            ...data.data,
-            lastActiveDate: data.data.lastActiveDate || '',
-            subscriptionExpiresAt: data.data.subscriptionExpiresAt || null,
-            registrationDate: data.data.registrationDate || new Date().toISOString(),
-            startDate: data.data.startDate || RAMADAN_START_DATE,
-            dailyGoalRecords: data.data.dailyGoalRecords || {},
-            goalCustomItems: (data.data.goalCustomItems || {}) as Record<GoalCategoryId, CustomGoalItem[]>,
-            goalStreaks: (data.data.goalStreaks || {}) as Record<GoalCategoryId, number>,
-          };
+          // ─── Нормализуем ответ сервера перед setUserData ───────────────
+          const validatedData = normalizeUserData(data.data as UserData);
           setUserData(validatedData);
         }
         if (data.xpAdded && data.xpAdded > 0) {
@@ -360,7 +371,7 @@ const App: React.FC = () => {
         language: userDataRef.current.language,
         xp: userDataRef.current.xp,
         hasRedeemedReferral: userDataRef.current.hasRedeemedReferral,
-        unlockedBadges: userDataRef.current.unlockedBadges,
+        unlockedBadges: Array.isArray(userDataRef.current.unlockedBadges) ? userDataRef.current.unlockedBadges : [],
         currentStreak: userDataRef.current.currentStreak,
         longestStreak: userDataRef.current.longestStreak,
         lastActiveDate: userDataRef.current.lastActiveDate,
@@ -430,19 +441,20 @@ const App: React.FC = () => {
     setUserData(prev => ({ ...prev }));
   }, []);
 
+  // ─── checkBadges: защищён от любого мусора в unlockedBadges ──────────────
   const checkBadges = (data: UserData) => {
-    const earnedBadges = [...data.unlockedBadges];
+    const earnedBadges = Array.isArray(data.unlockedBadges) ? [...data.unlockedBadges] : [];
     let newlyUnlockedId: string | null = null;
     const unlock = (id: string) => { if (!earnedBadges.includes(id)) { earnedBadges.push(id); newlyUnlockedId = id; } };
-    if (Object.values(data.progress).some(p => p.fasting)) unlock('first_fast');
-    if (data.completedJuzs.length >= 1) unlock('quran_master');
-    if (Object.values(data.progress).reduce((s, p) => s + (p.charityAmount || 0), 0) >= 10000) unlock('charity_king');
-    if (Object.values(data.progress).filter(p => p.taraweeh).length >= 5) unlock('taraweeh_star');
-    if (data.memorizedNames.length >= 10) unlock('names_scholar');
-    if (data.xp >= 4000) unlock('ramadan_hero');
-    if (data.quranKhatams > 0) unlock('khatam_master');
+    if (Object.values(data.progress || {}).some(p => p.fasting)) unlock('first_fast');
+    if ((data.completedJuzs || []).length >= 1) unlock('quran_master');
+    if (Object.values(data.progress || {}).reduce((s, p) => s + (p.charityAmount || 0), 0) >= 10000) unlock('charity_king');
+    if (Object.values(data.progress || {}).filter(p => p.taraweeh).length >= 5) unlock('taraweeh_star');
+    if ((data.memorizedNames || []).length >= 10) unlock('names_scholar');
+    if ((data.xp || 0) >= 4000) unlock('ramadan_hero');
+    if ((data.quranKhatams || 0) > 0) unlock('khatam_master');
     if ((data.customTasks || []).filter(t => t.completed).length >= 5) unlock('goal_achiever');
-    if (data.referralCount >= 10) unlock('community_builder');
+    if ((data.referralCount || 0) >= 10) unlock('community_builder');
     if (newlyUnlockedId) {
       const badgeInfo = BADGES.find(b => b.id === newlyUnlockedId);
       if (badgeInfo) { setNewBadge(badgeInfo); setTimeout(() => setNewBadge(null), 4000); }
@@ -513,9 +525,10 @@ const App: React.FC = () => {
   }, [syncToServerFn]);
 
   const handleUserDataUpdate = (newData: UserData) => {
-    const newBadges = checkBadges(newData);
-    if (newBadges) newData.unlockedBadges = newBadges;
-    setUserData(newData);
+    const normalized = normalizeUserData(newData);
+    const newBadges = checkBadges(normalized);
+    if (newBadges) normalized.unlockedBadges = newBadges;
+    setUserData(normalized);
   };
 
   const renderView = () => {
@@ -587,14 +600,8 @@ const App: React.FC = () => {
   const showDemoBanner = accessData?.paymentStatus === 'demo' && !!accessData.demoExpires;
 
   return (
-    /*
-      Внешний враппер:
-      - overflow-x-hidden — без горизонтального скролла
-      - Баннер НЕ внутри header, а sticky сверху всего
-    */
     <div className="min-h-full max-w-md mx-auto relative overflow-x-hidden bg-slate-50 flex flex-col">
 
-      {/* ── DEMO BANNER: sticky top-0, всегда поверх контента ── */}
       {showDemoBanner && (
         <div className="sticky top-0 z-50">
           <DemoBanner
@@ -605,10 +612,8 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* ── SyncIndicator ── */}
       <SyncIndicator status={syncStatus} onRetry={retrySync} />
 
-      {/* ── Badge notification ── */}
       {newBadge && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-24 pointer-events-none">
           <div className="bg-slate-900 text-white p-4 rounded-3xl shadow-2xl flex items-center space-x-4 animate-in slide-in-from-bottom-10 fade-in duration-500 w-full max-w-sm border border-slate-700 pointer-events-auto">
@@ -622,11 +627,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/*
-        ── HEADER ──
-        Всегда pt-16 — баннер теперь sticky снаружи, не влияет на padding header.
-        Это убирает layout-прыжок.
-      */}
       <header className="px-6 pt-16 pb-12 text-center bg-gradient-to-b from-emerald-900 to-emerald-800 rounded-b-[3rem] shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10"><span className="text-9xl">🌙</span></div>
         <div className="flex justify-center mb-4 relative z-10">
@@ -651,7 +651,6 @@ const App: React.FC = () => {
         )}
       </header>
 
-      {/* ── MAIN CONTENT ── */}
       <main
         key={`${currentView}-${selectedBasicDate?.toISOString() || ''}-${selectedPreparationDay || ''}`}
         className="px-6 -mt-8 relative z-20 flex-1 pb-32"
