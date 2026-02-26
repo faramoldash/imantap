@@ -102,19 +102,22 @@ const CategoryRow: React.FC<{
   );
 };
 
-// ─── хук для высоты visualViewport ──────────────────────────────────────────
 function useViewportHeight() {
+  const NAV_HEIGHT = 80; // высота навигации
   const [vh, setVh] = useState(() => {
     const vv = (window as any).visualViewport as VisualViewport | undefined;
-    return vv ? vv.height : window.innerHeight;
+    return (vv ? vv.height : window.innerHeight) - NAV_HEIGHT;
   });
   useEffect(() => {
     const vv = (window as any).visualViewport as VisualViewport | undefined;
     if (!vv) return;
-    const update = () => setVh(vv.height);
+    const update = () => setVh(vv.height - NAV_HEIGHT);
     vv.addEventListener('resize', update);
     vv.addEventListener('scroll', update);
-    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update); };
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
   }, []);
   return vh;
 }
@@ -138,7 +141,7 @@ const GoalSheet: React.FC<{
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', background: 'rgba(15,23,42,.5)', overflow: 'hidden' }}
+      style={{ position: 'fixed', inset: 0, zIndex: 400, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', background: 'rgba(15,23,42,.5)', overflow: 'hidden' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
@@ -182,7 +185,7 @@ const GoalSheet: React.FC<{
         </div>
 
         {/* Скроллируемый контент */}
-        <div style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, flex: 1, padding: '16px 20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, flex: 1, padding: '16px 20px 100px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           {/* ВЫПОЛНЕНО */}
           {done && localRec && (
