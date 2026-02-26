@@ -323,9 +323,17 @@ const App: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
-          // ─── Нормализуем ответ сервера перед setUserData ──────────────────
           const validatedData = normalizeUserData(data.data as UserData);
-          setUserData(validatedData);
+          // ✅ Не перезаписываем dailyGoalRecords если сервер вернул пустые
+          setUserData(prev => ({
+            ...validatedData,
+            dailyGoalRecords: Object.keys(validatedData.dailyGoalRecords || {}).length > 0
+              ? validatedData.dailyGoalRecords
+              : prev.dailyGoalRecords,
+            goalStreaks: Object.keys(validatedData.goalStreaks || {}).length > 0
+              ? validatedData.goalStreaks
+              : prev.goalStreaks,
+          }));
         }
         if (data.xpAdded && data.xpAdded > 0) {
           if ((window as any).showXPNotification) {

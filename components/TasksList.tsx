@@ -414,6 +414,10 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
       dailyGoalRecords: { ...(p as UserData).dailyGoalRecords, [day]: next },
       goalStreaks: streaks as UserData['goalStreaks'],
     } as UserData));
+    // ✅ Показываем XP попап сразу локально
+    if (rec.xpEarned > 0 && (window as any).showXPNotification) {
+      (window as any).showXPNotification(rec.xpEarned, 1.0);
+    }
     setSheetCatId(null);
   }, [localRecords, userData.goalStreaks, day, setUserData]);
 
@@ -491,15 +495,6 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
                 : `Сегодня выполнено ${doneCount} / ${GOAL_CATEGORIES.length}`}
             </p>
           </div>
-          <div style={{
-            background: xpToday > 0 ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)',
-            border: `1.5px solid ${xpToday > 0 ? 'rgba(16,185,129,0.4)' : 'rgba(255,255,255,0.1)'}`,
-            borderRadius: 20, padding: '5px 12px',
-          }}>
-            <span style={{ fontWeight: 900, fontSize: 13, color: xpToday > 0 ? '#34d399' : '#475569' }}>
-              {xpToday > 0 ? `+${xpToday} XP` : '0 XP'}
-            </span>
-          </div>
         </div>
 
         {/* Прогресс-бар */}
@@ -536,6 +531,60 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
             onDone={() => handleDone(cat.id)}
           />
         ))}
+      </div>
+
+      {/* ── XP Ережелері ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        borderRadius: 28,
+        padding: '20px',
+        marginTop: 8,
+      }}>
+        <p style={{ fontSize: 11, fontWeight: 900, color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 14px' }}>
+          ⭐ {lang === 'kk' ? 'XP Ережелері' : 'Правила XP'}
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {GOAL_CATEGORIES.map(cat => {
+            const maxXp = Math.max(...cat.templates.map(t => t.xp));
+            const minXp = Math.min(...cat.templates.map(t => t.xp));
+            const rec = getLocalRec(cat.id);
+            const isDone = rec?.completed === true;
+            return (
+              <div key={cat.id} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '10px 14px',
+                background: isDone ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.04)',
+                borderRadius: 16,
+                border: `1px solid ${isDone ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.06)'}`,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 18 }}>{isDone ? '✅' : cat.icon}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: isDone ? '#34d399' : '#94a3b8' }}>
+                    {lang === 'kk' ? cat.name_kk : cat.name_ru}
+                  </span>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 900, color: isDone ? '#34d399' : '#475569' }}>
+                  {isDone && rec ? `+${rec.xpEarned} XP` : minXp === maxXp ? `+${maxXp} XP` : `+${minXp}–${maxXp} XP`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {xpToday > 0 && (
+          <div style={{
+            marginTop: 14, padding: '12px 16px',
+            background: 'rgba(16,185,129,0.15)',
+            border: '1px solid rgba(16,185,129,0.3)',
+            borderRadius: 16,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8' }}>
+              {lang === 'kk' ? 'Бүгін жиналды' : 'Сегодня заработано'}
+            </span>
+            <span style={{ fontSize: 16, fontWeight: 900, color: '#34d399' }}>+{xpToday} XP</span>
+          </div>
+        )}
       </div>
 
       {/* ── Bottom Sheet ── */}
