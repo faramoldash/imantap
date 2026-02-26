@@ -20,7 +20,7 @@ function todayStr(): string {
   });
 }
 
-// ─── XP pop-up ───────────────────────────────────────────────────────────
+// ─── XP pop-up ──────────────────────────────────────────────────────────
 const XpPop: React.FC<{ xp: number; onDone: () => void }> = ({ xp, onDone }) => {
   useEffect(() => { const t = setTimeout(onDone, 1800); return () => clearTimeout(t); }, [onDone]);
   return (
@@ -91,7 +91,7 @@ const CategoryRow: React.FC<{
   );
 };
 
-// ─── Bottom Sheet ─────────────────────────────────────────────────────────
+// ─── Bottom Sheet ────────────────────────────────────────────────────────
 const GoalSheet: React.FC<{
   cat: GoalCategory;
   lang: Language;
@@ -110,17 +110,20 @@ const GoalSheet: React.FC<{
   const done     = localRec?.completed === true;
   const selected = !!localRec && !done;
   const name     = lang === 'kk' ? cat.name_kk : cat.name_ru;
-  const inputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef  = useRef<HTMLInputElement>(null);
 
-  // ─── Поднимаем sheet над клавиатурой через visualViewport ───────────────
-  const [kbOffset, setKbOffset] = useState(0);
+  // ─── Отслеживаем высоту клавиатуры через visualViewport ─────────────────────
+  // Ключ: применяем bottom на сам оверлей, а не translateY на sheet —
+  // это поднимает весь overlay вверх, а sheet остаётся прилеплённым к низу overlay.
+  const [kbHeight, setKbHeight] = useState(0);
+
   useEffect(() => {
     const vv = (window as any).visualViewport as VisualViewport | undefined;
     if (!vv) return;
     const update = () => {
-      // разница между полным экраном и видимой частью = высота клавиатуры
-      const offset = window.innerHeight - vv.height - vv.offsetTop;
-      setKbOffset(Math.max(0, offset));
+      const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKbHeight(kb);
     };
     vv.addEventListener('resize', update);
     vv.addEventListener('scroll', update);
@@ -131,26 +134,36 @@ const GoalSheet: React.FC<{
     };
   }, []);
 
+  // Когда клавиатура открывается — прокручиваем до поля ввода
+  useEffect(() => {
+    if (kbHeight > 0) {
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }, [kbHeight]);
+
   return (
+    // Оверлей: top=0, left=0, right=0, bottom=kbHeight — не заходим под клавиатуру
     <div
       style={{
-        position: 'fixed', inset: 0, zIndex: 300,
+        position: 'fixed',
+        top: 0, left: 0, right: 0,
+        bottom: kbHeight, // ключевое: нижняя граница = над клавиатурой
+        zIndex: 300,
         display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
         background: 'rgba(15,23,42,.5)',
+        transition: 'bottom .25s ease',
       }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      {/* Sheet поднимается на kbOffset пикселей над клавиатурой */}
       <div
         style={{
           background: '#fff',
           borderRadius: '22px 22px 0 0',
-          maxHeight: 'calc(90vh)',
+          maxHeight: '88vh',
           display: 'flex', flexDirection: 'column',
           animation: 'sheetUp .26s cubic-bezier(.22,1,.36,1)',
-          // Ключевое: сдвигаем вверх на высоту клавиатуры
-          transform: `translateY(-${kbOffset}px)`,
-          transition: 'transform .25s ease',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -183,8 +196,10 @@ const GoalSheet: React.FC<{
         </div>
 
         {/* Скроллируемый контент */}
-        <div style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, flex: 1, padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-
+        <div
+          ref={scrollRef}
+          style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, flex: 1, padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}
+        >
           {/* ВЫПОЛНЕНО */}
           {done && localRec && (
             <div style={{ background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', border: '1.5px solid #6ee7b7', borderRadius: 16, padding: '20px 16px', textAlign: 'center' }}>
@@ -276,7 +291,6 @@ const GoalSheet: React.FC<{
                     }}>
                       <button type="button"
                         style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                        // XP = 0 для своих целей
                         onClick={() => chosen ? onDeselect() : onSelect(item.id, item.text, 0)}
                       >
                         <span style={{ fontWeight: 600, fontSize: 13, color: chosen ? '#fff' : '#1e293b', display: 'block' }}>{item.text}</span>
@@ -310,7 +324,13 @@ const GoalSheet: React.FC<{
                   onKeyPress={e => e.key === 'Enter' && onAddCustom()}
                   placeholder={lang === 'kk' ? 'Мақсатыңызды жазыңыз...' : 'Напишите цель...'}
                   style={{ flex: 1, fontSize: 14, background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '12px 16px', outline: 'none' }}
-                  onFocusCapture={e => { (e.target as HTMLInputElement).style.borderColor = '#10b981'; }}
+                  onFocus={e => {
+                    (e.target as HTMLInputElement).style.borderColor = '#10b981';
+                    // Прокручиваем до поля ввода после того как оверлей поднялся (350ms)
+                    setTimeout(() => {
+                      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 350);
+                  }}
                   onBlur={e => { (e.target as HTMLInputElement).style.borderColor = '#e2e8f0'; }}
                 />
                 <button type="button"
@@ -326,33 +346,25 @@ const GoalSheet: React.FC<{
   );
 };
 
-// ─── MAIN ──────────────────────────────────────────────────────────────────
+// ─── MAIN ─────────────────────────────────────────────────────────────────
 const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) => {
   const t   = TRANSLATIONS[lang] as Record<string, string>;
   const day = todayStr();
 
-  // ─ Оптимистичный локальный state для записей ───────────────────────────────
   const [localRecords, setLocalRecords] = useState<DailyGoalRecord[]>(
     () => getTodayGoalRecords(userData.dailyGoalRecords, day)
   );
-
-  // ─ Локальный state для своих целей (goalCustomItems) ────────────────────────
   const [localCustom, setLocalCustom] = useState<Record<string, CustomGoalItem[]>>(
     () => (userData.goalCustomItems as Record<string, CustomGoalItem[]>) || {}
   );
 
-  // Синх localRecords из userData (но не перезаписываем оптимистические)
   const lastSyncedRef = useRef(JSON.stringify(getTodayGoalRecords(userData.dailyGoalRecords, day)));
   useEffect(() => {
     const incoming = getTodayGoalRecords(userData.dailyGoalRecords, day);
     const str = JSON.stringify(incoming);
-    if (str !== lastSyncedRef.current) {
-      lastSyncedRef.current = str;
-      setLocalRecords(incoming);
-    }
+    if (str !== lastSyncedRef.current) { lastSyncedRef.current = str; setLocalRecords(incoming); }
   }, [userData.dailyGoalRecords, day]);
 
-  // Синх localCustom из userData
   const lastCustomRef = useRef(JSON.stringify(userData.goalCustomItems || {}));
   useEffect(() => {
     const str = JSON.stringify(userData.goalCustomItems || {});
@@ -370,51 +382,38 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
   const xpToday     = localRecords.filter(r => r.completed).reduce((s, r) => s + r.xpEarned, 0);
   const progressPct = Math.round((doneCount / GOAL_CATEGORIES.length) * 100);
 
-  const getLocalRec = useCallback(
-    (id: GoalCategoryId) => localRecords.find(r => r.categoryId === id),
-    [localRecords]
-  );
-  const getStreak = (id: GoalCategoryId): number => {
-    const s = (userData.goalStreaks as Record<string, { current: number; longest: number; lastCompletedDate: string }> | undefined)?.[id];
+  const getLocalRec = useCallback((id: GoalCategoryId) => localRecords.find(r => r.categoryId === id), [localRecords]);
+  const getStreak   = (id: GoalCategoryId): number => {
+    const s = (userData.goalStreaks as Record<string, { current: number }> | undefined)?.[id];
     return s?.current ?? 0;
   };
 
-  // ─ Применить записи мгновенно ──────────────────────────────────────────
   const applyRecords = useCallback((next: DailyGoalRecord[]) => {
     lastSyncedRef.current = JSON.stringify(next);
     setLocalRecords(next);
     setUserData(p => ({ ...(p as UserData), dailyGoalRecords: { ...(p as UserData).dailyGoalRecords, [day]: next } } as UserData));
   }, [day, setUserData]);
 
-  // ─ Выбрать цель ─────────────────────────────────────────────────────────────
   const handleSelect = useCallback((catId: GoalCategoryId, goalId: string, goalText: string, xp: number) => {
     if (localRecords.find(r => r.categoryId === catId)?.completed) return;
-    applyRecords([
-      ...localRecords.filter(r => r.categoryId !== catId),
-      { categoryId: catId, goalId, goalText, completed: false, xpEarned: xp },
-    ]);
+    applyRecords([...localRecords.filter(r => r.categoryId !== catId), { categoryId: catId, goalId, goalText, completed: false, xpEarned: xp }]);
   }, [localRecords, applyRecords]);
 
-  // ─ Снять выбор ────────────────────────────────────────────────────────────
   const handleDeselect = useCallback((catId: GoalCategoryId) => {
     const rec = localRecords.find(r => r.categoryId === catId);
     if (!rec || rec.completed) return;
     applyRecords(localRecords.filter(r => r.categoryId !== catId));
   }, [localRecords, applyRecords]);
 
-  // ─ Выполнить цель ──────────────────────────────────────────────────────────
   const handleDone = useCallback((catId: GoalCategoryId) => {
     const rec = localRecords.find(r => r.categoryId === catId);
     if (!rec || rec.completed) return;
-    const next = localRecords.map(r =>
-      r.categoryId === catId ? { ...r, completed: true, completedAt: new Date().toISOString() } : r
-    );
+    const next = localRecords.map(r => r.categoryId === catId ? { ...r, completed: true, completedAt: new Date().toISOString() } : r);
     const streaks = { ...((userData.goalStreaks as Record<string, any>) ?? {}) };
     const cur = streaks[catId] ?? { current: 0, longest: 0, lastCompletedDate: '' };
     const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-CA', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone });
     const newCurrent = cur.lastCompletedDate === yesterday ? cur.current + 1 : 1;
     streaks[catId] = { current: newCurrent, longest: Math.max(newCurrent, cur.longest || 0), lastCompletedDate: day };
-
     lastSyncedRef.current = JSON.stringify(next);
     setLocalRecords(next);
     setUserData(p => ({
@@ -427,17 +426,13 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
     setSheetCatId(null);
   }, [localRecords, userData.goalStreaks, day, setUserData]);
 
-  // ─ Добавить свою цель ───────────────────────────────────────────────────
   const handleAddCustom = useCallback((catId: GoalCategoryId) => {
     const text = (inputs[catId] ?? '').trim();
     if (!text) return;
-    // XP = 0 — свои цели XP не дают (защита от злоупотребления)
     const item: CustomGoalItem = { id: `custom-${Date.now()}`, text, xp: 0, categoryId: catId };
     const updated = { ...localCustom, [catId]: [...(localCustom[catId] ?? []), item] };
-    // Мгновенно обновляем локальный state — цель сразу видна в sheet
     lastCustomRef.current = JSON.stringify(updated);
     setLocalCustom(updated);
-    // Параллельно сохраняем в userData
     setUserData(p => ({
       ...(p as UserData),
       goalCustomItems: { ...((p as UserData).goalCustomItems ?? {}), [catId]: [...((p as UserData).goalCustomItems?.[catId] ?? []), item] },
@@ -445,7 +440,6 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
     setInputs(prev => ({ ...prev, [catId]: '' }));
   }, [inputs, localCustom, setUserData]);
 
-  // ─ Удалить свою цель ───────────────────────────────────────────────────
   const handleDeleteCustom = useCallback((catId: GoalCategoryId, itemId: string) => {
     const updated = { ...localCustom, [catId]: (localCustom[catId] ?? []).filter(i => i.id !== itemId) };
     lastCustomRef.current = JSON.stringify(updated);
@@ -458,7 +452,6 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
 
   const sheetCat    = sheetCatId ? (GOAL_CATEGORIES.find(c => c.id === sheetCatId) ?? null) : null;
   const sheetRec    = sheetCatId ? getLocalRec(sheetCatId) : undefined;
-  // Используем localCustom вместо userData.goalCustomItems — мгновенное обновление
   const sheetCustom = sheetCatId ? (localCustom[sheetCatId] ?? []) : [];
 
   return (
@@ -486,9 +479,7 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
               {lang === 'kk' ? 'Күнделікті мақсаттар' : 'Ежедневные цели'}
             </h2>
             <p style={{ fontSize: 12, color: '#94a3b8', margin: '3px 0 0' }}>
-              {lang === 'kk'
-                ? `Бүгін ${doneCount} / ${GOAL_CATEGORIES.length} орындалды`
-                : `Сегодня выполнено ${doneCount} / ${GOAL_CATEGORIES.length}`}
+              {lang === 'kk' ? `Бүгін ${doneCount} / ${GOAL_CATEGORIES.length} орындалды` : `Сегодня выполнено ${doneCount} / ${GOAL_CATEGORIES.length}`}
             </p>
           </div>
           {xpToday > 0 && (
@@ -512,8 +503,7 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
             ? `🎉 ${lang === 'kk' ? 'Барлық мақсаттар орындалды!' : 'Все цели выполнены!'}`
             : progressPct > 0
             ? `💪 ${lang === 'kk' ? `${GOAL_CATEGORIES.length - doneCount} мақсат қалды` : `Осталось ${GOAL_CATEGORIES.length - doneCount} цели`}`
-            : `🌙 ${lang === 'kk' ? 'Бүгінгі мақсаттарыңызды таңдаңыз' : 'Выберите цели на сегодня'}`
-          }
+            : `🌙 ${lang === 'kk' ? 'Бүгінгі мақсаттарыңызды таңдаңыз' : 'Выберите цели на сегодня'}`}
         </p>
       </div>
 
