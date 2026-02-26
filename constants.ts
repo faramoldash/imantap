@@ -1,5 +1,4 @@
-
-import { DayProgress, Language } from './src/types/types';
+import { DayProgress, Language, GoalCategoryId } from './src/types/types';
 
 export const TOTAL_DAYS = 29; // 29 дней Рамадана
 
@@ -254,6 +253,20 @@ export const TRANSLATIONS: Record<Language, any> = {
     quranKhatamCompleted: "Хатым завершен!",
     quranStartOver: "Начать заново",
     quranKhatamCount: "Количество Хатымов",
+    // --- Мақсаттар v2 ---
+    goalsSectionTitle: "Күнделікті мақсаттар",
+    goalsChooseTask: "Бүгінгі мақсат таңдаңыз",
+    goalsCompletedToday: "Бүгін орындалды",
+    goalsAddCustom: "Өзіңіздің мақсатыңызды қосыңыз",
+    goalsCustomPlaceholder: "Мақсат жазыңыз...",
+    goalsAddBtn: "Қосу",
+    goalsDoneBtn: "Орындадым ✓",
+    goalsLockedMsg: "Ертең жаңа мақсат таңдауға болады",
+    goalsSelectBtn: "Таңдау",
+    goalsMyGoals: "Менің мақсаттарым",
+    goalsTemplates: "Шаблондар",
+    goalsXpReward: "XP сыйақы",
+    goalsCategoryStreak: "Күн қатарлы",
   },
   kk: {
     appTitle: "РАМАЗАН 2026",
@@ -378,6 +391,20 @@ export const TRANSLATIONS: Record<Language, any> = {
     quranKhatamCompleted: "Құран хатым аяқталды!",
     quranStartOver: "Жаңадан бастау",
     quranKhatamCount: "Хатым саны",
+    // --- Мақсаттар v2 ---
+    goalsSectionTitle: "Күнделікті мақсаттар",
+    goalsChooseTask: "Бүгінгі мақсат таңдаңыз",
+    goalsCompletedToday: "Бүгін орындалды",
+    goalsAddCustom: "Өзіңіздің мақсатыңызды қосыңыз",
+    goalsCustomPlaceholder: "Мақсат жазыңыз...",
+    goalsAddBtn: "Қосу",
+    goalsDoneBtn: "Орындадым ✓",
+    goalsLockedMsg: "Ертең жаңа мақсат таңдауға болады",
+    goalsSelectBtn: "Таңдау",
+    goalsMyGoals: "Менің мақсаттарым",
+    goalsTemplates: "Шаблондар",
+    goalsXpReward: "XP сыйақы",
+    goalsCategoryStreak: "Күн қатарлы",
   }
 };
 
@@ -401,8 +428,8 @@ export const QURAN_SCHEDULE = [
   { id: 17, juz: "17", start: "Әнбия 1", end: "Хаж 78" },
   { id: 18, juz: "18", start: "Муминун 1", end: "Фурқан 20" },
   { id: 19, juz: "19", start: "Фурқан 21", end: "Нәмл 55" },
-  { id: 20, juz: "20", start: "Нәмл 56", end: "Анкәбут 45" },
-  { id: 21, juz: "21", start: "Анкәбут 46", end: "Ахзаб 30" },
+  { id: 20, juz: "20", start: "Нәмл 56", end: "Анкәбіт 45" },
+  { id: 21, juz: "21", start: "Анкәбіт 46", end: "Ахзаб 30" },
   { id: 22, juz: "22", start: "Ахзаб 31", end: "Ясин 27" },
   { id: 23, juz: "23", start: "Ясин 28", end: "Зүмәр 31" },
   { id: 24, juz: "24", start: "Зүмәр 32", end: "Фуссиләт 46" },
@@ -415,105 +442,105 @@ export const QURAN_SCHEDULE = [
 ];
 
 export const NAMES_99 = [
-  { id: 1, arabic: "اللَّهُ", translit: "Аллаһ", meaning: "Алла - бүкіл әлемді Жаратушы" },
-  { id: 2, arabic: "الرَّحْمَنُ", translit: "әр-Рахман", meaning: "Аса Рахымды" },
-  { id: 3, arabic: "الرَّحِيمُ", translit: "әр-Рахим", meaning: "Ерекше Мейірімді" },
+  { id: 1, arabic: "اللَّهُ", translit: "Аллаһ", meaning: "Алла - бүкіл әлемді Жаратушы" },
+  { id: 2, arabic: "الرَّحْمَنُ", translit: "әр-Рахман", meaning: "Аса Рахымды" },
+  { id: 3, arabic: "الرَّحِيمُ", translit: "әр-Рахим", meaning: "Ерекше Мейірімді" },
   { id: 4, arabic: "الْمَلِكُ", translit: "ал-Мәлик", meaning: "Патша, бүкіл әлемнің Иесі" },
-  { id: 5, arabic: "الْقُدُّوسُ", translit: "ал-Қуддус", meaning: "Аса Қасиетті, Кемшіліктен Пәк" },
-  { id: 6, arabic: "السَّلَامُ", translit: "әс-Сәләм", meaning: "Есендік беруші" },
+  { id: 5, arabic: "الْقُدُّوسُ", translit: "ал-Қуддус", meaning: "Аса Қасиетті, Кемшіліктен Пәк" },
+  { id: 6, arabic: "السَّلَامُ", translit: "әс-Сәләм", meaning: "Есендік беруші" },
   { id: 7, arabic: "الْمُؤْمِنُ", translit: "ал-Мумин", meaning: "Сенім ұялатушы" },
   { id: 8, arabic: "الْمُهَيْمِنُ", translit: "ал-Мухаймин", meaning: "Қорғаушы" },
   { id: 9, arabic: "الْعَزِيزُ", translit: "ал-Азиз", meaning: "Аса Үстем" },
-  { id: 10, arabic: "الْجَبَّارُ", translit: "ал-Джаббар", meaning: "Аса Қуатты" },
-  { id: 11, arabic: "الْمُتَكَبِّرُ", translit: "ал-Мутакаббир", meaning: "Өте ұлы" },
+  { id: 10, arabic: "الْجَبَّارُ", translit: "ал-Джаббар", meaning: "Аса Қуатты" },
+  { id: 11, arabic: "الْمُتَكَبِّرُ", translit: "ал-Мутакаббир", meaning: "Өте ұлы" },
   { id: 12, arabic: "الْخَالِقُ", translit: "ал-Халиқ", meaning: "Жаратушы" },
   { id: 13, arabic: "الْبَارِئُ", translit: "ал-Бари", meaning: "Жоқтан бар етуші" },
-  { id: 14, arabic: "الْمُصَوِّرُ", translit: "ал-Мусаввир", meaning: "Бейне беруші" },
-  { id: 15, arabic: "الْغَفَّارُ", translit: "ал-Ғаффар", meaning: "Аса Кешірімді" },
-  { id: 16, arabic: "الْقَهَّارُ", translit: "ал-Қаһһар", meaning: "Бәрін бағындырушы" },
-  { id: 17, arabic: "الْوَهَّابُ", translit: "ал-Уаһһаб", meaning: "Сыйлаушы" },
-  { id: 18, arabic: "الرَّزَّاقُ", translit: "әр-Раззақ", meaning: "Рызық беруші" },
-  { id: 19, arabic: "الْفَتَّاحُ", translit: "ал-Фаттах", meaning: "Ашушы" },
+  { id: 14, arabic: "الْمُصَوِّرُ", translit: "ал-Мусаввир", meaning: "Бейне беруші" },
+  { id: 15, arabic: "الْغَفَّارُ", translit: "ал-Ғаффар", meaning: "Аса Кешірімді" },
+  { id: 16, arabic: "الْقَهَّارُ", translit: "ал-Қаһһар", meaning: "Бәрін бағындырушы" },
+  { id: 17, arabic: "الْوَهَّابُ", translit: "ал-Уаһһаб", meaning: "Сыйлаушы" },
+  { id: 18, arabic: "الرَّزَّاقُ", translit: "әр-Раззақ", meaning: "Рызық беруші" },
+  { id: 19, arabic: "الْفَتَّاحُ", translit: "ал-Фаттах", meaning: "Ашушы" },
   { id: 20, arabic: "الْعَلِيمُ", translit: "ал-Алим", meaning: "Бәрін білуші" },
   { id: 21, arabic: "الْقَابِضُ", translit: "ал-Қабид", meaning: "Тарылтушы" },
   { id: 22, arabic: "الْبَاسِطُ", translit: "ал-Басит", meaning: "Кеңейтуші" },
   { id: 23, arabic: "الْخَافِضُ", translit: "ал-Хафид", meaning: "Төмендетуші" },
-  { id: 24, arabic: "الرَّافِعُ", translit: "әр-Рафи", meaning: "Жоғарылатушы" },
-  { id: 25, arabic: "الْمُعِزُّ", translit: "ал-Муиз", meaning: "Мәртебе беруші" },
-  { id: 26, arabic: "الْمُذِلُّ", translit: "ал-Музил", meaning: "Қор етуші" },
-  { id: 27, arabic: "السَّمِيعُ", translit: "әс-Сами", meaning: "Бәрін естуші" },
+  { id: 24, arabic: "الرَّافِعُ", translit: "әр-Рафи", meaning: "Жоғарылатушы" },
+  { id: 25, arabic: "الْمُعِزُّ", translit: "ал-Муиз", meaning: "Мәртебе беруші" },
+  { id: 26, arabic: "الْمُذِلُّ", translit: "ал-Музил", meaning: "Қор етуші" },
+  { id: 27, arabic: "السَّمِيعُ", translit: "әс-Сами", meaning: "Бәрін естуші" },
   { id: 28, arabic: "الْبَصِيرُ", translit: "ал-Басир", meaning: "Бәрін көруші" },
   { id: 29, arabic: "الْحَكَمُ", translit: "ал-Хакам", meaning: "Төреші" },
   { id: 30, arabic: "الْعَدْلُ", translit: "ал-Адл", meaning: "Әділ" },
-  { id: 31, arabic: "اللَّطِيفُ", translit: "ал-Латиф", meaning: "Мейірбан" },
+  { id: 31, arabic: "اللَّطِيفُ", translit: "ал-Латиф", meaning: "Мейірбан" },
   { id: 32, arabic: "الْخَبِيرُ", translit: "ал-Хабир", meaning: "Хабардар" },
   { id: 33, arabic: "الْحَلِيمُ", translit: "ал-Халим", meaning: "Ерекше сабырлы" },
   { id: 34, arabic: "الْعَظِيمُ", translit: "ал-Азим", meaning: "Аса ұлы" },
   { id: 35, arabic: "الْغَفُورُ", translit: "ал-Ғафур", meaning: "Аса жарылқаушы" },
-  { id: 36, arabic: "الشَّكُورُ", translit: "әш-Шакур", meaning: "Шүкіршілік етуші" },
-  { id: 37, arabic: "الْعَلِيُّ", translit: "ал-Али", meaning: "Жоғары мәртебелі" },
+  { id: 36, arabic: "الشَّكُورُ", translit: "әш-Шакур", meaning: "Шүкіршілік етуші" },
+  { id: 37, arabic: "الْعَلِيُّ", translit: "ал-Али", meaning: "Жоғары мәртебелі" },
   { id: 38, arabic: "الْكَبِيرُ", translit: "ал-Кабир", meaning: "Өте үлкен" },
   { id: 39, arabic: "الْحَفِيظُ", translit: "ал-Хафиз", meaning: "Сақтаушы" },
   { id: 40, arabic: "الْمُقِيتُ", translit: "ал-Муқит", meaning: "Күш беруші" },
   { id: 41, arabic: "الْحَسِيبُ", translit: "ал-Хасиб", meaning: "Есептеуші" },
   { id: 42, arabic: "الْجَلِيلُ", translit: "ал-Джалил", meaning: "Айбынды" },
   { id: 43, arabic: "الْكَرِيمُ", translit: "ал-Карим", meaning: "Аса Жомарт" },
-  { id: 44, arabic: "الرَّقِيبُ", translit: "әр-Рақиб", meaning: "Бақылаушы" },
+  { id: 44, arabic: "الرَّقِيبُ", translit: "әр-Рақиб", meaning: "Бақылаушы" },
   { id: 45, arabic: "الْمُجِيبُ", translit: "ал-Муджиб", meaning: "Жауап беруші" },
   { id: 46, arabic: "الْوَاسِعُ", translit: "ал-Уаси", meaning: "Қамтушы" },
   { id: 47, arabic: "الْحَكِيمُ", translit: "ал-Хаким", meaning: "Дана" },
   { id: 48, arabic: "الْوَدُودُ", translit: "ал-Уадуд", meaning: "Сүюші" },
   { id: 49, arabic: "الْمَجِيدُ", translit: "ал-Маджид", meaning: "Даңқты" },
   { id: 50, arabic: "الْبَاعِثُ", translit: "ал-Баис", meaning: "Тірілтуші" },
-  { id: 51, arabic: "الشَّهِيدُ", translit: "әш-Шаһид", meaning: "Куә болушы" },
-  { id: 52, arabic: "الْحَقُّ", translit: "ал-Хақ", meaning: "Ақиқат" },
+  { id: 51, arabic: "الشَّهِيدُ", translit: "әш-Шаһид", meaning: "Куә болушы" },
+  { id: 52, arabic: "الْحَقُّ", translit: "ал-Хақ", meaning: "Ақиқат" },
   { id: 53, arabic: "الْوَكِيلُ", translit: "ал-Уәкил", meaning: "Сенім білдірілген" },
-  { id: 54, arabic: "الْقَوِيُّ", translit: "ал-Қауи", meaning: "Күшті" },
+  { id: 54, arabic: "الْقَوِيُّ", translit: "ал-Қауи", meaning: "Күшті" },
   { id: 55, arabic: "الْمَتِينُ", translit: "ал-Матин", meaning: "Мықты" },
-  { id: 56, arabic: "الْوَلِيُّ", translit: "ал-Уәли", meaning: "Жанашыр" },
+  { id: 56, arabic: "الْوَلِيُّ", translit: "ал-Уәли", meaning: "Жанашыр" },
   { id: 57, arabic: "الْحَمِيدُ", translit: "ал-Хамид", meaning: "Мақтаулы" },
   { id: 58, arabic: "الْمُحْصِي", translit: "ал-Мухси", meaning: "Есепке алушы" },
   { id: 59, arabic: "الْمُبْدِئُ", translit: "ал-Мубди", meaning: "Бастаушы" },
   { id: 60, arabic: "الْمُعِيدُ", translit: "ал-Муид", meaning: "Қайтарушы" },
   { id: 61, arabic: "الْمُحْيِي", translit: "ал-Мухйи", meaning: "Тірілтуші" },
   { id: 62, arabic: "الْمُمِيتُ", translit: "ал-Мумит", meaning: "Өлтіруші" },
-  { id: 63, arabic: "الْحَيُّ", translit: "ал-Хай", meaning: "Мәңгі тірі" },
-  { id: 64, arabic: "الْقَيُّومُ", translit: "ал-Қайюм", meaning: "Меңгеруші" },
+  { id: 63, arabic: "الْحَيُّ", translit: "ал-Хай", meaning: "Мәңгі тірі" },
+  { id: 64, arabic: "الْقَيُّومُ", translit: "ал-Қайюм", meaning: "Меңгеруші" },
   { id: 65, arabic: "الْوَاجِدُ", translit: "ал-Уаджид", meaning: "Табушы" },
   { id: 66, arabic: "الْمَاجِدُ", translit: "ал-Маджид", meaning: "Аса ұлы" },
   { id: 67, arabic: "الْوَاحِدُ", translit: "ал-Уахид", meaning: "Жалғыз" },
-  { id: 68, arabic: "الصَّمَدُ", translit: "әс-Самад", meaning: "Мұқтажсыз" },
+  { id: 68, arabic: "الصَّمَدُ", translit: "әс-Самад", meaning: "Мұқтажсыз" },
   { id: 69, arabic: "الْقَادِرُ", translit: "ал-Қадир", meaning: "Күдіретті" },
   { id: 70, arabic: "الْمُقْتَدِرُ", translit: "ал-Муқтадир", meaning: "Үстем" },
-  { id: 71, arabic: "الْمُقَدِّمُ", translit: "ал-Муқаддим", meaning: "Алға қоюшы" },
-  { id: 72, arabic: "الْمُؤَخِّرُ", translit: "ал-Муаххир", meaning: "Кейін қоюшы" },
-  { id: 73, arabic: "الْأَوَّلُ", translit: "ал-Әууәл", meaning: "Бірінші" },
+  { id: 71, arabic: "الْمُقَدِّمُ", translit: "ал-Муқаддим", meaning: "Алға қоюшы" },
+  { id: 72, arabic: "الْمُؤَخِّرُ", translit: "ал-Муаххир", meaning: "Кейін қоюшы" },
+  { id: 73, arabic: "الْأَوَّلُ", translit: "ал-Әууәл", meaning: "Бірінші" },
   { id: 74, arabic: "الْآخِرُ", translit: "ал-Ахир", meaning: "Соңғы" },
-  { id: 75, arabic: "الظَّاهِرُ", translit: "аз-Заһир", meaning: "Анық" },
+  { id: 75, arabic: "الظَّاهِرُ", translit: "аз-Заһир", meaning: "Анық" },
   { id: 76, arabic: "الْبَاطِنُ", translit: "ал-Батин", meaning: "Жасырын" },
   { id: 77, arabic: "الْوَالِي", translit: "ал-Уәли", meaning: "Билік етуші" },
   { id: 78, arabic: "الْمُتَعَالِي", translit: "ал-Мутаали", meaning: "Аса жоғары" },
-  { id: 79, arabic: "الْبَرُّ", translit: "ал-Барр", meaning: "Қайырымды" },
-  { id: 80, arabic: "التَّوَّابُ", translit: "әт-Тәууаб", meaning: "Тәубені қабыл алушы" },
+  { id: 79, arabic: "الْبَرُّ", translit: "ал-Барр", meaning: "Қайырымды" },
+  { id: 80, arabic: "التَّوَّابُ", translit: "әт-Тәууаб", meaning: "Тәубені қабыл алушы" },
   { id: 81, arabic: "الْمُنْتَقِمُ", translit: "ал-Мунтақим", meaning: "Жазалаушы" },
-  { id: 82, arabic: "الْعَفُوُّ", translit: "ал-Афу", meaning: "Кешірімді" },
-  { id: 83, arabic: "الرَّءُوفُ", translit: "әр-Рауф", meaning: "Өте мейірімді" },
+  { id: 82, arabic: "الْعَفُوُّ", translit: "ал-Афу", meaning: "Кешірімді" },
+  { id: 83, arabic: "الرَّءُوفُ", translit: "әр-Рауф", meaning: "Өте мейірімді" },
   { id: 84, arabic: "مَالِكُ الْمُلْكِ", translit: "Мәликул Мулк", meaning: "Патшалықтың Иесі" },
   { id: 85, arabic: "ذُو الْجَلَالِ وَالْإِكْرَامِ", translit: "Зул Джәләли уәл Икрам", meaning: "Ұлылық пен жомарттық Иесі" },
   { id: 86, arabic: "الْمُقْسِطُ", translit: "ал-Муқсит", meaning: "Әділ төреші" },
   { id: 87, arabic: "الْجَامِعُ", translit: "ал-Джами", meaning: "Жинаушы" },
-  { id: 88, arabic: "الْغَنِيُّ", translit: "ал-Ғани", meaning: "Бай, Мұқтажсыз" },
+  { id: 88, arabic: "الْغَنِيُّ", translit: "ал-Ғани", meaning: "Бай, Мұқтажсыз" },
   { id: 89, arabic: "الْمُغْنِي", translit: "ал-Муғни", meaning: "Байытушы" },
   { id: 90, arabic: "الْمَانِعُ", translit: "ал-Мани", meaning: "Тыюшы" },
-  { id: 91, arabic: "الضَّارُّ", translit: "ад-Дарр", meaning: "Зиян келтіруші" },
-  { id: 92, arabic: "النَّافِعُ", translit: "ән-Нафи", meaning: "Пайда беруші" },
-  { id: 93, arabic: "النُّورُ", translit: "ән-Нур", meaning: "Нұр" },
+  { id: 91, arabic: "الضَّارُّ", translit: "ад-Дарр", meaning: "Зиян келтіруші" },
+  { id: 92, arabic: "النَّافِعُ", translit: "ән-Нафи", meaning: "Пайда беруші" },
+  { id: 93, arabic: "النُّورُ", translit: "ән-Нур", meaning: "Нұр" },
   { id: 94, arabic: "الْهَادِي", translit: "ал-Һади", meaning: "Тура жолға салушы" },
   { id: 95, arabic: "الْبَدِيعُ", translit: "ал-Бади", meaning: "Ғажайып жаратушы" },
   { id: 96, arabic: "الْبَاقِي", translit: "ал-Бақи", meaning: "Мәңгілік" },
   { id: 97, arabic: "الْوَارِثُ", translit: "ал-Уарис", meaning: "Мұрагер" },
-  { id: 98, arabic: "الرَّشِيدُ", translit: "әр-Рашид", meaning: "Тура жол көрсетуші" },
-  { id: 99, arabic: "الصَّبُورُ", translit: "әс-Сабур", meaning: "Аса Сабырлы" }
+  { id: 98, arabic: "الرَّشِيدُ", translit: "әр-Рашид", meaning: "Тура жол көрсетуші" },
+  { id: 99, arabic: "الصَّبُورُ", translit: "әс-Сабур", meaning: "Аса Сабырлы" }
 ];
 
 export const RAMADAN_TASKS = [
@@ -554,7 +581,7 @@ export const USEFUL_MATERIALS = [
 
 export const MORNING_DHIKRS = [
   {
-    arabic: 'اللَّهُمَّ بِكَ أَصْبَحْنَا',
+    arabic: 'اللَّهُمَّ بِكَ أَصْبَحْنَا',
     translit: 'Allahumma bika asbahna',
     translation_ru: 'О Аллах, благодаря Тебе мы дожили до утра',
     translation_kk: 'Уа Аллаһ, Сенің жәрдеміңмен таңға жеттік'
@@ -563,9 +590,172 @@ export const MORNING_DHIKRS = [
 
 export const EVENING_DHIKRS = [
   {
-    arabic: 'اللَّهُمَّ بِكَ أَمْسَيْنَا',
+    arabic: 'اللَّهُمَّ بِكَ أَمْسَيْنَا',
     translit: 'Allahumma bika amsayna',
     translation_ru: 'О Аллах, благодаря Тебе мы дожили до вечера',
     translation_kk: 'Уа Аллаһ, Сенің жәрдеміңмен кешке жеттік'
   }
 ];
+
+// ═══════════════════════════════════════════════════════════════
+// МАҚСАТТАР v2 — Категории с шаблонными целями
+// ═══════════════════════════════════════════════════════════════
+
+export interface GoalTemplate {
+  id: string;           // "template-0" ... "template-9"
+  text_kk: string;
+  text_ru: string;
+  xp: number;
+}
+
+export interface GoalCategory {
+  id: GoalCategoryId;
+  icon: string;
+  name_kk: string;
+  name_ru: string;
+  color: string;        // Tailwind bg-class для карточки
+  templates: GoalTemplate[];
+}
+
+export const GOAL_CATEGORIES: GoalCategory[] = [
+  {
+    id: 'namaz',
+    icon: '🕌',
+    name_kk: 'Намаз',
+    name_ru: 'Намаз',
+    color: 'from-emerald-500 to-emerald-700',
+    templates: [
+      { id: 'template-0', text_kk: '5 уақыт намазды толық оқу', text_ru: 'Совершить все 5 намазов', xp: 80 },
+      { id: 'template-1', text_kk: 'Таң намазын жамағатпен оқу', text_ru: 'Фаджр намаз с джамаатом', xp: 70 },
+      { id: 'template-2', text_kk: 'Тарауық намазына бару', text_ru: 'Посетить таравих намаз', xp: 60 },
+      { id: 'template-3', text_kk: 'Таһажуд намазын оқу', text_ru: 'Совершить тахаджуд намаз', xp: 80 },
+      { id: 'template-4', text_kk: 'Дұха намазын оқу', text_ru: 'Совершить духа намаз', xp: 40 },
+      { id: 'template-5', text_kk: 'Үтір намазын оқу', text_ru: 'Совершить витр намаз', xp: 40 },
+      { id: 'template-6', text_kk: 'Намазды уақытылы оқу', text_ru: 'Совершать намаз вовремя', xp: 60 },
+      { id: 'template-7', text_kk: 'Намаздан кейін дұға ету', text_ru: 'Сделать дуа после намаза', xp: 30 },
+      { id: 'template-8', text_kk: 'Сунна намаздарын оқу', text_ru: 'Совершить сунна намазы', xp: 50 },
+      { id: 'template-9', text_kk: 'Намазды зейін қойып оқу', text_ru: 'Совершить намаз с хушу', xp: 60 },
+    ]
+  },
+  {
+    id: 'quran',
+    icon: '📖',
+    name_kk: 'Құран',
+    name_ru: 'Коран',
+    color: 'from-blue-500 to-blue-700',
+    templates: [
+      { id: 'template-0', text_kk: '1 пара Құран оқу', text_ru: 'Прочитать 1 джуз Корана', xp: 150 },
+      { id: 'template-1', text_kk: '5 бет Құран оқу', text_ru: 'Прочитать 5 страниц Корана', xp: 50 },
+      { id: 'template-2', text_kk: '10 бет Құран оқу', text_ru: 'Прочитать 10 страниц Корана', xp: 80 },
+      { id: 'template-3', text_kk: 'Мағынасымен 1 бет оқу', text_ru: 'Прочитать 1 стр. с тафсиром', xp: 60 },
+      { id: 'template-4', text_kk: '1 жаңа сүре жаттау', text_ru: 'Выучить 1 новую суру', xp: 100 },
+      { id: 'template-5', text_kk: 'Таджуидпен оқу', text_ru: 'Читать с таджуидом', xp: 70 },
+      { id: 'template-6', text_kk: 'Отбасыға Құран оқып беру', text_ru: 'Прочитать Коран семье', xp: 50 },
+      { id: 'template-7', text_kk: 'Аудиомен бірге тыңдай оқу', text_ru: 'Читать вместе с аудио', xp: 40 },
+      { id: 'template-8', text_kk: 'Балаларға Құран үйрету', text_ru: 'Обучить детей Корану', xp: 80 },
+      { id: 'template-9', text_kk: '20 бет Құран оқу', text_ru: 'Прочитать 20 страниц Корана', xp: 120 },
+    ]
+  },
+  {
+    id: 'sadaqa',
+    icon: '💎',
+    name_kk: 'Садақа',
+    name_ru: 'Садака',
+    color: 'from-yellow-500 to-orange-500',
+    templates: [
+      { id: 'template-0', text_kk: 'Ораза ұстаушыны тамақтандыру', text_ru: 'Накормить постящегося', xp: 80 },
+      { id: 'template-1', text_kk: 'Анонимді садақа беру', text_ru: 'Дать анонимную садаку', xp: 70 },
+      { id: 'template-2', text_kk: 'Мешітке садақа беру', text_ru: 'Пожертвовать мечети', xp: 50 },
+      { id: 'template-3', text_kk: 'Ауру адамды бару', text_ru: 'Навестить больного', xp: 60 },
+      { id: 'template-4', text_kk: 'Жетімдер үйіне дем беру', text_ru: 'Помочь детскому дому', xp: 100 },
+      { id: 'template-5', text_kk: 'Қажеті бар адамға қол ұшын беру', text_ru: 'Помочь нуждающемуся', xp: 60 },
+      { id: 'template-6', text_kk: 'Туыс-жақындарыңа садақа беру', text_ru: 'Помочь родственникам', xp: 50 },
+      { id: 'template-7', text_kk: 'Пітір зекет беру', text_ru: 'Отдать закят аль-фитр', xp: 80 },
+      { id: 'template-8', text_kk: 'Мүгедек немесе қарияға көмек ету', text_ru: 'Помочь пожилому / инвалиду', xp: 70 },
+      { id: 'template-9', text_kk: 'Пайдалы мазмұнды жіберу', text_ru: 'Поделиться полезным контентом', xp: 40 },
+    ]
+  },
+  {
+    id: 'dhikr',
+    icon: '🤲',
+    name_kk: 'Зікір',
+    name_ru: 'Зикр',
+    color: 'from-purple-500 to-purple-700',
+    templates: [
+      { id: 'template-0', text_kk: 'Таңғы зікір оқу', text_ru: 'Утренние зикры', xp: 30 },
+      { id: 'template-1', text_kk: 'Кешкі зікір оқу', text_ru: 'Вечерние зикры', xp: 30 },
+      { id: 'template-2', text_kk: '100 рет «Субхааналлаһ» айту', text_ru: '100 раз «Субханаллах»', xp: 40 },
+      { id: 'template-3', text_kk: '100 рет салауат оқу', text_ru: '100 раз салауат', xp: 50 },
+      { id: 'template-4', text_kk: 'Алланың 99 есімін оқу', text_ru: 'Прочитать 99 имен Аллаха', xp: 50 },
+      { id: 'template-5', text_kk: 'Аятел Күрсі оқу', text_ru: 'Аятуль Курси', xp: 30 },
+      { id: 'template-6', text_kk: 'Ихлас, Фаляқ, Нас (×3) оқу', text_ru: 'Ихлас, Фалак, Нас (×3)', xp: 30 },
+      { id: 'template-7', text_kk: '100 рет истиғфар айту', text_ru: '100 раз истигфар', xp: 40 },
+      { id: 'template-8', text_kk: 'Таң + кешкі зікірді екеуін оқу', text_ru: 'Утренние + вечерние зикры', xp: 55 },
+      { id: 'template-9', text_kk: '1000 рет зікір айту', text_ru: '1000 раз зикр', xp: 70 },
+    ]
+  },
+  {
+    id: 'ilm',
+    icon: '📚',
+    name_kk: 'Білім',
+    name_ru: 'Знания',
+    color: 'from-cyan-500 to-cyan-700',
+    templates: [
+      { id: 'template-0', text_kk: 'Бүгінгі хадис оқу', text_ru: 'Прочитать хадис дня', xp: 30 },
+      { id: 'template-1', text_kk: 'Ислам кітабынан 30 минут оқу', text_ru: 'Читать исламскую книгу 30 мин', xp: 50 },
+      { id: 'template-2', text_kk: 'Уағыз немесе дәріс тыңдау', text_ru: 'Послушать лекцию / урок', xp: 40 },
+      { id: 'template-3', text_kk: 'Сира кітабынан бір тарау оқу', text_ru: 'Прочитать главу сиры', xp: 50 },
+      { id: 'template-4', text_kk: '5 хадис жаттау', text_ru: 'Выучить 5 хадисов', xp: 60 },
+      { id: 'template-5', text_kk: 'Намаз сүрелерін қайталау', text_ru: 'Повторить суры намаза', xp: 40 },
+      { id: 'template-6', text_kk: 'Рамазан тарихын оқу', text_ru: 'Прочитать историю Рамадана', xp: 30 },
+      { id: 'template-7', text_kk: 'Балаға Ислам тарихын үйрету', text_ru: 'Рассказать историю Ислама ребёнку', xp: 60 },
+      { id: 'template-8', text_kk: 'Ислам подкаст немесе лекция тыңдау', text_ru: 'Исламский подкаст / лекция', xp: 40 },
+      { id: 'template-9', text_kk: 'Ахлақ немесе фиқһ кітабынан оқу', text_ru: 'Читать книгу по ахляку / фикху', xp: 50 },
+    ]
+  },
+  {
+    id: 'akhlaq',
+    icon: '❤️',
+    name_kk: 'Ахлақ',
+    name_ru: 'Нравственность',
+    color: 'from-rose-500 to-rose-700',
+    templates: [
+      { id: 'template-0', text_kk: 'Ата-анаға қызмет ету', text_ru: 'Помочь родителям', xp: 80 },
+      { id: 'template-1', text_kk: 'Жақынына хал-жағдайын сұрау', text_ru: 'Справиться о близких', xp: 50 },
+      { id: 'template-2', text_kk: 'Ашуыңды жеңу', text_ru: 'Сдержать гнев', xp: 70 },
+      { id: 'template-3', text_kk: 'Өсек сөзден аулақ болу', text_ru: 'Избегать сплетен', xp: 60 },
+      { id: 'template-4', text_kk: 'Кешірім сұрау', text_ru: 'Попросить прощения', xp: 60 },
+      { id: 'template-5', text_kk: 'Достарыңа дұға ету', text_ru: 'Сделать дуа за друзей', xp: 40 },
+      { id: 'template-6', text_kk: 'Отбасыңмен уақыт өткізу', text_ru: 'Провести время с семьёй', xp: 50 },
+      { id: 'template-7', text_kk: 'Бір адамды қуантып жіберу', text_ru: 'Обрадовать кого-нибудь', xp: 30 },
+      { id: 'template-8', text_kk: 'Тәубе ету (истиғфар)', text_ru: 'Совершить искреннее покаяние', xp: 60 },
+      { id: 'template-9', text_kk: 'Күн бойы ешкімге зиян бермеу', text_ru: 'Весь день никому не навредить', xp: 50 },
+    ]
+  }
+];
+
+/** Вспомогательная функция: найти категорию по ID */
+export function getGoalCategory(id: GoalCategoryId): GoalCategory | undefined {
+  return GOAL_CATEGORIES.find(c => c.id === id);
+}
+
+/** Вспомогательная функция: получить записи за конкретный день */
+export function getTodayGoalRecords(
+  dailyGoalRecords: Record<string, import('./src/types/types').DailyGoalRecord[]> | undefined,
+  dateStr: string
+): import('./src/types/types').DailyGoalRecord[] {
+  return dailyGoalRecords?.[dateStr] ?? [];
+}
+
+/**
+ * Проверяет, выбрана ли уже цель для данной категории сегодня.
+ * Возвращает запись или undefined.
+ */
+export function getTodayCategoryRecord(
+  dailyGoalRecords: Record<string, import('./src/types/types').DailyGoalRecord[]> | undefined,
+  dateStr: string,
+  categoryId: GoalCategoryId
+): import('./src/types/types').DailyGoalRecord | undefined {
+  return getTodayGoalRecords(dailyGoalRecords, dateStr)
+    .find(r => r.categoryId === categoryId);
+}
