@@ -1,4 +1,3 @@
-
 export type Language = 'ru' | 'kk';
 
 export interface CustomTask {
@@ -36,6 +35,48 @@ export interface DayProgress {
   quranPages: number;
   date: string;
 }
+
+// ─────────────────────────────────────────────
+// НОВАЯ СИСТЕМА МАҚСАТТАР (GoalV2)
+// ─────────────────────────────────────────────
+
+/** 6 категорий целей */
+export type GoalCategoryId =
+  | 'namaz'
+  | 'quran'
+  | 'sadaqa'
+  | 'dhikr'
+  | 'ilm'
+  | 'akhlaq';
+
+/**
+ * Одна запись о выполненной цели за конкретный день.
+ * Ключ в dailyGoalRecords: ISO-дата "YYYY-MM-DD"
+ */
+export interface DailyGoalRecord {
+  categoryId: GoalCategoryId;
+  /** "template-0" … "template-9" или "custom-<timestamp>" */
+  goalId: string;
+  /** Текст цели на момент выполнения (нужен чтобы не потерять при удалении) */
+  goalText: string;
+  completed: boolean;
+  xpEarned: number;
+  /** Время отметки (ISO-строка) */
+  completedAt?: string;
+}
+
+/**
+ * Пользовательская (кастомная) цель внутри категории.
+ * Хранится в goalCustomItems[categoryId][]
+ */
+export interface CustomGoalItem {
+  id: string;       // "custom-<timestamp>"
+  text: string;
+  xp: number;       // По умолчанию 30 XP
+  categoryId: GoalCategoryId;
+}
+
+// ─────────────────────────────────────────────
 
 export interface UserData {
   userId?: number;
@@ -76,6 +117,30 @@ export interface UserData {
   _lastUpdate?: number;
   subscriptionExpiresAt?: string | null;
   daysLeft?: number | null;
+
+  // ─── НОВЫЕ ПОЛЯ для системы Мақсаттар ───
+  /**
+   * Ежедневные записи выбранных/выполненных целей.
+   * Ключ: ISO-дата "YYYY-MM-DD"
+   * Значение: массив из макс. 6 записей (по одной на категорию в день)
+   */
+  dailyGoalRecords?: Record<string, DailyGoalRecord[]>;
+
+  /**
+   * Кастомные цели пользователя по категориям.
+   * Ключ: GoalCategoryId
+   */
+  goalCustomItems?: Record<GoalCategoryId, CustomGoalItem[]>;
+
+  /**
+   * Стрик (серия дней подряд) по каждой категории отдельно.
+   * Ключ: GoalCategoryId
+   */
+  goalStreaks?: Record<GoalCategoryId, {
+    current: number;
+    longest: number;
+    lastCompletedDate: string;
+  }>;
 }
 
 export type ViewType = 'dashboard' | 'calendar' | 'quran' | 'tasks' | 'profile' | 'names-99' | 'rewards' | 'circles';
