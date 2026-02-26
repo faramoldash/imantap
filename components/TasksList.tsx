@@ -399,23 +399,11 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
     const next = localRecords.map(r =>
       r.categoryId === catId ? { ...r, completed: true, completedAt: new Date().toISOString() } : r
     );
-    const streaks = { ...((userData.goalStreaks as Record<string, any>) ?? {}) };
-    const cur = streaks[catId] ?? { current: 0, longest: 0, lastCompletedDate: '' };
-    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-CA', {
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    });
-    const newCurrent = cur.lastCompletedDate === yesterday ? cur.current + 1 : 1;
-    streaks[catId] = {
-      current: newCurrent,
-      longest: Math.max(newCurrent, cur.longest || 0),
-      lastCompletedDate: day,
-    };
     lastSyncedRef.current = JSON.stringify(next);
     setLocalRecords(next);
     setUserData(p => ({
       ...(p as UserData),
       dailyGoalRecords: { ...(p as UserData).dailyGoalRecords, [day]: next },
-      goalStreaks: streaks as UserData['goalStreaks'],
     } as UserData));
     // ✅ Показываем XP попап сразу локально
     if (rec.xpEarned > 0 && (window as any).showXPNotification) {
@@ -461,12 +449,6 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
   return (
     <div style={{ paddingBottom: 112, paddingTop: 4 }}>
       <style>{`
-        @keyframes xpPop {
-          0%   { opacity:0; transform:scale(.7) translateY(16px); }
-          20%  { opacity:1; transform:scale(1.08) translateY(0); }
-          70%  { opacity:1; transform:scale(1) translateY(-60px); }
-          100% { opacity:0; transform:scale(.9) translateY(-90px); }
-        }
         @keyframes sheetUp {
           from { transform:translateY(100%); }
           to   { transform:translateY(0); }
