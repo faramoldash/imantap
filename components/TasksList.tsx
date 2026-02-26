@@ -30,26 +30,24 @@ const XpFloatAnim: React.FC<{ xp: number; onDone: () => void }> = ({ xp, onDone 
   return (
     <div
       className="pointer-events-none fixed z-[200] left-1/2"
-      style={{
-        top: '38%',
-        animation: 'xpFloat 1.4s ease-out forwards',
-        transform: 'translateX(-50%)',
-      }}
+      style={{ top: '38%', animation: 'xpFloat 1.4s ease-out forwards', transform: 'translateX(-50%)' }}
     >
       <span className="text-2xl font-black text-emerald-500 drop-shadow-lg">+{xp} XP ✨</span>
     </div>
   );
 };
 
-// ─── Хук блокировки скролла body (iOS/Telegram WebView safe) ───
+// ─── Body scroll lock (только когда клавиатура НЕ открыта) ───
 function useBodyScrollLock(locked: boolean) {
   useEffect(() => {
     if (!locked) return;
 
-    // Запоминаем текущую позицию скролла
-    const scrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    const scrollY =
+      window.scrollY ||
+      document.documentElement.scrollTop ||
+      document.body.scrollTop ||
+      0;
 
-    // Фиксируем body
     const prev = {
       position: document.body.style.position,
       top: document.body.style.top,
@@ -67,14 +65,12 @@ function useBodyScrollLock(locked: boolean) {
     document.body.style.overflow = 'hidden';
 
     return () => {
-      // Восстанавливаем стили
       document.body.style.position = prev.position;
       document.body.style.top = prev.top;
       document.body.style.left = prev.left;
       document.body.style.right = prev.right;
       document.body.style.width = prev.width;
       document.body.style.overflow = prev.overflow;
-      // Возвращаемся на ту же позицию
       window.scrollTo(0, scrollY);
     };
   }, [locked]);
@@ -88,14 +84,54 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
   const [customInput, setCustomInput] = useState('');
   const [floatXp, setFloatXp] = useState<number | null>(null);
   const [burst, setBurst] = useState(false);
+  // true когда клавиатура открыта — снимаем body lock чтобы не мешать scroll-into-view
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // Блокируем скролл фона когда открыта модалка
-  useBodyScrollLock(!!openCategoryId);
+  // Блокируем скролл фона только пока клавиатура закрыта
+  useBodyScrollLock(!!openCategoryId && !isKeyboardOpen);
 
-  // Ref на скроллируемый контейнер модалки
   const modalScrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // ─── Карточки ───
+  // Следим за высотой viewport — если уменьшилась >100px → клавиатура открылась
+  useEffect(() => {
+    if (!openCategoryId) return;
+
+    const initialHeight = window.visualViewport?.height ?? window.innerHeight;
+
+    const handleResize = () => {
+      const currentHeight = window.visualViewport?.height ?? window.innerHeight;
+      const diff = initialHeight - currentHeight;
+      const keyboardOpen = diff > 100;
+      setIsKeyboardOpen(keyboardOpen);
+
+      // Когда клавиатура открылась — скроллим модалку вниз чтобы input был виден
+      if (keyboardOpen && modalScrollRef.current) {
+        setTimeout(() => {
+          if (modalScrollRef.current) {
+            modalScrollRef.current.scrollTop = modalScrollRef.current.scrollHeight;
+          }
+        }, 100);
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleResize);
+    } else {
+      window.addEventListener('resize', handleResize);
+    }
+
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleResize);
+      } else {
+        window.removeEventListener('resize', handleResize);
+      }
+      setIsKeyboardOpen(false);
+    };
+  }, [openCategoryId]);
+
+  // Карточки
   const cardStates = useMemo((): CategoryCardState[] => {
     return GOAL_CATEGORIES.map(cat => {
       const record = getTodayCategoryRecord(userData.dailyGoalRecords, today, cat.id);
@@ -113,18 +149,28 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
       .reduce((sum, r) => sum + r.xpEarned, 0);
   }, [userData.dailyGoalRecords, today]);
 
-  const openCategory = openCategoryId ? GOAL_CATEGORIES.find(c => c.id === openCategoryId) ?? null : null;
-  const openCategoryCustomItems: CustomGoalItem[] = openCategoryId ? (userData.goalCustomItems?.[openCategoryId] ?? []) : [];
-  const openCategoryRecord = openCategoryId ? getTodayCategoryRecord(userData.dailyGoalRecords, today, openCategoryId) : undefined;
+  const openCategory = openCategoryId
+    ? GOAL_CATEGORIES.find(c => c.id === openCategoryId) ?? null
+    : null;
+  const openCategoryCustomItems: CustomGoalItem[] = openCategoryId
+    ? (userData.goalCustomItems?.[openCategoryId] ?? [])
+    : [];
+  const openCategoryRecord = openCategoryId
+    ? getTodayCategoryRecord(userData.dailyGoalRecords, today, openCategoryId)
+    : undefined;
 
-  // При открытии модалки скроллим внутренний контейнер наверх
+  // При открытии модалки — скролл наверх
   useEffect(() => {
     if (openCategoryId && modalScrollRef.current) {
       modalScrollRef.current.scrollTop = 0;
     }
+    if (!openCategoryId) {
+      setIsKeyboardOpen(false);
+      setCustomInput('');
+    }
   }, [openCategoryId]);
 
-  // ─── Выбор цели (НЕ закрываем модалку) ───
+  // ─── Выбор шаблона ───
   const handleSelectGoal = (goalId: string, goalText: string, xp: number) => {
     if (!openCategoryId || openCategoryRecord?.completed) return;
     const todayRecords = getTodayGoalRecords(userData.dailyGoalRecords, today);
@@ -134,9 +180,12 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
     ];
     setUserData(prev => ({
       ...(prev as UserData),
-      dailyGoalRecords: { ...(prev as UserData).dailyGoalRecords, [today]: updatedRecords },
+      dailyGoalRecords: {
+        ...(prev as UserData).dailyGoalRecords,
+        [today]: updatedRecords,
+      },
     }) as UserData);
-    // Скроллим вверх чтобы пользователь видел блок «Выбранная цель» + Done кнопку
+    // Скроллим наверх чтобы был виден блок «Выбранная цель» + Done
     setTimeout(() => {
       if (modalScrollRef.current) modalScrollRef.current.scrollTop = 0;
     }, 50);
@@ -147,15 +196,19 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
     const todayRecords = getTodayGoalRecords(userData.dailyGoalRecords, today);
     const record = todayRecords.find(r => r.categoryId === categoryId);
     if (!record || record.completed) return;
-    if (todayRecords.filter(r => r.categoryId === categoryId && r.completed).length > 0) return;
     const xpToAdd = record.xpEarned;
     const updatedRecords = todayRecords.map(r =>
-      r.categoryId === categoryId ? { ...r, completed: true, completedAt: new Date().toISOString() } : r
+      r.categoryId === categoryId
+        ? { ...r, completed: true, completedAt: new Date().toISOString() }
+        : r
     );
     setUserData(prev => ({
       ...(prev as UserData),
       xp: ((prev as UserData).xp || 0) + xpToAdd,
-      dailyGoalRecords: { ...(prev as UserData).dailyGoalRecords, [today]: updatedRecords },
+      dailyGoalRecords: {
+        ...(prev as UserData).dailyGoalRecords,
+        [today]: updatedRecords,
+      },
     }) as UserData);
     setFloatXp(xpToAdd);
     setBurst(true);
@@ -170,15 +223,29 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
 
   const handleAddCustom = () => {
     if (!openCategoryId || !customInput.trim()) return;
-    const newItem: CustomGoalItem = { id: `custom-${Date.now()}`, text: customInput.trim(), xp: 30, categoryId: openCategoryId };
+    const newItem: CustomGoalItem = {
+      id: `custom-${Date.now()}`,
+      text: customInput.trim(),
+      xp: 30,
+      categoryId: openCategoryId,
+    };
     setUserData(prev => ({
       ...(prev as UserData),
       goalCustomItems: {
         ...((prev as UserData).goalCustomItems ?? {}),
-        [openCategoryId]: [...((prev as UserData).goalCustomItems?.[openCategoryId] ?? []), newItem],
+        [openCategoryId]: [
+          ...((prev as UserData).goalCustomItems?.[openCategoryId] ?? []),
+          newItem,
+        ],
       },
     }) as UserData);
     setCustomInput('');
+    // После добавления скроллим к новому элементу
+    setTimeout(() => {
+      if (modalScrollRef.current) {
+        modalScrollRef.current.scrollTop = modalScrollRef.current.scrollHeight;
+      }
+    }, 100);
   };
 
   const handleDeleteCustom = (itemId: string) => {
@@ -187,7 +254,9 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
       ...(prev as UserData),
       goalCustomItems: {
         ...((prev as UserData).goalCustomItems ?? {}),
-        [openCategoryId]: ((prev as UserData).goalCustomItems?.[openCategoryId] ?? []).filter(i => i.id !== itemId),
+        [openCategoryId]: (
+          (prev as UserData).goalCustomItems?.[openCategoryId] ?? []
+        ).filter(i => i.id !== itemId),
       },
     }) as UserData);
   };
@@ -197,7 +266,6 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
 
   const progressPct = Math.round((doneCount / GOAL_CATEGORIES.length) * 100);
 
-  // ─── Стили карточек ───
   const cardBg: Record<CardStatus, string> = {
     empty: 'bg-white border-slate-100',
     selected: 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-300',
@@ -211,8 +279,6 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
 
   return (
     <div className="space-y-4 pb-10 pt-3">
-
-      {/* CSS анимации */}
       <style>{`
         @keyframes xpFloat {
           0%   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.2); }
@@ -232,10 +298,9 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
         }
       `}</style>
 
-      {/* XP float */}
       {floatXp !== null && <XpFloatAnim xp={floatXp} onDone={() => setFloatXp(null)} />}
 
-      {/* ─── СВОДКА ДНЯ ─── */}
+      {/* ─── СВОДКА ─── */}
       <div className={`rounded-[2rem] p-5 bg-white border border-slate-100 shadow-sm transition-all ${
         burst ? 'burst-anim' : ''
       }`}>
@@ -256,13 +321,15 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
             </div>
           ) : selectedCount > 0 ? (
             <div className="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-2xl text-center">
-              <p className="text-amber-600 font-black text-xs">{selectedCount} {language === 'kk' ? 'таңдалды' : 'выбрано'}</p>
-              <p className="text-[9px] font-bold text-amber-400 uppercase">{language === 'kk' ? 'Орындаңыз' : 'Выполните'}</p>
+              <p className="text-amber-600 font-black text-xs">
+                {selectedCount} {language === 'kk' ? 'таңдалды' : 'выбрано'}
+              </p>
+              <p className="text-[9px] font-bold text-amber-400 uppercase">
+                {language === 'kk' ? 'Орындаңыз' : 'Выполните'}
+              </p>
             </div>
           ) : null}
         </div>
-
-        {/* Прогресс-бар */}
         <div className="flex items-center gap-2.5">
           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
@@ -280,8 +347,6 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
           </div>
           <span className="text-[10px] font-black text-slate-400">{progressPct}%</span>
         </div>
-
-        {/* Habitify-style подсказка */}
         {selectedCount > 0 && doneCount < GOAL_CATEGORIES.length && (
           <div className="mt-3 flex items-center gap-2 bg-amber-50 rounded-2xl px-3 py-2">
             <span className="text-base">💡</span>
@@ -301,45 +366,30 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
           const isDone = status === 'done';
           const isSelected = status === 'selected';
           const isEmpty = status === 'empty';
-
           return (
             <div
               key={category.id}
-              className={`relative rounded-[1.8rem] border-2 p-4 transition-all duration-200 overflow-hidden ${
-                cardBg[status]
-              }`}
+              className={`relative rounded-[1.8rem] border-2 p-4 transition-all duration-200 overflow-hidden ${cardBg[status]}`}
             >
-              {/* Декоративный круг */}
-              <div
-                className={`absolute -right-5 -top-5 w-20 h-20 rounded-full pointer-events-none ${
-                  isDone ? 'bg-emerald-300/10' : isSelected ? 'bg-amber-300/10' : 'bg-slate-200/20'
-                }`}
-              />
-
-              {/* Стрик бейдж */}
+              <div className={`absolute -right-5 -top-5 w-20 h-20 rounded-full pointer-events-none ${
+                isDone ? 'bg-emerald-300/10' : isSelected ? 'bg-amber-300/10' : 'bg-slate-200/20'
+              }`} />
               {streak > 0 && (
                 <div className="absolute top-2.5 right-2.5 flex items-center gap-0.5 bg-orange-50 border border-orange-100 rounded-full px-1.5 py-0.5">
                   <span className="text-[9px]">🔥</span>
                   <span className="text-[9px] font-black text-orange-500">{streak}</span>
                 </div>
               )}
-
-              {/* Кнопка-область (открыть модалку) */}
               <button
                 className="w-full text-left active:scale-95 transition-transform"
                 onClick={() => setOpenCategoryId(category.id)}
               >
-                {/* Иконка */}
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl mb-2.5 ${iconBg[status]}`}>
                   {isDone ? '✅' : category.icon}
                 </div>
-
-                {/* Название */}
                 <p className="text-[11px] font-black text-slate-700 uppercase tracking-wide leading-tight">
                   {language === 'kk' ? category.name_kk : category.name_ru}
                 </p>
-
-                {/* Статус */}
                 {isEmpty && (
                   <p className="text-[10px] text-slate-400 mt-1">
                     {language === 'kk' ? 'Таңдау →' : 'Выбрать →'}
@@ -359,8 +409,6 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                   </>
                 )}
               </button>
-
-              {/* Inline Done кнопка */}
               {isSelected && record && (
                 <button
                   onClick={(e) => handleInlineDone(e, category.id)}
@@ -382,22 +430,19 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
             background: 'rgba(15,23,42,0.6)',
             backdropFilter: 'blur(6px)',
             WebkitBackdropFilter: 'blur(6px)',
-            // Блокируем touch-события на overlay, чтобы не прокручивался фон
-            touchAction: 'none',
           }}
-          onTouchMove={(e) => e.preventDefault()}
+          // ВАЖНО: НЕ вешаем onTouchMove на overlay — это блокирует тапы на кнопки внутри!
+          // Вместо этого блокируем скролл body через useBodyScrollLock
           onClick={(e) => { if (e.target === e.currentTarget) setOpenCategoryId(null); }}
         >
-          {/*
-            Контейнер модалки:
-            - h-[85vh]: фиксированная высота — обязательна чтобы flex-1 внутри работал
-            - flex flex-col: шапка фикс + контент скроллится
-          */}
           <div
             className="w-full max-w-md bg-white rounded-t-[2.5rem] flex flex-col"
-            style={{ height: '85vh' }}
-            // Останавливаем всплытие touch, чтобы overlay не получал события
-            onTouchMove={(e) => e.stopPropagation()}
+            style={{
+              // Когда клавиатура открыта — уменьшаем высоту модалки
+              // чтобы контент не перекрывался клавиатурой
+              height: isKeyboardOpen ? '60vh' : '85vh',
+              transition: 'height 0.25s ease',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Handle */}
@@ -405,7 +450,7 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
               <div className="w-10 h-1 bg-slate-200 rounded-full" />
             </div>
 
-            {/* Шапка модалки (фиксированная, не скроллится) */}
+            {/* Шапка */}
             <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-2xl ${
@@ -440,12 +485,7 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
               </button>
             </div>
 
-            {/*
-              Скроллируемый контент:
-              - flex-1 + min-h-0 — ключевая связка! Без min-h-0 flex-child не обрезается
-              - modal-scroll — класс с -webkit-overflow-scrolling: touch
-              - ref — для scrollTop = 0 при выборе цели
-            */}
+            {/* Скроллируемый контент */}
             <div
               ref={modalScrollRef}
               className="flex-1 min-h-0 modal-scroll px-5 py-4"
@@ -453,7 +493,6 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
             >
               <div className="space-y-4 pb-8">
 
-                {/* ВЫПОЛНЕНО — locked */}
                 {openCategoryRecord?.completed ? (
                   <div className="bg-emerald-50 border border-emerald-200 rounded-[1.8rem] p-6 text-center">
                     <div className="text-4xl mb-3">🎉</div>
@@ -484,7 +523,7 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                       </div>
                     )}
 
-                    {/* Шаблоны — flex-wrap чипы */}
+                    {/* Шаблоны */}
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2.5">
                         {t.goalsTemplates || 'Шаблондар'}
@@ -495,12 +534,21 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                           return (
                             <button
                               key={tmpl.id}
-                              onClick={() => handleSelectGoal(tmpl.id, language === 'kk' ? tmpl.text_kk : tmpl.text_ru, tmpl.xp)}
+                              onPointerDown={(e) => {
+                                // Используем onPointerDown вместо onClick —
+                                // надёжнее работает в Telegram WebView
+                                e.stopPropagation();
+                                handleSelectGoal(
+                                  tmpl.id,
+                                  language === 'kk' ? tmpl.text_kk : tmpl.text_ru,
+                                  tmpl.xp
+                                );
+                              }}
                               disabled={!!openCategoryRecord?.completed}
                               className={`text-left px-3 py-2.5 rounded-2xl border text-[12px] font-semibold transition-all active:scale-95 ${
                                 isChosen
                                   ? 'bg-amber-400 border-amber-400 text-white shadow-sm'
-                                  : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-emerald-50 hover:border-emerald-200'
+                                  : 'bg-slate-50 border-slate-200 text-slate-700 active:bg-emerald-50 active:border-emerald-200'
                               }`}
                               style={{ maxWidth: '49%' }}
                             >
@@ -532,12 +580,25 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                                   isChosen ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-100'
                                 }`}
                               >
-                                <button className="flex-1 text-left pr-2" onClick={() => handleSelectGoal(item.id, item.text, item.xp)} disabled={!!openCategoryRecord?.completed}>
-                                  <span className={`text-sm font-semibold block ${isChosen ? 'text-amber-800' : 'text-slate-700'}`}>{item.text}</span>
+                                <button
+                                  className="flex-1 text-left pr-2"
+                                  onPointerDown={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectGoal(item.id, item.text, item.xp);
+                                  }}
+                                  disabled={!!openCategoryRecord?.completed}
+                                >
+                                  <span className={`text-sm font-semibold block ${
+                                    isChosen ? 'text-amber-800' : 'text-slate-700'
+                                  }`}>{item.text}</span>
                                   <span className="text-[10px] font-black text-emerald-600">+{item.xp} XP</span>
                                 </button>
                                 {!openCategoryRecord?.completed && (
-                                  <button onClick={() => handleDeleteCustom(item.id)}
+                                  <button
+                                    onPointerDown={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteCustom(item.id);
+                                    }}
                                     className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs active:scale-90 shrink-0"
                                   >✕</button>
                                 )}
@@ -556,15 +617,28 @@ const TasksList: React.FC<TasksListProps> = ({ language, userData, setUserData }
                         </p>
                         <div className="flex gap-2">
                           <input
+                            ref={inputRef}
                             type="text"
                             value={customInput}
                             onChange={e => setCustomInput(e.target.value)}
                             onKeyPress={e => e.key === 'Enter' && handleAddCustom()}
+                            onFocus={() => {
+                              // При фокусе скроллим к input чтобы клавиатура его не перекрыла
+                              setTimeout(() => {
+                                if (modalScrollRef.current) {
+                                  modalScrollRef.current.scrollTop =
+                                    modalScrollRef.current.scrollHeight;
+                                }
+                              }, 300);
+                            }}
                             placeholder={t.goalsCustomPlaceholder || 'Мақсат жазыңыз...'}
                             className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none focus:border-emerald-300 transition-colors"
                           />
                           <button
-                            onClick={handleAddCustom}
+                            onPointerDown={(e) => {
+                              e.preventDefault(); // предотвращаем потерю фокуса перед добавлением
+                              handleAddCustom();
+                            }}
                             className="bg-emerald-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black active:scale-90 shrink-0 shadow-sm"
                           >+</button>
                         </div>
