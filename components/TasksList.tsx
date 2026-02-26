@@ -20,19 +20,6 @@ function todayStr(): string {
   });
 }
 
-// ─── XP pop-up ──────────────────────────────────────────────────────
-const XpPop: React.FC<{ xp: number; onDone: () => void }> = ({ xp, onDone }) => {
-  useEffect(() => { const t = setTimeout(onDone, 1800); return () => clearTimeout(t); }, [onDone]);
-  return (
-    <div className="pointer-events-none fixed z-[999] inset-x-0 flex justify-center" style={{ top: '38%' }}>
-      <div className="bg-emerald-500 text-white font-black text-xl px-7 py-3 rounded-full shadow-2xl"
-        style={{ animation: 'xpPop 1.8s cubic-bezier(.22,1,.36,1) forwards' }}>
-        +{xp} XP ✨
-      </div>
-    </div>
-  );
-};
-
 // ─── Строка категории ───────────────────────────────────────────────────
 // FIX #4: внешний контейнер — <div role="button">, а не <button>,
 // чтобы вложенная кнопка «Орындадым» работала корректно в iOS/Telegram WebView.
@@ -48,7 +35,7 @@ const CategoryRow: React.FC<{
   const shadow   = done ? '0 2px 8px rgba(16,185,129,.12)' : selected ? '0 2px 8px rgba(234,179,8,.12)' : '0 1px 4px rgba(0,0,0,.05)';
 
   return (
-    <div style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 18, boxShadow: shadow, overflow: 'hidden' }}>
+    <div style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 28, boxShadow: shadow, overflow: 'hidden' }}>
       {/* FIX #4: div role="button" вместо <button>, чтобы не было <button> внутри <button> */}
       <div
         role="button"
@@ -69,7 +56,7 @@ const CategoryRow: React.FC<{
         onClick={onOpen}
         onKeyDown={e => e.key === 'Enter' && onOpen()}
       >
-        <div style={{ width: 44, height: 44, borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, background: done ? '#d1fae5' : selected ? '#fef9c3' : '#f8fafc' }}>
+        <div style={{ width: 44, height: 44, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, background: done ? '#d1fae5' : selected ? '#fef9c3' : '#f8fafc' }}>
           {done ? '✅' : cat.icon}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -94,8 +81,8 @@ const CategoryRow: React.FC<{
                 color: '#fff',
                 fontWeight: 900,
                 fontSize: 12,
-                padding: '8px 14px',
-                borderRadius: 12,
+                padding: '9px 16px',
+                borderRadius: 16,
                 border: 'none',
                 cursor: 'pointer',
               }}
@@ -175,7 +162,7 @@ const GoalSheet: React.FC<{
         {/* Шапка */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 20px 12px', borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 13, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 16, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
               {done ? '✅' : cat.icon}
             </div>
             <div>
@@ -366,8 +353,7 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
   }, [userData.goalCustomItems]);
 
   const [sheetCatId, setSheetCatId] = useState<GoalCategoryId | null>(null);
-  const [inputs,     setInputs]     = useState<Record<string, string>>({});
-  const [floatXp,    setFloatXp]    = useState<number | null>(null);
+  const [inputs, setInputs] = useState<Record<string, string>>({});
 
   // FIX #1: Set для блокировки повторного handleDone пока выполняется первый
   const processingRef = useRef<Set<string>>(new Set());
@@ -428,7 +414,6 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
       dailyGoalRecords: { ...(p as UserData).dailyGoalRecords, [day]: next },
       goalStreaks: streaks as UserData['goalStreaks'],
     } as UserData));
-    if (rec.xpEarned > 0) setFloatXp(rec.xpEarned);
     setSheetCatId(null);
   }, [localRecords, userData.goalStreaks, day, setUserData]);
 
@@ -481,12 +466,10 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
         }
       `}</style>
 
-      {floatXp !== null && floatXp > 0 && <XpPop xp={floatXp} onDone={() => setFloatXp(null)} />}
-
       {/* ── Шапка ── */}
       <div style={{
         background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-        borderRadius: 22,
+        borderRadius: 40,
         padding: '18px 20px 16px',
         marginBottom: 20,
         position: 'relative',
@@ -499,9 +482,9 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
         {/* Верхняя строка */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
-            <h2 style={{ fontWeight: 900, fontSize: 18, color: '#f8fafc', margin: 0, letterSpacing: '-0.3px' }}>
+            <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
               {lang === 'kk' ? 'Күнделікті мақсаттар' : 'Ежедневные цели'}
-            </h2>
+            </h4>
             <p style={{ fontSize: 12, color: '#94a3b8', margin: '3px 0 0', fontWeight: 500 }}>
               {lang === 'kk'
                 ? `Бүгін ${doneCount} / ${GOAL_CATEGORIES.length} орындалды`

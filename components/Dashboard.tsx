@@ -81,13 +81,6 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [visibleNames, setVisibleNames] = useState<typeof NAMES_99>([]);
   const [fadingOutId, setFadingOutId] = useState<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  // ✅ Состояние для анимации XP
-  const [xpNotifications, setXpNotifications] = useState<Array<{
-    id: string, 
-    amount: number, 
-    multiplier?: number,
-    timestamp: number
-  }>>([]);
   // Проверяем все ли имена выучены
   const allNamesLearned = (userData?.memorizedNames?.length || 0) === 99;
   // ✅ REF для шапки трекера
@@ -315,29 +308,6 @@ const Dashboard: React.FC<DashboardProps> = ({
       console.log('✅ Fading complete');
     }, 1000);
   };
-
-  // ✅ Регистрируем глобальный колбэк для показа XP с бэкенда
-  useEffect(() => {
-    (window as any).showXPNotification = (xpAmount: number, multiplier: number) => {
-      const notificationId = `${Date.now()}-${Math.random()}`;
-      
-      setXpNotifications(prev => [...prev, {
-        id: notificationId,
-        amount: xpAmount,
-        multiplier: multiplier,
-        timestamp: Date.now()
-      }]);
-      
-      // Убираем уведомление через 2 секунды
-      setTimeout(() => {
-        setXpNotifications(prev => prev.filter(n => n.id !== notificationId));
-      }, 2000);
-    };
-    
-    return () => {
-      delete (window as any).showXPNotification;
-    };
-  }, []);
 
   // ✅ Инициализация имен - только один раз!
   useEffect(() => {
@@ -958,30 +928,6 @@ const Dashboard: React.FC<DashboardProps> = ({
             </p>
           )}
         </div>
-      </div>
-
-      {/* ✅ XP NOTIFICATIONS - Анимация начисления XP */}
-      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none flex flex-col items-center space-y-2">
-        {xpNotifications.map((notification) => (
-          <div
-            key={notification.id}
-            className="animate-xp-float text-white px-5 py-2.5 rounded-2xl shadow-lg font-black text-sm border border-white/20"
-            style={{
-              animation: 'xpFloat 2s ease-out forwards',
-              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.85))',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)'
-            }}
-          >
-            +{notification.amount} XP ✨
-            {notification.multiplier && notification.multiplier > 1.0 && (
-              <span className="text-xs opacity-90 ml-1">
-                (x{notification.multiplier.toFixed(1)} 🔥)
-              </span>
-            )}
-          </div>
-        ))}
       </div>
     </div>
   );

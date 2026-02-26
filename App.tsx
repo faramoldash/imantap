@@ -71,6 +71,15 @@ function normalizeUserData(raw: UserData): UserData {
 const App: React.FC = () => {
   useEffect(() => { initTelegramApp(); }, []);
 
+  useEffect(() => {
+    (window as any).showXPNotification = (xpAmount: number, multiplier: number) => {
+      const id = `${Date.now()}-${Math.random()}`;
+      setXpNotifications(prev => [...prev, { id, amount: xpAmount, multiplier }]);
+      setTimeout(() => setXpNotifications(prev => prev.filter(n => n.id !== id)), 2000);
+    };
+    return () => { delete (window as any).showXPNotification; };
+  }, []);
+
   const getDefaultUserData = useCallback((): UserData => {
     const forcedLang: Language = 'kk';
     const templates: CustomTask[] = DEFAULT_GOALS[forcedLang].map((text, idx) => ({
@@ -161,6 +170,7 @@ const App: React.FC = () => {
   }, []);
 
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+  const [xpNotifications, setXpNotifications] = useState<Array<{id: string; amount: number; multiplier?: number}>>([]);
   const [newBadge, setNewBadge] = useState<typeof BADGES[0] | null>(null);
 
   const calculateRamadanStatus = useCallback(() => {
@@ -617,6 +627,15 @@ const App: React.FC = () => {
   return (
     <div className="min-h-full max-w-md mx-auto relative overflow-x-hidden bg-slate-50 flex flex-col">
 
+      <style>{`
+        @keyframes xpFloat {
+          0%   { opacity: 0; transform: translateY(10px) scale(0.8); }
+          20%  { opacity: 1; transform: translateY(0) scale(1.05); }
+          70%  { opacity: 1; transform: translateY(-40px) scale(1); }
+          100% { opacity: 0; transform: translateY(-70px) scale(0.9); }
+        }
+      `}</style>
+
       {showDemoBanner && (
         <div className="sticky top-0 z-50">
           <DemoBanner
@@ -639,6 +658,30 @@ const App: React.FC = () => {
             </div>
             <button onClick={() => setNewBadge(null)} className="text-slate-500">✕</button>
           </div>
+        </div>
+      )}
+
+      {xpNotifications.length > 0 && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[200] pointer-events-none flex flex-col items-center gap-2">
+          {xpNotifications.map(n => (
+            <div key={n.id} style={{
+              animation: 'xpFloat 2s ease-out forwards',
+              background: 'linear-gradient(135deg, rgba(15,23,42,0.92), rgba(30,41,59,0.92))',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 20, padding: '12px 24px',
+              fontWeight: 900, fontSize: 16, color: 'white',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+            }}>
+              +{n.amount} XP ✨
+              {n.multiplier && n.multiplier > 1 && (
+                <span style={{ fontSize: 12, marginLeft: 6, opacity: 0.8 }}>
+                  x{n.multiplier.toFixed(1)} 🔥
+                </span>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
