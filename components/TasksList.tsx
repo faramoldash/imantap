@@ -5,7 +5,7 @@ import {
 } from '../src/types/types';
 import {
   TRANSLATIONS, GOAL_CATEGORIES, GoalTemplate, GoalCategory,
-  getTodayCategoryRecord, getTodayGoalRecords,
+  getTodayGoalRecords,
 } from '../constants';
 
 interface Props {
@@ -20,46 +20,35 @@ function todayStr(): string {
   });
 }
 
-// ─── XP pop-up ──────────────────────────────────────────────────────────
+// ─── XP pop-up ──────────────────────────────────────────────────────
 const XpPop: React.FC<{ xp: number; onDone: () => void }> = ({ xp, onDone }) => {
   useEffect(() => { const t = setTimeout(onDone, 1800); return () => clearTimeout(t); }, [onDone]);
   return (
     <div className="pointer-events-none fixed z-[999] inset-x-0 flex justify-center" style={{ top: '38%' }}>
-      <div
-        className="bg-emerald-500 text-white font-black text-xl px-7 py-3 rounded-full shadow-2xl"
-        style={{ animation: 'xpPop 1.8s cubic-bezier(.22,1,.36,1) forwards' }}
-      >
+      <div className="bg-emerald-500 text-white font-black text-xl px-7 py-3 rounded-full shadow-2xl"
+        style={{ animation: 'xpPop 1.8s cubic-bezier(.22,1,.36,1) forwards' }}>
         +{xp} XP ✨
       </div>
     </div>
   );
 };
 
-// ─── Строка категории ─────────────────────────────────────────────────────
+// ─── Строка категории ───────────────────────────────────────────────────
 const CategoryRow: React.FC<{
-  cat: GoalCategory;
-  lang: Language;
-  rec?: DailyGoalRecord;
-  streak: number;
-  onOpen: () => void;
-  onDone: () => void;
-  t: Record<string, string>;
+  cat: GoalCategory; lang: Language; rec?: DailyGoalRecord; streak: number;
+  onOpen: () => void; onDone: () => void; t: Record<string, string>;
 }> = ({ cat, lang, rec, streak, onOpen, onDone, t }) => {
   const done     = rec?.completed === true;
   const selected = !!rec && !done;
   const name     = lang === 'kk' ? cat.name_kk : cat.name_ru;
   const bg       = done ? '#ecfdf5' : selected ? '#fefce8' : '#ffffff';
   const border   = done ? '#6ee7b7' : selected ? '#fde68a' : '#f1f5f9';
-  const shadow   = done ? '0 2px 8px rgba(16,185,129,.12)'
-                 : selected ? '0 2px 8px rgba(234,179,8,.12)'
-                 : '0 1px 4px rgba(0,0,0,.05)';
+  const shadow   = done ? '0 2px 8px rgba(16,185,129,.12)' : selected ? '0 2px 8px rgba(234,179,8,.12)' : '0 1px 4px rgba(0,0,0,.05)';
   return (
     <div style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 18, boxShadow: shadow, overflow: 'hidden' }}>
-      <button
-        type="button"
+      <button type="button"
         style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer' }}
-        onClick={onOpen}
-      >
+        onClick={onOpen}>
         <div style={{ width: 44, height: 44, borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, background: done ? '#d1fae5' : selected ? '#fef9c3' : '#f8fafc' }}>
           {done ? '✅' : cat.icon}
         </div>
@@ -77,8 +66,9 @@ const CategoryRow: React.FC<{
           {selected && (
             <button type="button"
               style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', background: 'linear-gradient(135deg,#10b981,#059669)', color: '#fff', fontWeight: 900, fontSize: 12, padding: '8px 14px', borderRadius: 12, border: 'none', cursor: 'pointer' }}
-              onClick={e => { e.stopPropagation(); onDone(); }}
-            >{t.goalsDoneBtn || 'Орындадым ✓'}</button>
+              onClick={e => { e.stopPropagation(); onDone(); }}>
+              {t.goalsDoneBtn || 'Орындадым ✓'}
+            </button>
           )}
           {!done && !selected && (
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -91,79 +81,57 @@ const CategoryRow: React.FC<{
   );
 };
 
-// ─── Bottom Sheet ────────────────────────────────────────────────────────
+// ─── хук для высоты visualViewport ──────────────────────────────────────────
+function useViewportHeight() {
+  const [vh, setVh] = useState(() => {
+    const vv = (window as any).visualViewport as VisualViewport | undefined;
+    return vv ? vv.height : window.innerHeight;
+  });
+  useEffect(() => {
+    const vv = (window as any).visualViewport as VisualViewport | undefined;
+    if (!vv) return;
+    const update = () => setVh(vv.height);
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update); };
+  }, []);
+  return vh;
+}
+
+// ─── Bottom Sheet ──────────────────────────────────────────────────────
 const GoalSheet: React.FC<{
-  cat: GoalCategory;
-  lang: Language;
-  localRec?: DailyGoalRecord;
-  customItems: CustomGoalItem[];
-  inputVal: string;
-  onClose: () => void;
-  onSelect: (id: string, text: string, xp: number) => void;
-  onDeselect: () => void;
-  onDone: () => void;
-  onAddCustom: () => void;
-  onDeleteCustom: (id: string) => void;
-  onInputChange: (v: string) => void;
+  cat: GoalCategory; lang: Language; localRec?: DailyGoalRecord;
+  customItems: CustomGoalItem[]; inputVal: string;
+  onClose: () => void; onSelect: (id: string, text: string, xp: number) => void;
+  onDeselect: () => void; onDone: () => void; onAddCustom: () => void;
+  onDeleteCustom: (id: string) => void; onInputChange: (v: string) => void;
   t: Record<string, string>;
 }> = ({ cat, lang, localRec, customItems, inputVal, onClose, onSelect, onDeselect, onDone, onAddCustom, onDeleteCustom, onInputChange, t }) => {
   const done     = localRec?.completed === true;
   const selected = !!localRec && !done;
   const name     = lang === 'kk' ? cat.name_kk : cat.name_ru;
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef  = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // ─── Отслеживаем высоту клавиатуры через visualViewport ─────────────────────
-  // Ключ: применяем bottom на сам оверлей, а не translateY на sheet —
-  // это поднимает весь overlay вверх, а sheet остаётся прилеплённым к низу overlay.
-  const [kbHeight, setKbHeight] = useState(0);
-
-  useEffect(() => {
-    const vv = (window as any).visualViewport as VisualViewport | undefined;
-    if (!vv) return;
-    const update = () => {
-      const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      setKbHeight(kb);
-    };
-    vv.addEventListener('resize', update);
-    vv.addEventListener('scroll', update);
-    update();
-    return () => {
-      vv.removeEventListener('resize', update);
-      vv.removeEventListener('scroll', update);
-    };
-  }, []);
-
-  // Когда клавиатура открывается — прокручиваем до поля ввода
-  useEffect(() => {
-    if (kbHeight > 0) {
-      setTimeout(() => {
-        inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 100);
-    }
-  }, [kbHeight]);
+  // Высота видимой области — обновляется когда открывается клавиатура
+  const vpHeight = useViewportHeight();
+  // Sheet занимает не больше 88% от видимой области (включая клавиатуру как часть vpHeight)
+  const sheetMaxH = Math.floor(vpHeight * 0.88);
 
   return (
-    // Оверлей: top=0, left=0, right=0, bottom=kbHeight — не заходим под клавиатуру
+    // Overlay: полный экран, но sheet ограничен высотой vpHeight
     <div
-      style={{
-        position: 'fixed',
-        top: 0, left: 0, right: 0,
-        bottom: kbHeight, // ключевое: нижняя граница = над клавиатурой
-        zIndex: 300,
-        display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-        background: 'rgba(15,23,42,.5)',
-        transition: 'bottom .25s ease',
-      }}
+      style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', background: 'rgba(15,23,42,.5)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         style={{
-          background: '#fff',
-          borderRadius: '22px 22px 0 0',
-          maxHeight: '88vh',
+          background: '#fff', borderRadius: '22px 22px 0 0',
+          // Ключ: maxHeight = 88% от visualViewport.height
+          // Когда клавиатура открывается — vpHeight уменьшается — sheet сжимается
+          maxHeight: sheetMaxH,
           display: 'flex', flexDirection: 'column',
           animation: 'sheetUp .26s cubic-bezier(.22,1,.36,1)',
+          transition: 'max-height .25s ease',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -181,34 +149,27 @@ const GoalSheet: React.FC<{
             <div>
               <p style={{ fontWeight: 900, fontSize: 16, color: '#0f172a', margin: 0 }}>{name}</p>
               <p style={{ fontSize: 11, margin: 0, fontWeight: 600, color: done ? '#10b981' : selected ? '#d97706' : '#94a3b8' }}>
-                {done
-                  ? (lang === 'kk' ? '✓ Орындалды' : '✓ Выполнено')
-                  : selected
-                  ? (lang === 'kk' ? 'Мақсат таңдалды — қайта басу үшін тастаңыз' : 'Цель выбрана — нажмите снова чтобы снять')
+                {done ? (lang === 'kk' ? '✓ Орындалды' : '✓ Выполнено')
+                  : selected ? (lang === 'kk' ? 'Мақсат таңдалды' : 'Цель выбрана')
                   : (lang === 'kk' ? 'Мақсат таңдаңыз' : 'Выберите цель')}
               </p>
             </div>
           </div>
           <button type="button"
             style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', width: 32, height: 32, borderRadius: '50%', background: '#f1f5f9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#64748b', fontWeight: 700 }}
-            onClick={onClose}
-          >✕</button>
+            onClick={onClose}>✕</button>
         </div>
 
         {/* Скроллируемый контент */}
-        <div
-          ref={scrollRef}
-          style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, flex: 1, padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 20 }}
-        >
+        <div style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, flex: 1, padding: '16px 20px 24px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+
           {/* ВЫПОЛНЕНО */}
           {done && localRec && (
             <div style={{ background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', border: '1.5px solid #6ee7b7', borderRadius: 16, padding: '20px 16px', textAlign: 'center' }}>
               <p style={{ fontSize: 36, margin: '0 0 8px' }}>🎉</p>
               <p style={{ fontWeight: 700, fontSize: 15, color: '#065f46', margin: '0 0 4px' }}>{localRec.goalText}</p>
               {localRec.xpEarned > 0 && <p style={{ fontWeight: 900, fontSize: 14, color: '#10b981', margin: '0 0 8px' }}>+{localRec.xpEarned} XP</p>}
-              <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>
-                {lang === 'kk' ? 'Ертең жаңа мақсат таңдауға болады' : 'Завтра можно выбрать новую цель'}
-              </p>
+              <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{lang === 'kk' ? 'Ертең жаңа мақсат таңдауға болады' : 'Завтра можно выбрать новую цель'}</p>
             </div>
           )}
 
@@ -220,18 +181,14 @@ const GoalSheet: React.FC<{
               </p>
               <p style={{ fontWeight: 600, fontSize: 14, color: '#1e293b', margin: '0 0 10px', lineHeight: 1.4 }}>{localRec.goalText}</p>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                {localRec.xpEarned > 0
-                  ? <span style={{ fontWeight: 900, fontSize: 13, color: '#d97706' }}>+{localRec.xpEarned} XP</span>
-                  : <span />}
+                {localRec.xpEarned > 0 ? <span style={{ fontWeight: 900, fontSize: 13, color: '#d97706' }}>+{localRec.xpEarned} XP</span> : <span />}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button type="button"
                     style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', background: '#f1f5f9', color: '#64748b', fontWeight: 700, fontSize: 13, padding: '10px 14px', borderRadius: 14, border: 'none', cursor: 'pointer' }}
-                    onClick={onDeselect}
-                  >{lang === 'kk' ? 'Алып тастау' : 'Снять'}</button>
+                    onClick={onDeselect}>{lang === 'kk' ? 'Алып тастау' : 'Снять'}</button>
                   <button type="button"
                     style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', background: 'linear-gradient(135deg,#10b981,#059669)', color: '#fff', fontWeight: 900, fontSize: 14, padding: '10px 22px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16,185,129,.4)' }}
-                    onClick={onDone}
-                  >{t.goalsDoneBtn || 'Орындадым ✓'}</button>
+                    onClick={onDone}>{t.goalsDoneBtn || 'Орындадым ✓'}</button>
                 </div>
               </div>
             </div>
@@ -256,15 +213,11 @@ const GoalSheet: React.FC<{
                         border: chosen ? '1.5px solid #10b981' : '1.5px solid #f1f5f9',
                         borderRadius: 14, padding: '12px 14px', cursor: 'pointer',
                         boxShadow: chosen ? '0 2px 10px rgba(16,185,129,.2)' : 'none',
-                        textAlign: 'left', width: '100%',
-                        transition: 'background .15s, border-color .15s',
+                        textAlign: 'left', width: '100%', transition: 'background .15s, border-color .15s',
                       }}
-                      onClick={() => chosen ? onDeselect() : onSelect(tmpl.id, label, tmpl.xp)}
-                    >
+                      onClick={() => chosen ? onDeselect() : onSelect(tmpl.id, label, tmpl.xp)}>
                       <span style={{ fontWeight: 600, fontSize: 13, color: chosen ? '#fff' : '#1e293b', lineHeight: 1.35, flex: 1 }}>{label}</span>
-                      <span style={{ fontWeight: 900, fontSize: 11, color: chosen ? 'rgba(255,255,255,.8)' : '#10b981', flexShrink: 0 }}>
-                        {chosen ? '✓ ' : '+'}{tmpl.xp} XP
-                      </span>
+                      <span style={{ fontWeight: 900, fontSize: 11, color: chosen ? 'rgba(255,255,255,.8)' : '#10b981', flexShrink: 0 }}>{chosen ? '✓ ' : '+'}{tmpl.xp} XP</span>
                     </button>
                   );
                 })}
@@ -282,26 +235,16 @@ const GoalSheet: React.FC<{
                 {customItems.map(item => {
                   const chosen = localRec?.goalId === item.id;
                   return (
-                    <div key={item.id} style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      background: chosen ? 'linear-gradient(135deg,#10b981,#059669)' : '#f8fafc',
-                      border: chosen ? '1.5px solid #10b981' : '1.5px solid #f1f5f9',
-                      borderRadius: 14, padding: '12px 14px',
-                      transition: 'background .15s',
-                    }}>
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: chosen ? 'linear-gradient(135deg,#10b981,#059669)' : '#f8fafc', border: chosen ? '1.5px solid #10b981' : '1.5px solid #f1f5f9', borderRadius: 14, padding: '12px 14px', transition: 'background .15s' }}>
                       <button type="button"
                         style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
-                        onClick={() => chosen ? onDeselect() : onSelect(item.id, item.text, 0)}
-                      >
+                        onClick={() => chosen ? onDeselect() : onSelect(item.id, item.text, 0)}>
                         <span style={{ fontWeight: 600, fontSize: 13, color: chosen ? '#fff' : '#1e293b', display: 'block' }}>{item.text}</span>
-                        <span style={{ fontSize: 11, color: chosen ? 'rgba(255,255,255,.6)' : '#94a3b8' }}>
-                          {lang === 'kk' ? 'Өз мақсат' : 'Своя цель'}
-                        </span>
+                        <span style={{ fontSize: 11, color: chosen ? 'rgba(255,255,255,.6)' : '#94a3b8' }}>{lang === 'kk' ? 'Өз мақсат' : 'Своя цель'}</span>
                       </button>
                       <button type="button"
                         style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', width: 28, height: 28, borderRadius: '50%', background: chosen ? 'rgba(255,255,255,.2)' : '#e2e8f0', border: 'none', cursor: 'pointer', color: chosen ? '#fff' : '#94a3b8', fontSize: 11, flexShrink: 0 }}
-                        onClick={() => onDeleteCustom(item.id)}
-                      >✕</button>
+                        onClick={() => onDeleteCustom(item.id)}>✕</button>
                     </div>
                   );
                 })}
@@ -326,17 +269,14 @@ const GoalSheet: React.FC<{
                   style={{ flex: 1, fontSize: 14, background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '12px 16px', outline: 'none' }}
                   onFocus={e => {
                     (e.target as HTMLInputElement).style.borderColor = '#10b981';
-                    // Прокручиваем до поля ввода после того как оверлей поднялся (350ms)
-                    setTimeout(() => {
-                      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    }, 350);
+                    // После того как sheet сжался — прокрутить до инпута
+                    setTimeout(() => inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
                   }}
                   onBlur={e => { (e.target as HTMLInputElement).style.borderColor = '#e2e8f0'; }}
                 />
                 <button type="button"
                   style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', width: 48, height: 48, borderRadius: 14, background: inputVal.trim() ? 'linear-gradient(135deg,#10b981,#059669)' : '#e2e8f0', border: 'none', cursor: 'pointer', color: inputVal.trim() ? '#fff' : '#94a3b8', fontSize: 22, fontWeight: 900, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  onClick={onAddCustom}
-                >+</button>
+                  onClick={onAddCustom}>+</button>
               </div>
             </div>
           )}
@@ -346,7 +286,7 @@ const GoalSheet: React.FC<{
   );
 };
 
-// ─── MAIN ─────────────────────────────────────────────────────────────────
+// ─── MAIN ────────────────────────────────────────────────────────────────
 const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) => {
   const t   = TRANSLATIONS[lang] as Record<string, string>;
   const day = todayStr();
@@ -368,10 +308,7 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
   const lastCustomRef = useRef(JSON.stringify(userData.goalCustomItems || {}));
   useEffect(() => {
     const str = JSON.stringify(userData.goalCustomItems || {});
-    if (str !== lastCustomRef.current) {
-      lastCustomRef.current = str;
-      setLocalCustom((userData.goalCustomItems as Record<string, CustomGoalItem[]>) || {});
-    }
+    if (str !== lastCustomRef.current) { lastCustomRef.current = str; setLocalCustom((userData.goalCustomItems as Record<string, CustomGoalItem[]>) || {}); }
   }, [userData.goalCustomItems]);
 
   const [sheetCatId, setSheetCatId] = useState<GoalCategoryId | null>(null);
@@ -383,10 +320,8 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
   const progressPct = Math.round((doneCount / GOAL_CATEGORIES.length) * 100);
 
   const getLocalRec = useCallback((id: GoalCategoryId) => localRecords.find(r => r.categoryId === id), [localRecords]);
-  const getStreak   = (id: GoalCategoryId): number => {
-    const s = (userData.goalStreaks as Record<string, { current: number }> | undefined)?.[id];
-    return s?.current ?? 0;
-  };
+  const getStreak   = (id: GoalCategoryId): number =>
+    ((userData.goalStreaks as Record<string, { current: number }> | undefined)?.[id]?.current ?? 0);
 
   const applyRecords = useCallback((next: DailyGoalRecord[]) => {
     lastSyncedRef.current = JSON.stringify(next);
@@ -521,10 +456,8 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
       {/* ── Bottom Sheet ── */}
       {sheetCat && (
         <GoalSheet
-          cat={sheetCat} lang={lang}
-          localRec={sheetRec}
-          customItems={sheetCustom}
-          inputVal={inputs[sheetCatId!] ?? ''}
+          cat={sheetCat} lang={lang} localRec={sheetRec}
+          customItems={sheetCustom} inputVal={inputs[sheetCatId!] ?? ''}
           onClose={() => setSheetCatId(null)}
           onSelect={(id, text, xp) => handleSelect(sheetCatId!, id, text, xp)}
           onDeselect={() => handleDeselect(sheetCatId!)}
