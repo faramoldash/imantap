@@ -117,25 +117,13 @@ export interface UserData {
   _lastUpdate?: number;
   subscriptionExpiresAt?: string | null;
   daysLeft?: number | null;
-
-  // ─── НОВЫЕ ПОЛЯ для системы Мақсаттар ───
-  /**
-   * Ежедневные записи выбранных/выполненных целей.
-   * Ключ: ISO-дата "YYYY-MM-DD"
-   * Значение: массив из макс. 6 записей (по одной на категорию в день)
-   */
+  tasbeehRecords?: Record<string, {
+    counts: Record<string, number>;     // dhikrId -> count
+    completedIds: string[];             // какие зикры закрыты по target
+    xpEarned: number;                   // XP набранный только за тасбих за день
+  }>;
   dailyGoalRecords?: Record<string, DailyGoalRecord[]>;
-
-  /**
-   * Кастомные цели пользователя по категориям.
-   * Ключ: GoalCategoryId
-   */
   goalCustomItems?: Record<GoalCategoryId, CustomGoalItem[]>;
-
-  /**
-   * Стрик (серия дней подряд) по каждой категории отдельно.
-   * Ключ: GoalCategoryId
-   */
   goalStreaks?: Record<GoalCategoryId, {
     current: number;
     longest: number;
@@ -143,5 +131,5 @@ export interface UserData {
   }>;
 }
 
-export type ViewType = 'dashboard' | 'calendar' | 'quran' | 'tasks' | 'profile' | 'names-99' | 'rewards' | 'circles';
+export type ViewType = 'dashboard' | 'calendar' | 'quran' | 'tasbeeh' | 'tasks' | 'profile' | 'names-99' | 'rewards' | 'circles';
 export type PhaseType = 'preparation' | 'ramadan' | 'basic';

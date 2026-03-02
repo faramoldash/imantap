@@ -9,6 +9,7 @@ import NamesMemorizer from './components/NamesMemorizer';
 import SyncIndicator, { SyncStatus } from './components/SyncIndicator';
 import { syncQueue } from './src/utils/syncQueue';
 import TasksList from './components/TasksList';
+import Tasbeeh from './components/Tasbeeh';
 import RewardsView from './components/RewardsView';
 import ProfileView from './components/ProfileView';
 import Paywall from './components/Paywall';
@@ -53,6 +54,7 @@ function normalizeUserData(raw: UserData): UserData {
     progress:            raw.progress            || {},
     preparationProgress: raw.preparationProgress || {},
     basicProgress:       raw.basicProgress       || {},
+    tasbeehRecords:      raw.tasbeehRecords      || {},
     dailyGoalRecords:    raw.dailyGoalRecords     || {},
     goalCustomItems:    (raw.goalCustomItems      || {}) as Record<GoalCategoryId, CustomGoalItem[]>,
     goalStreaks: (raw.goalStreaks || {}) as Record<GoalCategoryId, { current: number; longest: number; lastCompletedDate: string }>,
@@ -305,6 +307,7 @@ const App: React.FC = () => {
       currentStreak: data.currentStreak,
       longestStreak: data.longestStreak,
       lastActiveDate: data.lastActiveDate,
+      tasbeehRecords: data.tasbeehRecords || {},
       dailyGoalRecords: data.dailyGoalRecords || {},
       goalCustomItems: data.goalCustomItems || {},
       goalStreaks: data.goalStreaks || {},
@@ -338,6 +341,10 @@ const App: React.FC = () => {
               ...validatedData,
               dailyGoalRecords: mergedGoalRecords,
               goalStreaks: mergedStreaks,
+              tasbeehRecords: {
+                ...(validatedData.tasbeehRecords || {}),
+                ...(prev.tasbeehRecords || {}),  // локальные данные побеждают
+              },
             };
           });
         }
@@ -368,7 +375,8 @@ const App: React.FC = () => {
         Object.keys(userData.progress).length > 0 ||
         Object.keys(userData.preparationProgress || {}).length > 0 ||
         (userData.memorizedNames || []).length > 0 ||
-        Object.keys(userData.dailyGoalRecords || {}).length > 0;
+        Object.keys(userData.dailyGoalRecords || {}).length > 0 ||
+        Object.keys(userData.tasbeehRecords || {}).length > 0;
       if (hasData) debouncedSync();
     }
   }, [userData, isLoading, debouncedSync]);
@@ -405,6 +413,7 @@ const App: React.FC = () => {
         dailyGoalRecords: userDataRef.current.dailyGoalRecords || {},
         goalCustomItems: userDataRef.current.goalCustomItems || {},
         goalStreaks: userDataRef.current.goalStreaks || {},
+        tasbeehRecords: userDataRef.current.tasbeehRecords || {},
       });
       const url = `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`;
       if (navigator.sendBeacon) {
@@ -598,6 +607,8 @@ const App: React.FC = () => {
         return <QuranTracker userData={userData} setUserData={handleUserDataUpdate} language={lang} />;
       case 'tasks':
         return <TasksList language={lang} userData={userData} setUserData={handleUserDataUpdate} />;
+      case 'tasbeeh':
+        return <Tasbeeh language={lang} userData={userData} setUserData={handleUserDataUpdate} />;
       case 'profile':
         return <ProfileView userData={userData} language={lang} setUserData={handleUserDataUpdate} onNavigate={handleNavigation} />;
       case 'names-99':

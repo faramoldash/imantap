@@ -20,7 +20,7 @@ const Navigation: React.FC<NavigationProps> = ({
   
   const items: { id: ViewType; icon: string; label: string }[] = [
     { id: 'dashboard', icon: '🏠', label: t.navHome },
-    { id: 'tasks', icon: '🎯', label: t.navTasks },
+    { id: 'tasbeeh', icon: '📿', label: t.navTasbeeh },
     { id: 'quran', icon: '📖', label: t.navQuran },
     { id: 'rewards', icon: '🏆', label: t.navRewards },
     { id: 'profile', icon: '👤', label: t.navProfile },
