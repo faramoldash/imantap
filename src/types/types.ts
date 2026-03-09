@@ -78,6 +78,18 @@ export interface CustomGoalItem {
 
 // ─────────────────────────────────────────────
 
+export interface DhikrType {
+  id: string;
+  arabic: string;
+  translit: string;
+  name_kk: string;
+  name_ru: string;
+  meaning_kk: string;
+  meaning_ru: string;
+  target: number;
+  xp: number;
+}
+
 export interface UserData {
   userId?: number;
   name: string;

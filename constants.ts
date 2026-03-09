@@ -1,4 +1,4 @@
-import { DayProgress, Language, GoalCategoryId } from './src/types/types';
+import { DayProgress, Language, GoalCategoryId, DhikrType } from './src/types/types';
 
 export const TOTAL_DAYS = 29; // 29 дней Рамадана
 
@@ -409,6 +409,75 @@ export const TRANSLATIONS: Record<Language, any> = {
     goalsCategoryStreak: "Күн қатарлы",
   }
 };
+
+export const DHIKRS: DhikrType[] = [
+  {
+    id: 'subhanallah',
+    arabic: 'سُبْحَانَ اللَّهِ',
+    translit: 'Субхааналлааһ',
+    name_kk: 'Субханаллаһ',
+    name_ru: 'Субханаллах',
+    meaning_kk: 'Алла барлық кемшіліктерден пәк',
+    meaning_ru: 'Аллах пречист от всех недостатков',
+    target: 33,
+    xp: 33,
+  },
+  {
+    id: 'alhamdulillah',
+    arabic: 'الْحَمْدُ لِلَّهِ',
+    translit: 'Әл-хәмду лилләәһ',
+    name_kk: 'Әлхәмдулилләһ',
+    name_ru: 'Альхамдулилла',
+    meaning_kk: 'Барлық мақтау Аллаға тиесілі',
+    meaning_ru: 'Вся хвала принадлежит Аллаху',
+    target: 33,
+    xp: 33,
+  },
+  {
+    id: 'allahuakbar',
+    arabic: 'اللَّهُ أَكْبَرُ',
+    translit: 'Аллааһу әкбар',
+    name_kk: 'Аллаһу әкбар',
+    name_ru: 'Аллаху Акбар',
+    meaning_kk: 'Алла ең ұлы',
+    meaning_ru: 'Аллах превелик',
+    target: 33,
+    xp: 33,
+  },
+  {
+    id: 'astaghfirullah',
+    arabic: 'أَسْتَغْفِرُ اللَّهَ',
+    translit: 'Әстәғфируллааһ',
+    name_kk: 'Әстәғфируллаһ',
+    name_ru: 'Астагфирулла',
+    meaning_kk: 'Алладан кешірім сұраймын',
+    meaning_ru: 'Прошу прощения у Аллаха',
+    target: 100,
+    xp: 100,
+  },
+  {
+    id: 'lailaha',
+    arabic: 'لَا إِلَهَ إِلَّا اللَّهُ',
+    translit: 'Ләә иләәһә иллаллааһ',
+    name_kk: 'Лә иләһә илләллаһ',
+    name_ru: 'Ля иляха иллалла',
+    meaning_kk: 'Алладан басқа құдай жоқ',
+    meaning_ru: 'Нет божества, кроме Аллаха',
+    target: 100,
+    xp: 100,
+  },
+  {
+    id: 'salavat',
+    arabic: 'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ',
+    translit: 'Аллааһуммә солли `аләә Мухаммадин уә `аләә әәли Мухаммад',
+    name_kk: 'Салауат',
+    name_ru: 'Салауат',
+    meaning_kk: 'Аллаһым, Мұхаммедке және Оның отбасына салауат ете гөр',
+    meaning_ru: 'О Аллах, благослови Мухаммада и его семью',
+    target: 100,
+    xp: 100,
+  },
+];
 
 export const QURAN_SCHEDULE = [
   { id: 1, juz: "1", start: "Фатиха 1", end: "Бақара 141" },
