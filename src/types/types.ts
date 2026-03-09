@@ -81,7 +81,8 @@ export interface CustomGoalItem {
 export interface DhikrType {
   id: string;
   arabic: string;
-  translit: string;
+  translit_kk: string;
+  translit_ru: string;
   name_kk: string;
   name_ru: string;
   meaning_kk: string;
