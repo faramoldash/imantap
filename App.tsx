@@ -119,6 +119,7 @@ const App: React.FC = () => {
       dailyGoalRecords: {},
       goalCustomItems: {} as Record<GoalCategoryId, CustomGoalItem[]>,
       goalStreaks: {} as Record<GoalCategoryId, { current: number; longest: number; lastCompletedDate: string }>,
+      tasbeehRecords:   {},
     };
   }, []);
 
