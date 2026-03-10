@@ -226,7 +226,8 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
               className="dhikr-card"
               style={{
                 flexShrink: 0,
-                width: 140,
+                minWidth: 100,
+                maxWidth: 160,
                 padding: '8px 12px',
                 borderRadius: 16,
                 background: sel ? ACCENT : done ? '#ecfdf5' : '#f8fafc',
@@ -241,9 +242,9 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
               }}
             >
               <p style={{
-                margin: 0, fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap',
+                margin: 0, fontSize: 12, fontWeight: 900, whiteSpace: 'normal',
                 color: sel ? '#fff' : done ? ACCENT : '#64748b',
-                textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis',
+                textAlign: 'center', wordBreak: 'break-word', lineHeight: 1.3,
               }}>
                 {done && !sel ? '✓ ' : ''}{nm}
               </p>
