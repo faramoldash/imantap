@@ -202,8 +202,9 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
           marginBottom: 24,
           marginLeft: -16,
           marginRight: -16,
-          paddingLeft: `calc(50vw - 90px)`,
-          paddingRight: `calc(50vw - 90px)`,
+          paddingLeft: `calc(50vw - 80px)`,
+          paddingRight: `calc(50vw - 80px)`,
+          paddingTop: 4,
           scrollbarWidth: 'none' as any,
           WebkitOverflowScrolling: 'touch' as any,
           scrollSnapType: 'x mandatory',
@@ -225,9 +226,9 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
               className="dhikr-card"
               style={{
                 flexShrink: 0,
-                width: 160,
-                padding: '12px 16px',
-                borderRadius: 20,
+                width: 140,
+                padding: '8px 12px',
+                borderRadius: 16,
                 background: sel ? ACCENT : done ? '#ecfdf5' : '#f8fafc',
                 border: `1.5px solid ${sel ? ACCENT : done ? ACCENT + '55' : '#e2e8f0'}`,
                 cursor: 'pointer',
@@ -240,21 +241,21 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
               }}
             >
               <p style={{
-                margin: 0, fontSize: 13, fontWeight: 900, whiteSpace: 'nowrap',
+                margin: 0, fontSize: 12, fontWeight: 900, whiteSpace: 'nowrap',
                 color: sel ? '#fff' : done ? ACCENT : '#64748b',
                 textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
                 {done && !sel ? '✓ ' : ''}{nm}
               </p>
               <p style={{
-                margin: '4px 0 0', fontSize: 11, textAlign: 'center',
+                margin: '4px 0 0', fontSize: 10, textAlign: 'center',
                 color: sel ? 'rgba(255,255,255,.75)' : '#94a3b8', fontWeight: 600,
               }}>
                 {record.counts[d.id] ?? 0}/{d.target}
               </p>
               {(totals[d.id] ?? 0) > 0 && (
                 <p style={{
-                  margin: '2px 0 0', fontSize: 10, textAlign: 'center',
+                  margin: '2px 0 0', fontSize: 9, textAlign: 'center',
                   color: sel ? 'rgba(255,255,255,.5)' : '#cbd5e1',
                 }}>
                   {lang === 'kk' ? 'жалпы: ' : 'всего: '}{totals[d.id]}
