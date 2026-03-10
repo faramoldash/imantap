@@ -227,7 +227,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
               style={{
                 flexShrink: 0,
                 minWidth: 100,
-                maxWidth: 160,
+                maxWidth: 200,
                 padding: '8px 12px',
                 borderRadius: 16,
                 background: sel ? ACCENT : done ? '#ecfdf5' : '#f8fafc',
