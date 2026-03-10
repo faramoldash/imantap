@@ -77,11 +77,6 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
         haptic('success');
         setFlash(true);
         setTimeout(() => setFlash(false), 700);
-        setTimeout(() => {
-          if ((window as any).showXPNotification) {
-            (window as any).showXPNotification(dhikr.xp, 1.0);
-          }
-        }, 100);
       }
 
       return {
