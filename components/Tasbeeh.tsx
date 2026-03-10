@@ -330,7 +330,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
           <button
             type="button"
             className="tasbeeh-btn"
-            onClick={() => { setTapping(true); setTimeout(() => setTapping(false), 150); handleTap(); }}
+            onClick={handleTap}
             style={{
               position: 'absolute',
               top:    BTN_OFFSET,
