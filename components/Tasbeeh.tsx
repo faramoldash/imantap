@@ -198,7 +198,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
               {(totals[d.id] ?? 0) > 0 && (
                 <p style={{ margin:'1px 0 0', fontSize:9, textAlign:'center',
                   color: sel ? 'rgba(255,255,255,.45)' : '#cbd5e1' }}>
-                  ∑ {totals[d.id]}
+                  {lang === 'kk' ? 'барлығы: ' : 'всего: '}{totals[d.id]}
                 </p>
               )}
             </button>
