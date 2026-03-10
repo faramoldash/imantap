@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { UserData, Language } from '../src/types/types';
 import { DHIKRS } from '../constants';
 
@@ -40,6 +40,22 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
   const [tapping,    setTapping]    = useState(false);
   const [flash,      setFlash]      = useState(false);
   const processingRef               = useRef(false);
+  const carouselRef                 = useRef<HTMLDivElement>(null);
+
+  const scrollToCard = useCallback((index: number) => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+    const card = carousel.children[index] as HTMLElement;
+    if (!card) return;
+    const carouselCenter = carousel.offsetWidth / 2;
+    const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+    carousel.scrollTo({ left: cardCenter - carouselCenter, behavior: 'smooth' });
+  }, []);
+
+  useEffect(() => {
+    const index = DHIKRS.findIndex(d => d.id === selectedId);
+    if (index >= 0) setTimeout(() => scrollToCard(index), 100);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const day   = todayStr();
   const dhikr = DHIKRS.find(d => d.id === selectedId)!;
@@ -171,34 +187,77 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
       </div>
 
       {/* ── Выбор зікіра ── */}
-      <div style={{ display:'flex', gap:8, overflowX:'auto', paddingBottom:6,
-        marginBottom:24, WebkitOverflowScrolling:'touch' as any, scrollbarWidth:'none' as any }}>
-        {DHIKRS.map(d => {
+      <style>{`
+        .tasbeeh-carousel::-webkit-scrollbar { display: none; }
+        .dhikr-card { transition: all .2s ease; }
+      `}</style>
+      <div
+        ref={carouselRef}
+        className="tasbeeh-carousel"
+        style={{
+          display: 'flex',
+          gap: 10,
+          overflowX: 'auto',
+          paddingBottom: 8,
+          marginBottom: 24,
+          marginLeft: -16,
+          marginRight: -16,
+          paddingLeft: `calc(50vw - 90px)`,
+          paddingRight: `calc(50vw - 90px)`,
+          scrollbarWidth: 'none' as any,
+          WebkitOverflowScrolling: 'touch' as any,
+          scrollSnapType: 'x mandatory',
+        }}
+      >
+        {DHIKRS.map((d, index) => {
           const sel  = d.id === selectedId;
           const done = record.completedIds.includes(d.id);
           const nm   = lang === 'kk' ? d.name_kk : d.name_ru;
           return (
-            <button key={d.id} type="button" onClick={() => setSelectedId(d.id)}
+            <button
+              key={d.id}
+              type="button"
+              data-index={index}
+              onClick={() => {
+                setSelectedId(d.id);
+                scrollToCard(index);
+              }}
+              className="dhikr-card"
               style={{
-                flexShrink:0, padding:'10px 16px', borderRadius:20,
+                flexShrink: 0,
+                width: 160,
+                padding: '12px 16px',
+                borderRadius: 20,
                 background: sel ? ACCENT : done ? '#ecfdf5' : '#f8fafc',
-                border: `1.5px solid ${sel ? ACCENT : done ? ACCENT+'55' : '#f1f5f9'}`,
-                cursor:'pointer', touchAction:'manipulation',
-                WebkitTapHighlightColor:'transparent', transition:'all .15s',
+                border: `1.5px solid ${sel ? ACCENT : done ? ACCENT + '55' : '#e2e8f0'}`,
+                cursor: 'pointer',
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent',
+                scrollSnapAlign: 'center',
+                transform: sel ? 'scale(1.04)' : 'scale(0.96)',
+                opacity: sel ? 1 : 0.75,
+                boxShadow: sel ? `0 4px 16px ${ACCENT}33` : 'none',
               }}
             >
-              <p style={{ margin:0, fontSize:11, fontWeight:900, whiteSpace:'nowrap',
-                color: sel ? '#fff' : done ? ACCENT : '#64748b' }}>
+              <p style={{
+                margin: 0, fontSize: 13, fontWeight: 900, whiteSpace: 'nowrap',
+                color: sel ? '#fff' : done ? ACCENT : '#64748b',
+                textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
                 {done && !sel ? '✓ ' : ''}{nm}
               </p>
-              <p style={{ margin:'2px 0 0', fontSize:10, textAlign:'center',
-                color: sel ? 'rgba(255,255,255,.65)' : '#94a3b8' }}>
+              <p style={{
+                margin: '4px 0 0', fontSize: 11, textAlign: 'center',
+                color: sel ? 'rgba(255,255,255,.75)' : '#94a3b8', fontWeight: 600,
+              }}>
                 {record.counts[d.id] ?? 0}/{d.target}
               </p>
               {(totals[d.id] ?? 0) > 0 && (
-                <p style={{ margin:'1px 0 0', fontSize:9, textAlign:'center',
-                  color: sel ? 'rgba(255,255,255,.45)' : '#cbd5e1' }}>
-                  {lang === 'kk' ? 'барлығы: ' : 'всего: '}{totals[d.id]}
+                <p style={{
+                  margin: '2px 0 0', fontSize: 10, textAlign: 'center',
+                  color: sel ? 'rgba(255,255,255,.5)' : '#cbd5e1',
+                }}>
+                  {lang === 'kk' ? 'жалпы: ' : 'всего: '}{totals[d.id]}
                 </p>
               )}
             </button>
