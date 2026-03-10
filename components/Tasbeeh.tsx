@@ -52,6 +52,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
   const count    = record.counts[selectedId] ?? 0;
   const xpEarned = record.completedIds.includes(selectedId);
   const xpToday  = record.xpEarned;
+  const totals = userData.tasbeehTotals || {};
 
   // Кольцо продолжает крутиться после target (по кругу заново)
   const ringCount    = count === 0 ? 0 : count <= dhikr.target
@@ -79,9 +80,14 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
         setTimeout(() => setFlash(false), 700);
       }
 
+      const prevTotals = prev.tasbeehTotals || {};
       return {
         ...prev,
         xp: (prev.xp ?? 0) + (justHitTarget ? dhikr.xp : 0),
+        tasbeehTotals: {
+          ...prevTotals,
+          [selectedId]: (prevTotals[selectedId] ?? 0) + 1,
+        },
         tasbeehRecords: {
           ...(prev.tasbeehRecords ?? {}),
           [day]: {
@@ -101,9 +107,15 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
       const prevRec: TasbeehRecord = (prev.tasbeehRecords as any)?.[day]
         ?? { counts: {}, completedIds: [], xpEarned: 0 };
       const wasCompleted = prevRec.completedIds.includes(selectedId);
+      const prevTotals = prev.tasbeehTotals || {};
+      const currentCount = prevRec.counts[selectedId] ?? 0;
       return {
         ...prev,
         xp: Math.max(0, (prev.xp ?? 0) - (wasCompleted ? dhikr.xp : 0)),
+        tasbeehTotals: {
+          ...prevTotals,
+          [selectedId]: Math.max(0, (prevTotals[selectedId] ?? 0) - currentCount),
+        },
         tasbeehRecords: {
           ...(prev.tasbeehRecords ?? {}),
           [day]: {
@@ -144,10 +156,6 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
       }}>
         <div style={{ position:'absolute', top:-30, right:-30, width:110, height:110,
           borderRadius:'50%', background:'rgba(16,185,129,0.10)', pointerEvents:'none' }} />
-        <p style={{ fontSize:10, fontWeight:900, color:'#475569',
-          textTransform:'uppercase', letterSpacing:'0.12em', margin:'0 0 5px' }}>
-          📿 {lang === 'kk' ? 'Тасбих' : 'Тасбих'}
-        </p>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <p style={{ fontSize:22, fontWeight:900, color:'#fff', margin:0 }}>
             {lang === 'kk' ? 'Зікір санағышы' : 'Счётчик зикра'}
@@ -187,6 +195,12 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
                 color: sel ? 'rgba(255,255,255,.65)' : '#94a3b8' }}>
                 {record.counts[d.id] ?? 0}/{d.target}
               </p>
+              {(totals[d.id] ?? 0) > 0 && (
+                <p style={{ margin:'1px 0 0', fontSize:9, textAlign:'center',
+                  color: sel ? 'rgba(255,255,255,.45)' : '#cbd5e1' }}>
+                  ∑ {totals[d.id]}
+                </p>
+              )}
             </button>
           );
         })}

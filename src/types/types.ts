@@ -135,6 +135,7 @@ export interface UserData {
     completedIds: string[];             // какие зикры закрыты по target
     xpEarned: number;                   // XP набранный только за тасбих за день
   }>;
+  tasbeehTotals?: Record<string, number>;
   dailyGoalRecords?: Record<string, DailyGoalRecord[]>;
   goalCustomItems?: Record<GoalCategoryId, CustomGoalItem[]>;
   goalStreaks?: Record<GoalCategoryId, {

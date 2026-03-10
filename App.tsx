@@ -54,7 +54,8 @@ function normalizeUserData(raw: UserData): UserData {
     progress:            raw.progress            || {},
     preparationProgress: raw.preparationProgress || {},
     basicProgress:       raw.basicProgress       || {},
-    tasbeehRecords:      raw.tasbeehRecords      || {},
+    tasbeehRecords: raw.tasbeehRecords || {},
+    tasbeehTotals: raw.tasbeehTotals || {},
     dailyGoalRecords:    raw.dailyGoalRecords     || {},
     goalCustomItems:    (raw.goalCustomItems      || {}) as Record<GoalCategoryId, CustomGoalItem[]>,
     goalStreaks: (raw.goalStreaks || {}) as Record<GoalCategoryId, { current: number; longest: number; lastCompletedDate: string }>,
@@ -309,6 +310,7 @@ const App: React.FC = () => {
       longestStreak: data.longestStreak,
       lastActiveDate: data.lastActiveDate,
       tasbeehRecords: data.tasbeehRecords || {},
+      tasbeehTotals: data.tasbeehTotals || {},
       dailyGoalRecords: data.dailyGoalRecords || {},
       goalCustomItems: data.goalCustomItems || {},
       goalStreaks: data.goalStreaks || {},
@@ -415,6 +417,7 @@ const App: React.FC = () => {
         goalCustomItems: userDataRef.current.goalCustomItems || {},
         goalStreaks: userDataRef.current.goalStreaks || {},
         tasbeehRecords: userDataRef.current.tasbeehRecords || {},
+        tasbeehTotals: userDataRef.current.tasbeehTotals || {},
       });
       const url = `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`;
       if (navigator.sendBeacon) {
