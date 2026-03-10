@@ -81,42 +81,57 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
   const handleTap = useCallback(() => {
     if (processingRef.current) return;
 
-    // 1. Визуальный feedback сразу
     setTapping(true);
     setFlash(true);
     setTimeout(() => setTapping(false), 80);
     setTimeout(() => setFlash(false), 150);
 
-    // 2. Накапливаем тапы локально
     pendingCountRef.current += 1;
 
-    // 3. Сбрасываем предыдущий таймер и ставим новый
     if (flushTimerRef.current) clearTimeout(flushTimerRef.current);
 
     flushTimerRef.current = setTimeout(() => {
-      const count = pendingCountRef.current;
-      if (count === 0) return;
+      const taps = pendingCountRef.current;
+      if (taps === 0) return;
       pendingCountRef.current = 0;
-
       processingRef.current = true;
 
       setUserData((prev: UserData) => {
-        const today = new Date().toISOString().split('T')[0];
-        const dhikrs = { ...(prev.dhikrs ?? {}) };
-        const entry  = { ...(dhikrs[selectedId] ?? { total: 0, dailyCounts: {} }) };
-        const daily  = { ...(entry.dailyCounts ?? {}) };
+        const today = todayStr(); // используем ту же функцию что и day
+        const prevRec: TasbeehRecord = (prev.tasbeehRecords as any)?.[today]
+          ?? { counts: {}, completedIds: [], xpEarned: 0 };
 
-        daily[today]   = (daily[today] ?? 0) + count;
-        entry.total    = (entry.total ?? 0) + count;
-        entry.dailyCounts = daily;
-        dhikrs[selectedId] = entry;
+        const prevCount  = prevRec.counts[selectedId] ?? 0;
+        const newCount   = prevCount + taps;
+        const wasCompleted = prevRec.completedIds.includes(selectedId);
+        const nowCompleted = newCount >= dhikr.target;
+        const justCompleted = nowCompleted && !wasCompleted;
 
-        return { ...prev, dhikrs };
+        const prevTotals = prev.tasbeehTotals || {};
+
+        return {
+          ...prev,
+          xp: (prev.xp ?? 0) + (justCompleted ? dhikr.xp : 0),
+          tasbeehTotals: {
+            ...prevTotals,
+            [selectedId]: (prevTotals[selectedId] ?? 0) + taps,
+          },
+          tasbeehRecords: {
+            ...(prev.tasbeehRecords ?? {}),
+            [today]: {
+              counts: { ...prevRec.counts, [selectedId]: newCount },
+              completedIds: justCompleted
+                ? [...prevRec.completedIds, selectedId]
+                : prevRec.completedIds,
+              xpEarned: prevRec.xpEarned + (justCompleted ? dhikr.xp : 0),
+            },
+          },
+        };
       });
 
       setTimeout(() => { processingRef.current = false; }, 100);
-    }, 300); // ждём 300ms после последнего тапа
-  }, [selectedId, setUserData]);
+    }, 300);
+  }, [selectedId, dhikr, setUserData]);
 
   const handleReset = useCallback(() => {
     setUserData(prev => {
