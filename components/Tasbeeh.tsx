@@ -40,6 +40,8 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
   const [tapping,    setTapping]    = useState(false);
   const [flash,      setFlash]      = useState(false);
   const processingRef               = useRef(false);
+  const pendingCountRef = useRef(0);
+  const flushTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
   const carouselRef                 = useRef<HTMLDivElement>(null);
 
   const scrollToCard = useCallback((index: number) => {
@@ -78,45 +80,43 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
 
   const handleTap = useCallback(() => {
     if (processingRef.current) return;
-    processingRef.current = true;
-    setTimeout(() => { processingRef.current = false; }, 80);
-    haptic('light');
 
-    setUserData(prev => {
-      const prevRec: TasbeehRecord = (prev.tasbeehRecords as any)?.[day]
-        ?? { counts: {}, completedIds: [], xpEarned: 0 };
-      const prevCount     = prevRec.counts[selectedId] ?? 0;
-      const newCount      = prevCount + 1;
-      const justHitTarget = newCount === dhikr.target &&
-        !prevRec.completedIds.includes(selectedId);
+    // 1. Визуальный feedback сразу
+    setTapping(true);
+    setFlash(true);
+    setTimeout(() => setTapping(false), 80);
+    setTimeout(() => setFlash(false), 150);
 
-      if (justHitTarget) {
-        haptic('success');
-        setFlash(true);
-        setTimeout(() => setFlash(false), 700);
-      }
+    // 2. Накапливаем тапы локально
+    pendingCountRef.current += 1;
 
-      const prevTotals = prev.tasbeehTotals || {};
-      return {
-        ...prev,
-        xp: (prev.xp ?? 0) + (justHitTarget ? dhikr.xp : 0),
-        tasbeehTotals: {
-          ...prevTotals,
-          [selectedId]: (prevTotals[selectedId] ?? 0) + 1,
-        },
-        tasbeehRecords: {
-          ...(prev.tasbeehRecords ?? {}),
-          [day]: {
-            counts:       { ...prevRec.counts, [selectedId]: newCount },
-            completedIds: justHitTarget
-              ? [...prevRec.completedIds, selectedId]
-              : prevRec.completedIds,
-            xpEarned: prevRec.xpEarned + (justHitTarget ? dhikr.xp : 0),
-          },
-        },
-      };
-    });
-  }, [selectedId, dhikr, day, setUserData]);
+    // 3. Сбрасываем предыдущий таймер и ставим новый
+    if (flushTimerRef.current) clearTimeout(flushTimerRef.current);
+
+    flushTimerRef.current = setTimeout(() => {
+      const count = pendingCountRef.current;
+      if (count === 0) return;
+      pendingCountRef.current = 0;
+
+      processingRef.current = true;
+
+      setUserData((prev: UserData) => {
+        const today = new Date().toISOString().split('T')[0];
+        const dhikrs = { ...(prev.dhikrs ?? {}) };
+        const entry  = { ...(dhikrs[selectedId] ?? { total: 0, dailyCounts: {} }) };
+        const daily  = { ...(entry.dailyCounts ?? {}) };
+
+        daily[today]   = (daily[today] ?? 0) + count;
+        entry.total    = (entry.total ?? 0) + count;
+        entry.dailyCounts = daily;
+        dhikrs[selectedId] = entry;
+
+        return { ...prev, dhikrs };
+      });
+
+      setTimeout(() => { processingRef.current = false; }, 100);
+    }, 300); // ждём 300ms после последнего тапа
+  }, [selectedId, setUserData]);
 
   const handleReset = useCallback(() => {
     setUserData(prev => {

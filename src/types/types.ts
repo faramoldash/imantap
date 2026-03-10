@@ -136,6 +136,12 @@ export interface UserData {
     xpEarned: number;                   // XP набранный только за тасбих за день
   }>;
   tasbeehTotals?: Record<string, number>;
+  dhikrs?: {
+    [dhikrId: string]: {
+      total: number;
+      dailyCounts: { [date: string]: number };
+    };
+  };
   dailyGoalRecords?: Record<string, DailyGoalRecord[]>;
   goalCustomItems?: Record<GoalCategoryId, CustomGoalItem[]>;
   goalStreaks?: Record<GoalCategoryId, {
