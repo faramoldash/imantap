@@ -38,7 +38,6 @@ const BTN_OFFSET = (220 - BTN_SIZE) / 2;
 const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => {
   const [selectedId, setSelectedId] = useState(DHIKRS[0].id);
   const [tapping,    setTapping]    = useState(false);
-  const [flash,      setFlash]      = useState(false);
   const processingRef               = useRef(false);
   const pendingCountRef = useRef(0);
   const flushTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -82,9 +81,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
     if (processingRef.current) return;
 
     setTapping(true);
-    setFlash(true);
     setTimeout(() => setTapping(false), 80);
-    setTimeout(() => setFlash(false), 150);
 
     pendingCountRef.current += 1;
 
@@ -177,6 +174,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
           100% { transform: scale(1); opacity: 1; }
         }
         .tasbeeh-btn:active { transform: scale(0.94) !important; }
+        .tasbeeh-btn.flash  { animation: flashGlow .3s ease; }
       `}</style>
 
       {/* ── Шапка ── */}
@@ -321,7 +319,6 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
                 transform: 'rotate(-90deg)',
                 transformOrigin: '110px 110px',
                 transition: 'stroke-dashoffset .25s ease',
-                ...(flash ? { animation: 'flashGlow .7s ease' } : {}),
               }}
             />
           </svg>
@@ -329,7 +326,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
           {/* Кнопка (меньше SVG, кольцо всегда видно) */}
           <button
             type="button"
-            className="tasbeeh-btn"
+            className={`tasbeeh-btn${tapping ? ' flash' : ''}`}
             onClick={handleTap}
             style={{
               position: 'absolute',
