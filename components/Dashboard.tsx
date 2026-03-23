@@ -220,11 +220,11 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       console.log('🌙 response data:', data);
 
-      if (data.success && !data.alreadyMarked && setUserData && userData) {
+      if (data.success && setUserData && userData) {
         setUserData({ 
           ...userData, 
           shawwalFasts: data.shawwalFasts,
-          shawwalDates: data.shawwalDates
+          shawwalDates: data.shawwalDates || (userData as any).shawwalDates || []
         });
       }
       if (data.alreadyMarked) {
