@@ -97,6 +97,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const [shawwalLoading, setShawwalLoading] = useState(false);
   const [shawwalMarkedToday, setShawwalMarkedToday] = useState(false);
+  const [shawwalSelectedDate, setShawwalSelectedDate] = useState<string>('');
 
   // Проверяем все ли имена выучены
   const allNamesLearned = (userData?.memorizedNames?.length || 0) === 99;
@@ -194,27 +195,32 @@ const Dashboard: React.FC<DashboardProps> = ({
     onDaySelect(currentDay);
   };
 
-  const markShawwalFast = async () => {
-    if (shawwalLoading || shawwalMarkedToday) return;
+  const markShawwalFast = async (dateStr?: string) => {
+    if (shawwalLoading) return;
     haptics.success();
     setShawwalLoading(true);
     try {
       const tg = (window as any).Telegram?.WebApp;
       const userId = tg?.initDataUnsafe?.user?.id;
       const BOT_API = import.meta.env.VITE_API_URL || 'https://your-bot-url.railway.app';
-      
+
       const res = await fetch(`${BOT_API}/shawwal-fast`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId })
+        body: JSON.stringify({ userId, date: dateStr || null })
       });
       const data = await res.json();
-      
+
       if (data.success && !data.alreadyMarked && setUserData && userData) {
-        setUserData({ ...userData, shawwalFasts: data.shawwalFasts });
+        setUserData({ 
+          ...userData, 
+          shawwalFasts: data.shawwalFasts,
+          shawwalDates: data.shawwalDates
+        });
+        setShawwalSelectedDate('');
       }
       if (data.alreadyMarked) {
-        setShawwalMarkedToday(true);
+        haptics.light();
       }
     } catch (e) {
       console.error('Shawwal error:', e);
@@ -473,25 +479,81 @@ const Dashboard: React.FC<DashboardProps> = ({
                   ))}
                 </div>
 
+                {/* Выбор даты — прошлые дни */}
+                {(() => {
+                  const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                  const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
+                  const shawwalDates = (userData as any)?.shawwalDates || [];
+
+                  // Генерируем доступные дни с 21 марта до сегодня
+                  const dates: string[] = [];
+                  const start = new Date('2026-03-21T00:00:00');
+                  const today = new Date(todayStr + 'T00:00:00');
+                  for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+                    dates.push(d.toLocaleDateString('en-CA'));
+                  }
+
+                  // Фильтруем — только незаотмеченные
+                  const available = dates.filter(d => !shawwalDates.includes(d));
+
+                  if (available.length === 0) return null;
+
+                  return (
+                    <div className="mb-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2">
+                        {language === 'kk' ? 'Күнді таңдаңыз' : 'Выберите день'}
+                      </p>
+                      <div className="flex gap-2 flex-wrap">
+                        {available.map(d => {
+                          const date = new Date(d + 'T00:00:00');
+                          const isSelected = shawwalSelectedDate === d;
+                          const isToday_ = d === todayStr;
+                          return (
+                            <button
+                              key={d}
+                              onClick={() => setShawwalSelectedDate(isSelected ? '' : d)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all ${
+                                isSelected
+                                  ? 'bg-white text-teal-700 border-white'
+                                  : 'bg-white/10 border-white/30 text-white active:scale-95'
+                              }`}
+                            >
+                              {isToday_
+                                ? (language === 'kk' ? 'Бүгін' : 'Сегодня')
+                                : `${date.getDate()} ${language === 'kk'
+                                    ? ['қаң','ақп','нау','сәу','мам','мау','шіл','там','қыр','қаз','қар','жел'][date.getMonth()]
+                                    : ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'][date.getMonth()]
+                                  }`
+                              }
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Кнопка */}
-                {isToday && (
-                  <button
-                    onClick={markShawwalFast}
-                    disabled={shawwalLoading || shawwalMarkedToday}
-                    className={`w-full font-black py-3 rounded-2xl transition-all shadow-lg text-sm ${
-                      shawwalMarkedToday
-                        ? 'bg-white/30 text-white/60 cursor-not-allowed'
-                        : 'bg-white text-teal-700 active:scale-95'
-                    }`}
-                  >
-                    {shawwalLoading
-                      ? '⏳ ...'
-                      : shawwalMarkedToday
-                      ? (language === 'kk' ? '✅ Бүгін белгіленді' : '✅ Уже отмечено сегодня')
-                      : `🌙 ${language === 'kk' ? 'Ораза ұстадым' : 'Я держал пост'}`
-                    }
-                  </button>
-                )}
+                <button
+                  onClick={() => markShawwalFast(shawwalSelectedDate || undefined)}
+                  disabled={shawwalLoading || !shawwalSelectedDate && (() => {
+                    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
+                    return ((userData as any)?.shawwalDates || []).includes(todayStr);
+                  })()}
+                  className={`w-full font-black py-3 rounded-2xl transition-all shadow-lg text-sm ${
+                    shawwalLoading
+                      ? 'bg-white/30 text-white/60 cursor-not-allowed'
+                      : 'bg-white text-teal-700 active:scale-95'
+                  }`}
+                >
+                  {shawwalLoading
+                    ? '⏳ ...'
+                    : shawwalSelectedDate
+                    ? `🌙 ${shawwalSelectedDate} — ${language === 'kk' ? 'белгілеу' : 'отметить'}`
+                    : `🌙 ${language === 'kk' ? 'Бүгін ораза ұстадым' : 'Сегодня держал пост'}`
+                  }
+                </button>
               </>
             )}
           </div>
