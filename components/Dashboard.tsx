@@ -76,11 +76,28 @@ const Dashboard: React.FC<DashboardProps> = ({
                                    userData.daysLeft <= 3 && 
                                    userData.daysLeft > 0;
 
+  // Shawwal
+  const SHAWWAL_START_DATE = '2026-03-21';
+  const SHAWWAL_END_DATE = '2026-04-19';
+  const shawwalCompleted = userData?.shawwalFasts || 0;
+  const isShawwalActive = (() => {
+    const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
+    return todayStr >= SHAWWAL_START_DATE &&
+           todayStr <= SHAWWAL_END_DATE &&
+           shawwalCompleted < 6;
+  })();
+  const isShawwalDone = shawwalCompleted >= 6;
+
   const t = TRANSLATIONS[language];
   // ✅ Состояние для управления видимыми именами
   const [visibleNames, setVisibleNames] = useState<typeof NAMES_99>([]);
   const [fadingOutId, setFadingOutId] = useState<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+
+  const [shawwalLoading, setShawwalLoading] = useState(false);
+  const [shawwalMarkedToday, setShawwalMarkedToday] = useState(false);
+
   // Проверяем все ли имена выучены
   const allNamesLearned = (userData?.memorizedNames?.length || 0) === 99;
   // ✅ REF для шапки трекера
@@ -175,6 +192,35 @@ const Dashboard: React.FC<DashboardProps> = ({
     hasNavigated.current = true;
     haptics.medium();
     onDaySelect(currentDay);
+  };
+
+  const markShawwalFast = async () => {
+    if (shawwalLoading || shawwalMarkedToday) return;
+    haptics.success();
+    setShawwalLoading(true);
+    try {
+      const tg = (window as any).Telegram?.WebApp;
+      const userId = tg?.initDataUnsafe?.user?.id;
+      const BOT_API = import.meta.env.VITE_API_URL || 'https://your-bot-url.railway.app';
+      
+      const res = await fetch(`${BOT_API}/shawwal-fast`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      const data = await res.json();
+      
+      if (data.success && !data.alreadyMarked && setUserData && userData) {
+        setUserData({ ...userData, shawwalFasts: data.shawwalFasts });
+      }
+      if (data.alreadyMarked) {
+        setShawwalMarkedToday(true);
+      }
+    } catch (e) {
+      console.error('Shawwal error:', e);
+    } finally {
+      setShawwalLoading(false);
+    }
   };
 
   console.log('📅 DASHBOARD:', {
@@ -366,6 +412,88 @@ const Dashboard: React.FC<DashboardProps> = ({
             >
               {userData.language === 'kk' ? 'Жаңарту' : 'Продлить'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 🌙 Shawwal Banner */}
+      {(isShawwalActive || isShawwalDone) && (
+        <div className={`p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden border-2 ${
+          isShawwalDone
+            ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-200'
+            : 'bg-gradient-to-br from-teal-800 to-teal-600 border-teal-500'
+        } text-white`}>
+          <div className="absolute top-0 right-0 p-8 opacity-10 text-8xl">🌙</div>
+
+          <div className="relative z-10">
+            {isShawwalDone ? (
+              <div className="text-center">
+                <p className="text-3xl mb-2">🎉</p>
+                <h3 className="text-lg font-black">
+                  {language === 'kk' ? 'Шаууал оразасы аяқталды!' : 'Пост Шавваля завершён!'}
+                </h3>
+                <p className="text-sm font-bold opacity-80 mt-1">
+                  {language === 'kk' ? 'МашаАллаһ! 6/6 ораза ұсталды 🤲' : 'МашаАллаh! 6/6 постов соблюдено 🤲'}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">
+                      {language === 'kk' ? 'Шаууал оразасы' : 'Пост Шавваля'}
+                    </p>
+                    <h3 className="text-xl font-black">
+                      {shawwalCompleted} / 6 {language === 'kk' ? 'ораза' : 'постов'}
+                    </h3>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/30">
+                    <p className="text-xs font-black">{6 - shawwalCompleted} {language === 'kk' ? 'қалды' : 'осталось'}</p>
+                  </div>
+                </div>
+
+                {/* Прогресс-бар */}
+                <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden mb-4">
+                  <div
+                    className="h-full bg-white transition-all duration-700 ease-out rounded-full"
+                    style={{ width: `${(shawwalCompleted / 6) * 100}%` }}
+                  />
+                </div>
+
+                {/* 6 кружков */}
+                <div className="flex justify-between mb-5">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black border-2 transition-all ${
+                      i < shawwalCompleted
+                        ? 'bg-white text-teal-700 border-white shadow-lg'
+                        : 'bg-white/10 border-white/30 text-white/50'
+                    }`}>
+                      {i < shawwalCompleted ? '✓' : i + 1}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Кнопка */}
+                {isToday && (
+                  <button
+                    onClick={markShawwalFast}
+                    disabled={shawwalLoading || shawwalMarkedToday}
+                    className={`w-full font-black py-3 rounded-2xl transition-all shadow-lg text-sm ${
+                      shawwalMarkedToday
+                        ? 'bg-white/30 text-white/60 cursor-not-allowed'
+                        : 'bg-white text-teal-700 active:scale-95'
+                    }`}
+                  >
+                    {shawwalLoading
+                      ? '⏳ ...'
+                      : shawwalMarkedToday
+                      ? (language === 'kk' ? '✅ Бүгін белгіленді' : '✅ Уже отмечено сегодня')
+                      : `🌙 ${language === 'kk' ? 'Ораза ұстадым' : 'Я держал пост'}`
+                    }
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
       )}

@@ -101,7 +101,8 @@ export interface UserData {
   progress: Record<number, DayProgress>;
   preparationProgress: Record<number, DayProgress>;
   basicProgress: Record<string, Partial<DayProgress>>;
-  memorizedNames: number[]; 
+  memorizedNames: number[];
+  shawwalFasts?: number;
   completedJuzs: number[];
   earnedJuzXpIds: number[]; 
   quranKhatams: number; // Number of times Quran was completed
