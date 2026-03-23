@@ -22,6 +22,7 @@ import { useAppInitialization } from './src/hooks/useAppInitialization';
 import CirclesView from './components/CirclesView';
 import { getUserCircles } from './src/services/api';
 import { PREPARATION_START_DATE } from './constants';
+import PrayerTimesCard from './components/PrayerTimesCard';
 
 interface BackendUserData {
   userId: string;
@@ -714,7 +715,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <header className="px-6 pt-16 pb-12 text-center bg-gradient-to-b from-emerald-900 to-emerald-800 rounded-b-[3rem] shadow-xl relative overflow-hidden">
+      <header className="px-6 pt-16 pb-4 text-center bg-gradient-to-b from-emerald-900 to-emerald-800 rounded-b-[3rem] shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10"><span className="text-9xl">🌙</span></div>
         <div className="flex justify-center mb-4 relative z-10">
           <div
@@ -725,9 +726,11 @@ const App: React.FC = () => {
             <span className="text-white font-black text-sm">{userData.xp} XP</span>
           </div>
         </div>
-        <h1 className="text-2xl font-black text-white tracking-tight leading-tight uppercase relative z-10 whitespace-pre-line px-4">
-          {ramadanInfo.isStarted ? t.ramadanStartedTitle : t.preRamadanTitle}
-        </h1>
+        <PrayerTimesCard
+          prayerTimes={(userData as any)?.prayerTimes || null}
+          language={lang}
+          city={(userData as any)?.location?.city || 'Астана'}
+        />
         {currentView !== 'dashboard' && (
           <button
             onClick={() => setCurrentView('dashboard')}
