@@ -419,88 +419,6 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       )}
 
-      {/* 🌙 Shawwal Banner */}
-      {(isShawwalActive || isShawwalDone) && (
-        <div className={`p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden border-2 ${
-          isShawwalDone
-            ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-200'
-            : 'bg-gradient-to-br from-teal-800 to-teal-600 border-teal-500'
-        } text-white`}>
-          <div className="absolute top-0 right-0 p-8 opacity-10 text-8xl">🌙</div>
-
-          <div className="relative z-10">
-            {isShawwalDone ? (
-              <div className="text-center">
-                <p className="text-3xl mb-2">🎉</p>
-                <h3 className="text-lg font-black">
-                  {language === 'kk' ? 'Шаууал оразасы аяқталды!' : 'Пост Шавваля завершён!'}
-                </h3>
-                <p className="text-sm font-bold opacity-80 mt-1">
-                  {language === 'kk' ? 'МашаАллаһ! 6/6 ораза ұсталды 🤲' : 'МашаАллаh! 6/6 постов соблюдено 🤲'}
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">
-                      {language === 'kk' ? 'Шаууал оразасы' : 'Пост Шавваля'}
-                    </p>
-                    <h3 className="text-xl font-black">
-                      {shawwalCompleted} / 6 {language === 'kk' ? 'ораза' : 'постов'}
-                    </h3>
-                  </div>
-                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/30">
-                    <p className="text-xs font-black">{6 - shawwalCompleted} {language === 'kk' ? 'қалды' : 'осталось'}</p>
-                  </div>
-                </div>
-
-                {/* Прогресс-бар */}
-                <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden mb-4">
-                  <div
-                    className="h-full bg-white transition-all duration-700 ease-out rounded-full"
-                    style={{ width: `${(shawwalCompleted / 6) * 100}%` }}
-                  />
-                </div>
-
-                {/* 6 кружков */}
-                <div className="flex justify-between mb-5">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black border-2 transition-all ${
-                      i < shawwalCompleted
-                        ? 'bg-white text-teal-700 border-white shadow-lg'
-                        : 'bg-white/10 border-white/30 text-white/50'
-                    }`}>
-                      {i < shawwalCompleted ? '✓' : i + 1}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Кнопка */}
-                {!isFutureDay && (
-                  <button
-                    onClick={() => markShawwalFast(toLocalDateStr(selectedDayInfo.selectedDate))}
-                    disabled={shawwalLoading || ((userData as any)?.shawwalDates || []).includes(toLocalDateStr(selectedDayInfo.selectedDate))}
-                    className={`w-full font-black py-3 rounded-2xl transition-all shadow-lg text-sm ${
-                      ((userData as any)?.shawwalDates || []).includes(toLocalDateStr(selectedDayInfo.selectedDate))
-                        ? 'bg-white/30 text-white/60 cursor-not-allowed'
-                        : 'bg-white text-teal-700 active:scale-95'
-                    }`}
-                  >
-                    {shawwalLoading
-                      ? '⏳ ...'
-                      : ((userData as any)?.shawwalDates || []).includes(toLocalDateStr(selectedDayInfo.selectedDate))
-                      ? (language === 'kk' ? '✅ Белгіленді' : '✅ Отмечено')
-                      : `🌙 ${language === 'kk' ? 'Ораза ұстадым' : 'Я держал пост'}`
-                    }
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Real-time Countdown Card */}
       {!ramadanInfo.isStarted && isToday && (
         <section className="bg-gradient-to-br from-emerald-950 to-emerald-900 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden text-center text-white border border-emerald-800 animate-in fade-in">
@@ -674,6 +592,88 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       </section>
+
+      {/* 🌙 Shawwal Banner */}
+      {(isShawwalActive || isShawwalDone) && (
+        <div className={`p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden border-2 ${
+          isShawwalDone
+            ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-200'
+            : 'bg-gradient-to-br from-teal-800 to-teal-600 border-teal-500'
+        } text-white`}>
+          <div className="absolute top-0 right-0 p-8 opacity-10 text-8xl">🌙</div>
+
+          <div className="relative z-10">
+            {isShawwalDone ? (
+              <div className="text-center">
+                <p className="text-3xl mb-2">🎉</p>
+                <h3 className="text-lg font-black">
+                  {language === 'kk' ? 'Шәууал оразасы аяқталды!' : 'Пост Шавваля завершён!'}
+                </h3>
+                <p className="text-sm font-bold opacity-80 mt-1">
+                  {language === 'kk' ? 'МашаАллаһ! 6/6 ораза ұсталды 🤲' : 'МашаАллаh! 6/6 постов соблюдено 🤲'}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">
+                      {language === 'kk' ? 'Шәууал оразасы' : 'Пост Шавваля'}
+                    </p>
+                    <h3 className="text-xl font-black">
+                      {shawwalCompleted} / 6 {language === 'kk' ? 'ораза' : 'постов'}
+                    </h3>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl px-4 py-2 border border-white/30">
+                    <p className="text-xs font-black">{6 - shawwalCompleted} {language === 'kk' ? 'қалды' : 'осталось'}</p>
+                  </div>
+                </div>
+
+                {/* Прогресс-бар */}
+                <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden mb-4">
+                  <div
+                    className="h-full bg-white transition-all duration-700 ease-out rounded-full"
+                    style={{ width: `${(shawwalCompleted / 6) * 100}%` }}
+                  />
+                </div>
+
+                {/* 6 кружков */}
+                <div className="flex justify-between mb-5">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black border-2 transition-all ${
+                      i < shawwalCompleted
+                        ? 'bg-white text-teal-700 border-white shadow-lg'
+                        : 'bg-white/10 border-white/30 text-white/50'
+                    }`}>
+                      {i < shawwalCompleted ? '✓' : i + 1}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Кнопка */}
+                {!isFutureDay && (
+                  <button
+                    onClick={() => markShawwalFast(toLocalDateStr(selectedDayInfo.selectedDate))}
+                    disabled={shawwalLoading || ((userData as any)?.shawwalDates || []).includes(toLocalDateStr(selectedDayInfo.selectedDate))}
+                    className={`w-full font-black py-3 rounded-2xl transition-all shadow-lg text-sm ${
+                      ((userData as any)?.shawwalDates || []).includes(toLocalDateStr(selectedDayInfo.selectedDate))
+                        ? 'bg-white/30 text-white/60 cursor-not-allowed'
+                        : 'bg-white text-teal-700 active:scale-95'
+                    }`}
+                  >
+                    {shawwalLoading
+                      ? '⏳ ...'
+                      : ((userData as any)?.shawwalDates || []).includes(toLocalDateStr(selectedDayInfo.selectedDate))
+                      ? (language === 'kk' ? '✅ Белгіленді' : '✅ Отмечено')
+                      : `🌙 ${language === 'kk' ? 'Ораза ұстадым' : 'Я держал пост'}`
+                    }
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ✅ СЧЁТЧИК STREAK с множителем - для текущего дня */}
       {isToday && userData?.currentStreak && userData.currentStreak > 0 && (
