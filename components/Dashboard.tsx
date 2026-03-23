@@ -197,17 +197,28 @@ const Dashboard: React.FC<DashboardProps> = ({
     if (shawwalLoading) return;
     haptics.success();
     setShawwalLoading(true);
+
+    console.log('🌙 markShawwalFast called, dateStr:', dateStr);
+
     try {
       const tg = (window as any).Telegram?.WebApp;
       const userId = tg?.initDataUnsafe?.user?.id;
       const BOT_API = import.meta.env.VITE_API_URL || 'https://your-bot-url.railway.app';
+
+      console.log('🌙 userId:', userId, 'BOT_API:', BOT_API);
+      console.log('🌙 sending to:', `${BOT_API}/shawwal-fast`);
 
       const res = await fetch(`${BOT_API}/shawwal-fast`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, date: dateStr || null })
       });
+
+      console.log('🌙 response status:', res.status);
+
       const data = await res.json();
+
+      console.log('🌙 response data:', data);
 
       if (data.success && !data.alreadyMarked && setUserData && userData) {
         setUserData({ 
@@ -220,7 +231,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         haptics.light();
       }
     } catch (e) {
-      console.error('Shawwal error:', e);
+      console.error('❌ Shawwal error:', e);
     } finally {
       setShawwalLoading(false);
     }
