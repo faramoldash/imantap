@@ -605,7 +605,12 @@ const Dashboard: React.FC<DashboardProps> = ({
       </section>
 
       {/* 🌙 Shawwal Banner */}
-      {(isShawwalActive || isShawwalDone) && (
+      {(isShawwalActive || isShawwalDone) && !isFutureDay && (() => {
+        const selectedDateStr = toLocalDateStr(selectedDayInfo.selectedDate);
+        const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
+        return selectedDateStr >= '2026-03-21' && todayStr <= '2026-04-19';
+      })() && (
         <div className={`p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden border-2 ${
           isShawwalDone
             ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-200'
