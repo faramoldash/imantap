@@ -98,39 +98,62 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
                 const serverData = result.data;
                 console.log('✅ Данные загружены с сервера');
 
-                // Мерджим локальные и серверные данные
+                // Мерджим данные: defaults → server. Каждое поле явное,
+                // чтобы null/undefined с сервера не затёр локальные данные.
                 finalUserData = {
-                  ...getDefaultUserData(), // Сначала дефолтные значения
-                  ...serverData, // ✅ Потом ВСЕ данные с сервера (перезаписывают дефолты)
+                  ...getDefaultUserData(), // Базовые дефолты для полей, которых нет на сервере
+                  ...serverData,           // Все поля с сервера поверх дефолтов
+                  // Явные overrides — гарантируем корректный тип и fallback
+                  // для каждого поля, которое сервер может вернуть null/undefined
+
+                  // Идентификация (всегда свежие данные из Telegram)
                   userId: userId,
-                  // Telegram данные всегда актуальные (перезаписываем поверх serverData)
-                  name: telegramUser?.first_name 
-                    ? `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim() 
+                  name: telegramUser?.first_name
+                    ? `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim()
                     : serverData.name || 'User',
                   username: telegramUser?.username ? `@${telegramUser.username}` : serverData.username,
                   photoUrl: telegramUser?.photo_url || serverData.photoUrl,
                   language: 'kk' as const,
-                  // ✅ КРИТИЧНО: НЕ перезаписываем registrationDate если он есть на сервере!
-                  registrationDate: serverData.registrationDate,  // ✅ Уже приходит правильная от getUserFullData
-                  // ✅ ЯВНО ГАРАНТИРУЕМ ВСЕ ПОЛЯ ПРОГРЕССА
-                  progress: serverData.progress || {},
-                  preparationProgress: serverData.preparationProgress || {},
-                  basicProgress: serverData.basicProgress || {},
+                  registrationDate: serverData.registrationDate,
+
+                  // Числовые поля — сервер авторитетен, fallback к 0
+                  xp: serverData.xp ?? 0,
                   currentStreak: serverData.currentStreak ?? 0,
                   longestStreak: serverData.longestStreak ?? 0,
-                  lastActiveDate: serverData.lastActiveDate || '',
-                  xp: serverData.xp ?? 0,
-                  memorizedNames: serverData.memorizedNames || [],
-                  completedJuzs: serverData.completedJuzs || [],
                   quranKhatams: serverData.quranKhatams ?? 0,
-                  completedTasks: serverData.completedTasks || [],
-                  deletedPredefinedTasks: serverData.deletedPredefinedTasks || [],
-                  customTasks: serverData.customTasks || [],
+                  referralCount: serverData.referralCount ?? 0,
                   quranGoal: serverData.quranGoal ?? 30,
                   dailyQuranGoal: serverData.dailyQuranGoal ?? 5,
                   dailyCharityGoal: serverData.dailyCharityGoal ?? 1000,
+                  shawwalFasts: serverData.shawwalFasts ?? 0,
+
+                  // Строки
+                  lastActiveDate: serverData.lastActiveDate || '',
+
+                  // Boolean
+                  hasRedeemedReferral: serverData.hasRedeemedReferral ?? false,
+
+                  // Объекты прогресса — null с сервера не должен стирать данные
+                  progress: serverData.progress || {},
+                  preparationProgress: serverData.preparationProgress || {},
+                  basicProgress: serverData.basicProgress || {},
+
+                  // Массивы — null с сервера заменяем на []
+                  memorizedNames: serverData.memorizedNames || [],
+                  completedJuzs: serverData.completedJuzs || [],
+                  earnedJuzXpIds: serverData.earnedJuzXpIds || [],
+                  completedTasks: serverData.completedTasks || [],
+                  deletedPredefinedTasks: serverData.deletedPredefinedTasks || [],
+                  customTasks: serverData.customTasks || [],
                   unlockedBadges: serverData.unlockedBadges || [],
-                  hasRedeemedReferral: serverData.hasRedeemedReferral ?? false
+                  shawwalDates: serverData.shawwalDates || [],
+
+                  // Системы целей v2 и тасбих — null с сервера заменяем на {}
+                  dailyGoalRecords: serverData.dailyGoalRecords || {},
+                  goalCustomItems: serverData.goalCustomItems || {},
+                  goalStreaks: serverData.goalStreaks || {},
+                  tasbeehRecords: serverData.tasbeehRecords || {},
+                  tasbeehTotals: serverData.tasbeehTotals || {},
                 };
 
                 console.log('📥 Данные загружены с сервера:', {
@@ -139,15 +162,7 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
                   basicDays: Object.keys(finalUserData.basicProgress).length,
                   currentStreak: finalUserData.currentStreak,
                   xp: finalUserData.xp,
-                  registrationDate: finalUserData.registrationDate  // ✅ ДОБАВЬ В ЛОГ!
-                });
-
-                console.log('📥 Данные загружены с сервера:', {
-                  progressDays: Object.keys(finalUserData.progress).length,
-                  preparationDays: Object.keys(finalUserData.preparationProgress).length,
-                  basicDays: Object.keys(finalUserData.basicProgress).length,
-                  currentStreak: finalUserData.currentStreak,
-                  xp: finalUserData.xp
+                  registrationDate: finalUserData.registrationDate
                 });
 
                 // Сохраняем в localStorage
