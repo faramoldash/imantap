@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getUserCircles, getCircleDetails } from '../services/api';
 
-export function useUserCircles(userId: number) {
+export function useUserCircles(userId: number | undefined) {
   const [circles, setCircles] = useState<any[]>([]);
   const [selectedCircle, setSelectedCircle] = useState<any | null>(null);
   const [isLoadingCircles, setIsLoadingCircles] = useState(false);
   const [isRefreshingCircle, setIsRefreshingCircle] = useState(false);
 
   const loadCircles = useCallback(async () => {
+    if (!userId) return; // userId ещё не загружен
     setIsLoadingCircles(true);
     try {
       const data = await getUserCircles(userId);
@@ -21,6 +22,7 @@ export function useUserCircles(userId: number) {
 
   const loadCircleDetails = useCallback(
     async (circleId: string) => {
+      if (!userId) return;
       try {
         const details = await getCircleDetails(circleId, userId);
         setSelectedCircle(details);
@@ -32,16 +34,17 @@ export function useUserCircles(userId: number) {
   );
 
   const refreshSelectedCircle = useCallback(async () => {
-    if (!selectedCircle?.circleId) return;
+    if (!selectedCircle?.circleId || !userId) return;
     try {
       setIsRefreshingCircle(true);
       const details = await getCircleDetails(selectedCircle.circleId, userId);
       setSelectedCircle(details);
     } catch (e) {
       console.error('❌ Ошибка обновления круга:', e);
-    } finally {
-      setTimeout(() => setIsRefreshingCircle(false), 500);
+      setIsRefreshingCircle(false); // сбрасываем сразу при ошибке
+      return;
     }
+    setTimeout(() => setIsRefreshingCircle(false), 500);
   }, [selectedCircle?.circleId, userId]);
 
   // начальная загрузка кругов
