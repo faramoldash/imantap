@@ -73,11 +73,19 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
   const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const todayAlmatyStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
   
-  const ramadanStart = new Date(ramadanStartDate + 'T00:00:00+05:00');
-  const ramadanEnd = new Date(ramadanStart.getTime() + 28 * 86400000);
-  const prepStart = new Date(preparationStartDate + 'T00:00:00+05:00');
-  const firstTaraweeh = new Date(firstTaraweehDate + 'T00:00:00+05:00');
-  const eidDate = new Date(eidAlFitrDate + 'T00:00:00+05:00');
+  // new Date(y, m-1, d) — полночь в локальном TZ браузера, без привязки к +05:00
+  const [rsY, rsM, rsD] = ramadanStartDate.split('-').map(Number);
+  const ramadanStart = new Date(rsY, rsM - 1, rsD);
+  const ramadanEnd = new Date(rsY, rsM - 1, rsD + 28);
+
+  const [psY, psM, psD] = preparationStartDate.split('-').map(Number);
+  const prepStart = new Date(psY, psM - 1, psD);
+
+  const [ftY, ftM, ftD] = firstTaraweehDate.split('-').map(Number);
+  const firstTaraweeh = new Date(ftY, ftM - 1, ftD);
+
+  const [edY, edM, edD] = eidAlFitrDate.split('-').map(Number);
+  const eidDate = new Date(edY, edM - 1, edD);
   
   const isToday = (date: Date | null) => {
     if (!date) return false;
@@ -144,8 +152,8 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
     setCurrentMonth(new Date());
   };
 
-  // ✅ Вычисляем строку даты выбранного дня
-  const prepStartMs = new Date(preparationStartDate + 'T00:00:00+05:00').getTime();
+  // Вычисляем строку даты выбранного дня
+  const prepStartMs = prepStart.getTime();
   const selectedDateMs = prepStartMs + (selectedDay - 1) * 86400000;
   const selectedDateStr = new Date(selectedDateMs)
     .toLocaleDateString('en-CA', { timeZone: userTZ });
@@ -237,10 +245,8 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
             <div
               key={idx}
               onClick={() => {
-                // ✅ Строим дату кликнутого дня как Алматы полночь
-                const clickedStr = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-                const clickedMs = new Date(clickedStr + 'T00:00:00+05:00').getTime();
-                const prepStartMs = new Date(preparationStartDate + 'T00:00:00+05:00').getTime();
+                // Дата кликнутого дня в локальном TZ браузера
+                const clickedMs = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
                 const dayNumber = Math.floor((clickedMs - prepStartMs) / 86400000) + 1;
                 onDaySelect(dayNumber);
               }}

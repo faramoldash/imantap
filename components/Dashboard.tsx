@@ -116,14 +116,21 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // ✅ ОПРЕДЕЛЯЕМ ФАЗУ И ДАТУ ВЫБРАННОГО ДНЯ
   const selectedDayInfo = useMemo(() => {
-    const ramadanStartMs = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00').getTime();
-    const eidDateMs = new Date(EID_AL_FITR_DATE + 'T00:00:00+05:00').getTime();
-    const selectedDateMs = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00').getTime() + (selectedDay - 1) * 86400000;
+    // new Date(y, m-1, d) создаёт полночь в локальном TZ браузера —
+    // согласованно с тем, как currentDay строит todayDate выше.
+    // Заменяет 'T00:00:00+05:00', который давал сдвиг для не-UTC+5 пользователей.
+    const [rY, rM, rD] = RAMADAN_START_DATE.split('-').map(Number);
+    const ramadanStartMs = new Date(rY, rM - 1, rD).getTime();
+
+    const [eY, eM, eD] = EID_AL_FITR_DATE.split('-').map(Number);
+    const eidDateMs = new Date(eY, eM - 1, eD).getTime();
+
+    const [pY, pM, pD] = PREPARATION_START_DATE.split('-').map(Number);
+    const prepStartMs = new Date(pY, pM - 1, pD).getTime();
+    const selectedDateMs = prepStartMs + (selectedDay - 1) * 86400000;
 
     let phase: 'basic' | 'preparation' | 'ramadan';
     let dayInPhase: number;
-
-    const prepStartMs = new Date(PREPARATION_START_DATE + 'T00:00:00+05:00').getTime();
 
     if (selectedDateMs < prepStartMs) {
       // ✅ До 9 февраля — обычный трекер
@@ -441,7 +448,8 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-3 mb-4 border border-white/20">
               <p className="text-sm font-black text-emerald-300">
                 {(() => {
-                  const d = new Date(RAMADAN_START_DATE + 'T00:00:00+05:00');
+                  const [rY, rM, rD] = RAMADAN_START_DATE.split('-').map(Number);
+                  const d = new Date(rY, rM - 1, rD);
                   const monthNames = language === 'kk'
                     ? ['қаңтар','ақпан','наурыз','сәуір','мамыр','маусым','шілде','тамыз','қыркүйек','қазан','қараша','желтоқсан']
                     : ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];

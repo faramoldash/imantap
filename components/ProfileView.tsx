@@ -3,6 +3,8 @@ import { UserData, Language, DayProgress } from '../src/types/types';
 import { TRANSLATIONS, XP_VALUES, BADGES } from '../constants';
 import { getUserLevelInfo } from '../src/utils/levelHelper';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://imantap-bot-production.up.railway.app';
+
 interface ProfileViewProps {
   userData: UserData;
   language: Language;
@@ -33,7 +35,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         if (userData.userId === telegramUserId && userData.myPromoCode) return;
         
         const response = await fetch(
-          `https://imantap-bot-production.up.railway.app/api/user/${telegramUserId}/full`
+          `${API_BASE_URL}/api/user/${telegramUserId}/full`
         );
         
         if (!response.ok) return;
@@ -69,7 +71,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   // ===== ФИЛЬТРАЦИЯ ПО ПЕРИОДАМ =====
   const getFilteredProgress = (): DayProgress[] => {
     // ✅ Определяем источник данных в зависимости от периода
-    const ramadanStartDate = new Date('2026-02-19T00:00:00+05:00');
+    const ramadanStartDate = new Date(2026, 1, 19); // локальный TZ браузера
     const isRamadanStarted = new Date() >= ramadanStartDate;
     
     // До Рамадана читаем из basicProgress, после - из progress
@@ -229,7 +231,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     if (todayProgress) {
       // Определяем список задач в зависимости от периода
       const now = new Date();
-      const isRamadanStarted = now >= new Date('2026-02-19T00:00:00+05:00');
+      const isRamadanStarted = now >= new Date(2026, 1, 19); // локальный TZ браузера
       
       if (isRamadanStarted) {
         // РАМАДАН: 19 задач (10 намазов + 9 духовных)
@@ -258,7 +260,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         });
         const isMondayOrThursday = weekday === 'Mon' || weekday === 'Thu';
         
-        const firstTaraweehDate = new Date('2026-02-18T00:00:00+05:00');
+        const firstTaraweehDate = new Date(2026, 1, 18); // локальный TZ браузера
         const isFirstTaraweehDay = now.toDateString() === firstTaraweehDate.toDateString();
         
         if (isMondayOrThursday) {

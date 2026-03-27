@@ -5,7 +5,7 @@ import { checkUserAccess, AccessData } from '../utils/api';
 import { getTelegramUserId, getTelegramUser } from '../utils/telegram';
 
 const STORAGE_KEY = 'ramadan_tracker_data_v4';
-const BOT_API_URL = 'https://imantap-bot-production.up.railway.app';
+const BOT_API_URL = import.meta.env.VITE_API_URL || 'https://imantap-bot-production.up.railway.app';
 
 interface InitializationState {
   isLoading: boolean;

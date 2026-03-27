@@ -56,7 +56,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
   useEffect(() => {
     const index = DHIKRS.findIndex(d => d.id === selectedId);
     if (index >= 0) setTimeout(() => scrollToCard(index), 100);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedId, scrollToCard]);
 
   const day   = todayStr();
   const dhikr = DHIKRS.find(d => d.id === selectedId)!;
@@ -108,7 +108,8 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
 
         return {
           ...prev,
-          xp: (prev.xp ?? 0) + (justCompleted ? dhikr.xp : 0),
+          // XP не начисляем локально — сервер считает сам и возвращает
+          // актуальное значение в ответе на sync (как в Dashboard)
           tasbeehTotals: {
             ...prevTotals,
             [selectedId]: (prevTotals[selectedId] ?? 0) + taps,
@@ -139,7 +140,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
       const currentCount = prevRec.counts[selectedId] ?? 0;
       return {
         ...prev,
-        xp: Math.max(0, (prev.xp ?? 0) - (wasCompleted ? dhikr.xp : 0)),
+        // XP не корректируем локально — сервер пересчитает при следующем sync
         tasbeehTotals: {
           ...prevTotals,
           [selectedId]: Math.max(0, (prevTotals[selectedId] ?? 0) - currentCount),

@@ -3,7 +3,7 @@ import { UserData } from '../types/types';
 import { getTelegramUserId } from './telegram';
 
 
-const BOT_API_URL = 'https://imantap-bot-production.up.railway.app';
+const BOT_API_URL = import.meta.env.VITE_API_URL || 'https://imantap-bot-production.up.railway.app';
 
 /**
  * Загрузить полные данные пользователя из MongoDB

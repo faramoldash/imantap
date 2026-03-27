@@ -24,6 +24,8 @@ import { getUserCircles } from './src/services/api';
 import { PREPARATION_START_DATE } from './constants';
 import PrayerTimesCard from './components/PrayerTimesCard';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || '${API_BASE_URL}';
+
 interface BackendUserData {
   userId: string;
   promoCode: string;
@@ -324,7 +326,7 @@ const App: React.FC = () => {
     try {
       setSyncStatus('syncing');
       const response = await fetch(
-        `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`,
+        `${API_BASE_URL}/api/user/${userId}/sync`,
         { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildPayload(d)) }
       );
       if (response.ok) {
@@ -420,7 +422,7 @@ const App: React.FC = () => {
         tasbeehRecords: userDataRef.current.tasbeehRecords || {},
         tasbeehTotals: userDataRef.current.tasbeehTotals || {},
       });
-      const url = `https://imantap-bot-production.up.railway.app/api/user/${userId}/sync`;
+      const url = `${API_BASE_URL}/api/user/${userId}/sync`;
       if (navigator.sendBeacon) {
         navigator.sendBeacon(url, new Blob([data], { type: 'application/json' }));
       } else {
@@ -453,7 +455,7 @@ const App: React.FC = () => {
     const handleOnline = async () => {
       const processed = await syncQueue.processQueue(async (data) => {
         try {
-          const response = await fetch(`https://imantap-bot-production.up.railway.app/api/user/${data.userId}/sync`, {
+          const response = await fetch(`${API_BASE_URL}/api/user/${data.userId}/sync`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
           });
           return response.ok;
@@ -540,8 +542,8 @@ const App: React.FC = () => {
       if (newBadges) newState.unlockedBadges = newBadges;
       return newState;
     });
-    setTimeout(() => syncToServerFn(), 100);
-  }, [syncToServerFn]);
+    debouncedSync();
+  }, [debouncedSync]);
 
   const updatePreparationProgress = useCallback((day: number, updates: Partial<DayProgress>) => {
     setUserData(prev => {
@@ -552,8 +554,8 @@ const App: React.FC = () => {
       if (newBadges) newState.unlockedBadges = newBadges;
       return newState;
     });
-    setTimeout(() => syncToServerFn(), 100);
-  }, [syncToServerFn]);
+    debouncedSync();
+  }, [debouncedSync]);
 
   const updateBasicProgress = useCallback((dateStr: string, updates: Partial<DayProgress>) => {
     setUserData(prev => {
@@ -562,8 +564,8 @@ const App: React.FC = () => {
       newState = updateStreak(newState);
       return newState;
     });
-    setTimeout(() => syncToServerFn(), 100);
-  }, [syncToServerFn]);
+    debouncedSync();
+  }, [debouncedSync]);
 
   // ─── handleUserDataUpdate: поддерживает как прямой UserData,
   //     так и функциональный апдейт (prev: UserData) => UserData
@@ -578,10 +580,9 @@ const App: React.FC = () => {
         if (newBadges) normalized.unlockedBadges = newBadges;
         return normalized;
       });
-      // ✅ Добавь эту строку:
-      setTimeout(() => syncToServerFn(), 300);
+      debouncedSync();
     },
-    [syncToServerFn]  // ← добавь в deps
+    [debouncedSync]
   );
 
   const renderView = () => {
