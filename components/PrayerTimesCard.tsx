@@ -87,7 +87,7 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
   });
 
   return (
-    <div className="bg-gradient-to-br from-emerald-900 to-teal-700 rounded-[2rem] p-5 text-white shadow-xl">
+    <div className="bg-gradient-to-br from-emerald-900 to-teal-700 rounded-[2rem] p-6 text-white shadow-xl">
       
       {/* Шапка: город и дата */}
       <div className="flex items-center justify-between mb-4">

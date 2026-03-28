@@ -615,7 +615,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
               <p className="text-white/60 text-sm font-bold">{language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}</p>
             </div>
           ) : circles.length === 0 ? (
-            <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm p-12 rounded-[3rem] text-center shadow-xl overflow-hidden border border-white/10">
+            <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm p-8 rounded-[3rem] text-center shadow-xl overflow-hidden border border-white/10">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[180px] opacity-5 pointer-events-none">🌟</div>
               
               <div className="relative z-10">
@@ -640,7 +640,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                   <div 
                     key={circle.circleId} 
                     onClick={() => loadCircleDetails(circle.circleId)} 
-                    className="relative bg-white p-5 rounded-[2.5rem] shadow-sm active:scale-[0.98] transition-all cursor-pointer overflow-hidden border border-slate-100 group hover:border-emerald-500 hover:shadow-lg"
+                    className="relative bg-white p-6 rounded-[2.5rem] shadow-sm active:scale-[0.98] transition-all cursor-pointer overflow-hidden border border-slate-100 group hover:border-emerald-500 hover:shadow-lg"
                   >
                     {/* Декоративный эмодзи */}
                     <div className="absolute -right-6 -bottom-6 text-[100px] opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
