@@ -5,6 +5,15 @@ import { haptics } from '../src/utils/haptics';
 import RealCalendar from './RealCalendar';
 import SubscriptionStatus from '../components/SubscriptionStatus';
 
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 // ✅ Хелпер: дата по Алматы времени (UTC+5)
 function toLocalDateStr(date: Date): string {
   return date.toLocaleDateString('en-CA', {
@@ -359,7 +368,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           return prev;
         } else {
           // Берем новое невыученное (не из текущих видимых)
-          const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
+          const shuffled = shuffleArray(unlearned);
           const newName = shuffled.find(n => !prev.find(v => v.id === n.id)) || shuffled[0];
           console.log('✨ New name:', newName.id);
           
@@ -384,11 +393,11 @@ const Dashboard: React.FC<DashboardProps> = ({
       
       if (unlearned.length === 0) {
         // Все выучены - показываем рандомные
-        const shuffled = [...NAMES_99].sort(() => Math.random() - 0.5);
+        const shuffled = shuffleArray(NAMES_99);
         setVisibleNames(shuffled.slice(0, 3));
       } else {
         // Есть невыученные
-        const shuffled = [...unlearned].sort(() => Math.random() - 0.5);
+        const shuffled = shuffleArray(unlearned);
         setVisibleNames(shuffled.slice(0, 3));
       }
       setIsInitialized(true);
