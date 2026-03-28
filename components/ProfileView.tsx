@@ -122,8 +122,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       return progressArray;
     }
     
-    const now = new Date();
-    
     // ✅ Рамадан прогресс хранится по номеру дня (1-30), без поля date
     // Восстанавливаем дату из номера дня
     const withDates = progressArray.map(p => {
