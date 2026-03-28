@@ -489,9 +489,11 @@ const App: React.FC = () => {
     const earnedBadges = Array.isArray(data.unlockedBadges) ? [...data.unlockedBadges] : [];
     let newlyUnlockedId: string | null = null;
     const unlock = (id: string) => { if (!earnedBadges.includes(id)) { earnedBadges.push(id); newlyUnlockedId = id; } };
-    if (Object.values(data.progress || {}).some(p => p.fasting)) unlock('first_fast');
+    if (Object.values(data.progress || {}).some(p => p.fasting) || (data.shawwalDates || []).length > 0) unlock('first_fast');
     if ((data.completedJuzs || []).length >= 1) unlock('quran_master');
-    if (Object.values(data.progress || {}).reduce((s, p) => s + (p.charityAmount || 0), 0) >= 10000) unlock('charity_king');
+    const ramadanCharity = Object.values(data.progress || {}).reduce((s, p) => s + ((p as any).charityAmount || 0), 0);
+    const basicCharity = Object.values(data.basicProgress || {}).reduce((s, p) => s + ((p as any).charityAmount || 0), 0);
+    if (ramadanCharity + basicCharity >= 10000) unlock('charity_king');
     if (Object.values(data.progress || {}).filter(p => p.taraweeh).length >= 5) unlock('taraweeh_star');
     if ((data.memorizedNames || []).length >= 10) unlock('names_scholar');
     if ((data.xp || 0) >= 4000) unlock('ramadan_hero');
