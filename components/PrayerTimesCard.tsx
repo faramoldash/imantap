@@ -25,49 +25,52 @@ const PRAYERS = [
   { key: 'isha',    icon: '🌃', kk: 'Құптан (Иша)',     ru: 'Иша'     },
 ];
 
-function getTimeInMinutes(timeStr: string): number {
+function getTimeInSeconds(timeStr: string): number {
   const [h, m] = timeStr.split(':').map(Number);
-  return h * 60 + m;
+  return h * 3600 + m * 60;
 }
 
-function getNowMinutes(): number {
+function getNowSeconds(): number {
   const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
+  return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
 }
 
-function getNextPrayer(prayerTimes: PrayerTimes): { key: string; timeStr: string; minutesLeft: number } | null {
-  const nowMin = getNowMinutes();
+function getNextPrayer(prayerTimes: PrayerTimes): { key: string; timeStr: string; secondsLeft: number } | null {
+  const nowSec = getNowSeconds();
   const prayersOnly = PRAYERS.filter(p => p.key !== 'sunrise');
 
   for (const prayer of prayersOnly) {
-    const prayerMin = getTimeInMinutes(prayerTimes[prayer.key as keyof PrayerTimes]);
-    if (prayerMin > nowMin) {
-      const diff = prayerMin - nowMin;
-      return { key: prayer.key, timeStr: prayerTimes[prayer.key as keyof PrayerTimes], minutesLeft: diff };
+    const prayerSec = getTimeInSeconds(prayerTimes[prayer.key as keyof PrayerTimes]);
+    if (prayerSec > nowSec) {
+      return { key: prayer.key, timeStr: prayerTimes[prayer.key as keyof PrayerTimes], secondsLeft: prayerSec - nowSec };
     }
   }
   // После Иша — следующий Фаджр
-  const fajrMin = getTimeInMinutes(prayerTimes.fajr);
-  const diff = (24 * 60 - nowMin) + fajrMin;
-  return { key: 'fajr', timeStr: prayerTimes.fajr, minutesLeft: diff };
+  const fajrSec = getTimeInSeconds(prayerTimes.fajr);
+  const diff = (24 * 3600 - nowSec) + fajrSec;
+  return { key: 'fajr', timeStr: prayerTimes.fajr, secondsLeft: diff };
 }
 
-function formatCountdown(minutes: number, language: string): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  const hSuffix = language === 'kk' ? 'с' : 'ч';
-  const mSuffix = 'м';
-  if (h > 0) return `${h}${hSuffix} ${m}${mSuffix}`;
-  return `${m}${mSuffix}`;
+function formatCountdown(seconds: number, language: string): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const hSuffix = language === 'kk' ? 'сағ' : 'ч';
+  const mSuffix = language === 'kk' ? 'мин' : 'м';
+  const sSuffix = language === 'kk' ? 'сек' : 'с';
+  const ss = String(s).padStart(2, '0');
+  if (h > 0) return `${h}${hSuffix} ${m}${mSuffix} ${ss}${sSuffix}`;
+  if (m > 0) return `${m}${mSuffix} ${ss}${sSuffix}`;
+  return `${ss}${sSuffix}`;
 }
 
 const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
-  const [nowMin, setNowMin] = useState(getNowMinutes());
+  const [nowSec, setNowSec] = useState(getNowSeconds());
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setNowMin(getNowMinutes());
-    }, 60000); // каждую минуту
+      setNowSec(getNowSeconds());
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -78,13 +81,17 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
 
   // Хиджри дата
   const today = new Date();
-  const hijriDate = new Intl.DateTimeFormat('ar-TN-u-ca-islamic', {
-    day: 'numeric', month: 'long', year: 'numeric'
-  }).format(today);
+  const hijriDate = new Intl.DateTimeFormat(
+    language === 'kk' ? 'kk-KZ-u-ca-islamic' : 'ru-RU-u-ca-islamic',
+    { day: 'numeric', month: 'long', year: 'numeric' }
+  ).format(today);
 
-  const gregorianDate = today.toLocaleDateString(language === 'kk' ? 'kk-KZ' : 'ru-RU', {
-    day: 'numeric', month: 'long', year: 'numeric'
-  });
+  const locale = language === 'kk' ? 'kk-KZ' : 'ru-RU';
+  const day = today.toLocaleDateString(locale, { day: 'numeric' });
+  const month = today.toLocaleDateString(locale, { month: 'long' });
+  const year = today.getFullYear();
+  const yearSuffix = language === 'kk' ? ' ж.' : ' г.';
+  const gregorianDate = `${day} ${month} ${year}${yearSuffix}`;
 
   return (
     <div className="bg-gradient-to-br from-emerald-900 to-teal-700 rounded-[2rem] p-6 text-white shadow-xl">
@@ -104,7 +111,7 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
               {language === 'kk' ? 'Келесі намаз' : 'Следующий намаз'}
             </p>
             <p className="text-white font-black text-lg leading-tight">
-              {formatCountdown(nextPrayer.minutesLeft, language)}
+              {formatCountdown(nextPrayer.secondsLeft, language)}
             </p>
             <p className="text-emerald-200 text-[10px]">
               {nextPrayerInfo.icon} {language === 'kk' ? nextPrayerInfo.kk : nextPrayerInfo.ru}
@@ -117,8 +124,8 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
       <div className="grid grid-cols-3 gap-2">
         {PRAYERS.map(prayer => {
           const timeStr = prayerTimes[prayer.key as keyof PrayerTimes];
-          const prayerMin = getTimeInMinutes(timeStr);
-          const isPast = prayer.key !== 'sunrise' && prayerMin < nowMin;
+          const prayerSec = getTimeInSeconds(timeStr);
+          const isPast = prayer.key !== 'sunrise' && prayerSec < nowSec;
           const isNext = prayer.key === nextPrayer?.key;
 
           return (

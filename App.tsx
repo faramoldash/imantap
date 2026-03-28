@@ -718,9 +718,9 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <header className="px-6 pt-16 pb-4 text-center bg-gradient-to-b from-emerald-900 to-emerald-800 rounded-b-[3rem] shadow-xl relative overflow-hidden">
+      <header className="px-6 pt-6 pb-4 text-center bg-gradient-to-b from-emerald-900 to-emerald-800 rounded-b-[3rem] shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10"><span className="text-9xl">🌙</span></div>
-        <div className="flex justify-center mb-4 relative z-10">
+        <div className="flex items-center justify-between mb-4 relative z-10">
           <div
             onClick={() => setCurrentView('rewards')}
             className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 flex items-center space-x-2 cursor-pointer active:scale-95 transition-transform"
@@ -728,20 +728,18 @@ const App: React.FC = () => {
             <span className="text-xl">🏆</span>
             <span className="text-white font-black text-sm">{userData.xp} XP</span>
           </div>
+          <button
+            onClick={() => setCurrentView('dashboard')}
+            className={`bg-white/10 backdrop-blur-lg p-3 rounded-2xl border border-white/10 active:scale-90 transition-transform shadow-lg ${currentView !== 'dashboard' ? 'visible' : 'invisible'}`}
+          >
+            🏠
+          </button>
         </div>
         <PrayerTimesCard
           prayerTimes={(userData as any)?.prayerTimes || null}
           language={lang}
           city={(userData as any)?.location?.city || 'Астана'}
         />
-        {currentView !== 'dashboard' && (
-          <button
-            onClick={() => setCurrentView('dashboard')}
-            className="absolute top-6 right-6 bg-white/10 backdrop-blur-lg p-3 rounded-2xl border border-white/10 active:scale-90 transition-transform shadow-lg z-30"
-          >
-            🏠
-          </button>
-        )}
       </header>
 
       <main
