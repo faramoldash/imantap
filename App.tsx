@@ -481,8 +481,8 @@ const App: React.FC = () => {
 
   const retrySync = useCallback(() => {
     setSyncStatus('idle');
-    setUserData(prev => ({ ...prev }));
-  }, []);
+    syncToServerFn();
+  }, [syncToServerFn]);
 
   // ─── checkBadges: защищён от любого мусора в unlockedBadges ─────────────
   const checkBadges = (data: UserData) => {
