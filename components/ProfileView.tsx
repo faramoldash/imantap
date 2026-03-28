@@ -527,7 +527,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
             <button
               key={period.value}
               onClick={() => setPeriodFilter(period.value as PeriodFilter)}
-              className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${
+              className={`px-4 py-3.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all ${
                 periodFilter === period.value 
                   ? 'bg-emerald-600 text-white' 
                   : 'bg-slate-100 text-slate-600'
@@ -683,7 +683,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
           <div className="flex items-center justify-between">
             <button 
               onClick={inviteFriend}
-              className="bg-white text-emerald-800 px-6 py-3 rounded-2xl font-black text-xs shadow-lg active:opacity-90 transition-opacity"
+              className="bg-white text-emerald-800 px-6 py-4 rounded-2xl font-black text-xs shadow-lg active:opacity-90 transition-opacity"
             >
               {userData.myPromoCode ? t.referralBtnShare : t.referralBtn}
             </button>

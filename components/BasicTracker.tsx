@@ -237,7 +237,7 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
             haptics.medium();
             onBack();
           }}
-          className="w-full bg-gradient-to-br from-emerald-600 to-emerald-700 text-white py-4 rounded-2xl font-black text-base shadow-lg active:scale-95 transition-all"
+          className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 rounded-2xl font-black text-base shadow-lg active:scale-95 transition-all"
         >
           {t.backToHome}
         </button>

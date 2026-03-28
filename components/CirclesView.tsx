@@ -599,7 +599,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                   <button 
                     onClick={handleJoinByCode} 
                     disabled={joinCode.trim().length !== 6 || isJoining} 
-                    className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white py-3 rounded-2xl font-black text-sm uppercase tracking-wider disabled:opacity-30 active:scale-95 transition-all shadow-lg border border-teal-400/30"
+                    className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-2xl font-black text-sm uppercase tracking-wider disabled:opacity-30 active:scale-95 transition-all shadow-lg border border-emerald-400/30"
                   >
                     {isJoining ? '...' : (language === 'kk' ? 'Қосылу' : 'Войти')}
                   </button>
@@ -660,7 +660,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                           )}
                         </div>
                         {isOwner && (
-                          <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border border-amber-300 flex-shrink-0 ml-2">
+                          <span className="bg-amber-100 text-amber-700 px-2 py-1 rounded-2xl text-[9px] font-black uppercase tracking-wider border border-amber-300 flex-shrink-0 ml-2">
                             {language === 'kk' ? 'Иесі' : 'Владелец'}
                           </span>
                         )}
@@ -723,14 +723,14 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                       onClick={() => {
                         setModal({ type: 'invite-choice' });
                       }}
-                      className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider active:scale-95 transition-all shadow-lg border border-emerald-400/30"
+                      className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider active:scale-95 transition-all shadow-lg border border-emerald-400/30"
                     >
                       + {language === 'kk' ? 'Шақыру' : 'Пригласить'}
                     </button>
                   ) : (
                     <button 
                       onClick={handleLeaveCircle} 
-                      className="bg-red-500/80 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider active:scale-95 transition-all"
+                      className="bg-red-500/80 hover:bg-red-500 text-white px-4 py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider active:scale-95 transition-all"
                     >
                       🚪 {language === 'kk' ? 'Шығу' : 'Выйти'}
                     </button>
@@ -919,7 +919,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                             <p className="text-slate-800 font-black text-sm truncate">
                               {member.name}
                               {isCurrentUser && (
-                                <span className="ml-2 text-[8px] bg-emerald-600 text-white px-2 py-0.5 rounded-lg font-black uppercase tracking-wider">
+                                <span className="ml-2 text-[8px] bg-emerald-600 text-white px-2 py-0.5 rounded-xl font-black uppercase tracking-wider">
                                   {language === 'kk' ? 'СІЗ' : 'ВЫ'}
                                 </span>
                               )}
@@ -937,7 +937,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                           {isOwner && !isCurrentUser && (
                             <button 
                               onClick={() => handleRemoveMember(member.userId)} 
-                              className="w-8 h-8 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl text-xs font-black active:scale-95 transition-all border border-red-500/30" 
+                              className="w-8 h-8 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-2xl text-xs font-black active:scale-95 transition-all border border-red-500/30"
                               title={language === 'kk' ? 'Жою' : 'Удалить'}
                             >
                               ❌
@@ -1097,7 +1097,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                       }}
                       className="w-full flex items-center space-x-4 p-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg"
                     >
-                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                      <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
                         📤
                       </div>
                       <div className="flex-1 text-left">
@@ -1110,7 +1110,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                       onClick={() => setModal({ type: 'invite-username' })}
                       className="w-full flex items-center space-x-4 p-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-bold text-sm active:scale-95 transition-all shadow-lg"
                     >
-                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                      <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0">
                         👤
                       </div>
                       <div className="flex-1 text-left">

@@ -164,7 +164,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
       <div className="flex items-center justify-between mb-5">
         <button 
           onClick={goToPrevMonth}
-          className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 font-black text-lg transition-colors active:scale-95"
+          className="w-10 h-10 rounded-2xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 font-black text-lg transition-colors active:scale-95"
         >
           ←
         </button>
@@ -183,7 +183,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
         
         <button 
           onClick={goToNextMonth}
-          className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 font-black text-lg transition-colors active:scale-95"
+          className="w-10 h-10 rounded-2xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 font-black text-lg transition-colors active:scale-95"
         >
           →
         </button>
@@ -252,7 +252,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               }}
                 
               className={`
-                aspect-square rounded-xl flex flex-col items-center justify-center text-center
+                aspect-square rounded-2xl flex flex-col items-center justify-center text-center
                 transition-all relative overflow-hidden cursor-pointer active:scale-95
                 ${isSelected ? 'ring-2 ring-emerald-600 scale-105 z-10' : ''}
               `}
@@ -268,7 +268,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
             >
               {/* Внутренний круг для радиального прогресса */}
               {(ramadanDay || prepDay) && progress > 0 && progress < 100 && (
-                <div className={`absolute inset-1 rounded-lg flex items-center justify-center ${
+                <div className={`absolute inset-1 rounded-xl flex items-center justify-center ${
                   isTodayDate ? 'bg-emerald-500' : 'bg-white'
                 }`}>
                   <div className="flex flex-col items-center">

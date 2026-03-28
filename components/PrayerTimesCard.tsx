@@ -122,7 +122,7 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
           return (
             <div
               key={prayer.key}
-              className={`rounded-xl p-2 text-center transition-all ${
+              className={`rounded-2xl p-2 text-center transition-all ${
                 isNext
                   ? 'bg-white text-emerald-800 shadow-lg scale-105'
                   : isPast

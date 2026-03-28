@@ -429,7 +429,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                 const tg = (window as any).Telegram?.WebApp;
                 if (tg) tg.close();
               }}
-              className="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-xl active:scale-95 transition-transform"
+              className="bg-red-600 text-white text-xs font-bold px-4 py-3.5 rounded-2xl active:scale-95 transition-transform"
             >
               {userData.language === 'kk' ? 'Жаңарту' : 'Продлить'}
             </button>
@@ -912,7 +912,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   haptics.selection();
                   setView('names-99');
                 }}
-                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-xl text-[10px] font-black uppercase transition-colors backdrop-blur-sm shadow-lg border border-white/20"
+                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-2xl text-[10px] font-black uppercase transition-colors backdrop-blur-sm shadow-lg border border-white/20"
               >
                 {language === 'kk' ? 'Барлығы →' : 'Все →'}
               </button>

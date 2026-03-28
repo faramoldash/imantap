@@ -159,7 +159,7 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
                 className={`grid grid-cols-12 gap-3 px-6 py-4 items-center transition-all cursor-pointer active:bg-slate-50 ${isDone ? 'bg-emerald-50/40' : 'bg-white'}`}
               >
                 <div className="col-span-2">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black transition-all ${isDone ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                  <div className={`w-8 h-8 rounded-2xl flex items-center justify-center text-[10px] font-black transition-all ${isDone ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
                     {item.juz}
                   </div>
                 </div>
@@ -176,7 +176,7 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
                   )}
                 </div>
                 <div className="col-span-2 flex justify-end">
-                  <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isDone ? 'bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-200' : 'border-slate-100 bg-white'}`}>
+                  <div className={`w-6 h-6 rounded-xl border-2 flex items-center justify-center transition-all ${isDone ? 'bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-200' : 'border-slate-100 bg-white'}`}>
                     {isDone && <span className="text-[12px] font-black">✓</span>}
                   </div>
                 </div>

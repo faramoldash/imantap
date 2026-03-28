@@ -238,7 +238,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">{t.rewardsLeaderboard}</h3>
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
             {(['global','country','city','friends'] as FilterType[]).map(type => (
-              <button key={type} onClick={() => handleFilterChange(type)} className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all ${ filterType === type ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600' }`}>
+              <button key={type} onClick={() => handleFilterChange(type)} className={`px-4 py-3.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all ${ filterType === type ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600' }`}>
                 {type === 'global' && `🌍 ${language === 'kk' ? 'Жалпы' : 'Глобальный'}`}
                 {type === 'country' && `🇰🇿 ${language === 'kk' ? 'Ел бойынша' : 'По стране'}`}
                 {type === 'city' && `🏙️ ${language === 'kk' ? 'Қала бойынша' : 'По городу'}`}
@@ -248,7 +248,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           </div>
           {filterType === 'city' && (
             <div className="mt-3">
-              <select value={selectedCity || ''} onChange={e => setSelectedCity(e.target.value || null)} className="w-full px-4 py-3 rounded-xl text-sm font-bold bg-slate-50 border-2 border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <select value={selectedCity || ''} onChange={e => setSelectedCity(e.target.value || null)} className="w-full px-4 py-3 rounded-2xl text-sm font-bold bg-slate-50 border-2 border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 <option value="">{language === 'kk' ? '🌍 Барлық қалалар' : '🌍 Все города'}</option>
                 {cities.map(c => <option key={c.city} value={c.city}>{c.city} ({c.count.toLocaleString()} {language === 'kk' ? 'адам' : 'чел.'})</option>)}
               </select>
@@ -334,11 +334,11 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
                   </div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
-                  <div className="bg-white/10 rounded-xl px-3 py-2 text-center border border-white/10">
+                  <div className="bg-white/10 rounded-2xl px-3 py-2 text-center border border-white/10">
                     <p className="text-[12px] font-black text-white leading-none">×2.0</p>
                     <p className="text-[9px] text-white/50 mt-0.5">{language === 'kk' ? '10 күн' : '10 дней'}</p>
                   </div>
-                  <div className="bg-emerald-500/20 rounded-xl px-3 py-2 text-center border border-emerald-500/30">
+                  <div className="bg-emerald-500/20 rounded-2xl px-3 py-2 text-center border border-emerald-500/30">
                     <p className="text-[12px] font-black text-emerald-400 leading-none">×3.0</p>
                     <p className="text-[9px] text-emerald-400/70 mt-0.5">{language === 'kk' ? '20+ күн' : '20+ дней'}</p>
                   </div>
