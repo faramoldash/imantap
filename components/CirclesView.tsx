@@ -893,8 +893,27 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                     >
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
-                          <div className="w-11 h-11 bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl flex items-center justify-center text-base font-black text-slate-700 flex-shrink-0 border border-slate-300">
-                            {medal || member.name.charAt(0).toUpperCase()}
+                          <div className="relative w-11 h-11 flex-shrink-0">
+                            {member.photoUrl ? (
+                              <img
+                                src={member.photoUrl}
+                                alt={member.name}
+                                className="w-11 h-11 rounded-2xl object-cover border border-slate-300"
+                                onError={(e) => {
+                                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                  (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              className="w-11 h-11 bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl items-center justify-center text-base font-black text-slate-700 border border-slate-300"
+                              style={{ display: member.photoUrl ? 'none' : 'flex' }}
+                            >
+                              {member.name.charAt(0).toUpperCase()}
+                            </div>
+                            {medal && (
+                              <span className="absolute -top-1 -right-1 text-sm leading-none">{medal}</span>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-slate-800 font-black text-sm truncate">
