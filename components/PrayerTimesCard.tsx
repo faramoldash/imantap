@@ -95,34 +95,30 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
   const gregorianDate = `${day} ${month} ${year}${yearSuffix}`;
 
   return (
-    <div className="bg-gradient-to-br from-emerald-900 to-teal-700 rounded-[2rem] p-6 text-white shadow-xl">
-      
-      {/* Шапка: город и дата */}
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-gradient-to-br from-emerald-900 to-teal-700 rounded-[2rem] p-4 text-white shadow-xl">
+
+      {/* Шапка: город, дата, таймер */}
+      <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-emerald-300 text-xs font-bold">📍 {city}</p>
-          <p className="text-white font-black text-sm">{gregorianDate}</p>
-          <p className="text-emerald-200 text-xs mt-0.5">{hijriDate}</p>
+          <p className="text-emerald-300 text-[10px] font-bold leading-none">📍 {city}</p>
+          <p className="text-white font-black text-xs leading-tight mt-0.5">{gregorianDate}</p>
+          <p className="text-emerald-200 text-[9px] mt-0.5 opacity-80">{hijriDate}</p>
         </div>
 
-        {/* Таймер до следующего намаза */}
         {nextPrayer && nextPrayerInfo && (
-          <div className="bg-white/15 rounded-2xl px-4 py-2 text-center">
-            <p className="text-emerald-200 text-[10px] font-bold">
-              {language === 'kk' ? 'Келесі намаз' : 'Следующий намаз'}
+          <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center">
+            <p className="text-emerald-200 text-[9px] font-bold leading-none">
+              {nextPrayerInfo.icon} {language === 'kk' ? nextPrayerInfo.kk.split(' ')[0] : nextPrayerInfo.ru}
             </p>
-            <p className="text-white font-black text-lg leading-tight">
+            <p className="text-white font-black text-sm leading-tight mt-0.5">
               {formatCountdown(nextPrayer.secondsLeft, language)}
-            </p>
-            <p className="text-emerald-200 text-[10px]">
-              {nextPrayerInfo.icon} {language === 'kk' ? nextPrayerInfo.kk : nextPrayerInfo.ru}
             </p>
           </div>
         )}
       </div>
 
-      {/* Список намазов */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* Список намазов — один ряд */}
+      <div className="grid grid-cols-6 gap-1.5">
         {PRAYERS.map(prayer => {
           const timeStr = prayerTimes[prayer.key as keyof PrayerTimes];
           const prayerSec = getTimeInSeconds(timeStr);
@@ -132,19 +128,16 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
           return (
             <div
               key={prayer.key}
-              className={`rounded-2xl p-2 text-center transition-all ${
+              className={`rounded-xl p-1.5 text-center transition-all ${
                 isNext
-                  ? 'bg-white text-emerald-800 shadow-lg scale-105'
+                  ? 'bg-white text-emerald-800 shadow-md scale-105'
                   : isPast
                   ? 'bg-white/10 text-white/50'
                   : 'bg-white/15 text-white'
               }`}
             >
-              <p className="text-base">{prayer.icon}</p>
-              <p className={`text-[10px] font-bold leading-tight ${isNext ? 'text-emerald-700' : ''}`}>
-                {language === 'kk' ? prayer.kk.split(' ')[0] : prayer.ru}
-              </p>
-              <p className={`text-xs font-black ${isNext ? 'text-emerald-900' : ''}`}>
+              <p className="text-sm leading-none">{prayer.icon}</p>
+              <p className={`text-[9px] font-black mt-0.5 leading-none ${isNext ? 'text-emerald-900' : ''}`}>
                 {timeStr}
               </p>
             </div>
