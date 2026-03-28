@@ -62,6 +62,33 @@ const RAMADAN_TASK_GROUPS = [
 // Плоский список для совместимости (getMyLocalProgress использует RAMADAN_TASKS)
 const RAMADAN_TASKS_INFO = RAMADAN_TASK_GROUPS.flatMap(g => g.tasks);
 
+const BASIC_TASK_GROUPS = [
+  {
+    kk: 'Намаздар',
+    ru: 'Намазы',
+    tasks: [
+      { key: 'fajr',    emoji: '🕌', kk: 'Таң',    ru: 'Фаджр'  },
+      { key: 'duha',    emoji: '🌅', kk: 'Дұха',   ru: 'Духа'   },
+      { key: 'dhuhr',   emoji: '🕌', kk: 'Бесін',  ru: 'Зухр'   },
+      { key: 'asr',     emoji: '🕌', kk: 'Екінті', ru: 'Аср'    },
+      { key: 'maghrib', emoji: '🌇', kk: 'Ақшам',  ru: 'Магриб' },
+      { key: 'isha',    emoji: '🌙', kk: 'Құптан', ru: 'Иша'    },
+    ],
+  },
+  {
+    kk: 'Рухани амалдар',
+    ru: 'Духовное',
+    tasks: [
+      { key: 'morningDhikr', emoji: '☀️', kk: 'Таңғы зікір', ru: 'Утр. зикр' },
+      { key: 'eveningDhikr', emoji: '🌆', kk: 'Кешкі зікір', ru: 'Веч. зикр' },
+      { key: 'quranRead',    emoji: '📖', kk: 'Құран',        ru: 'Коран'     },
+      { key: 'salawat',      emoji: '✨', kk: 'Салауат',      ru: 'Салауат'   },
+      { key: 'charity',      emoji: '🤲', kk: 'Садақа',       ru: 'Садака'    },
+      { key: 'book',         emoji: '📗', kk: 'Кітап',        ru: 'Книга'     },
+    ],
+  },
+];
+
 const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigate, navigationData }) => {
   const t = TRANSLATIONS[language];
   const {
@@ -154,7 +181,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
 
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [expandedMemberId, setExpandedMemberId] = useState<number | null>(null);
-  const [expandedTasksMap, setExpandedTasksMap] = useState<Record<number, { tasks: any; customTasks: any[]; isLoading: boolean; isRamadan: boolean }>>({});
+  const [expandedTasksMap, setExpandedTasksMap] = useState<Record<number, { tasks: any; customTasks: any[]; isLoading: boolean; phase: 'ramadan' | 'basic' | 'preparation' }>>({});
 
 
   useEffect(() => {
@@ -200,27 +227,47 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
 
     const isCurrentUser = member.userId === userData.userId;
 
-    const [sy, sm, sd] = userData.startDate.split('-').map(Number);
-    const startDate = new Date(sy, sm - 1, sd);
     const now = new Date();
-    const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const diffDays = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const ramadanDay = diffDays >= 0 ? diffDays + 1 : null;
-    const isRamadan = ramadanDay !== null;
+    const today = now.toLocaleDateString('en-CA'); // 'YYYY-MM-DD' в локальном TZ
+    const ramadanStartDate = new Date(2026, 1, 19);
+    const eidDate          = new Date(2026, 2, 20);
+    const isRamadanActive  = now >= ramadanStartDate && now < eidDate;
+    const isBasicPhase     = now >= eidDate;
+    const phase: 'ramadan' | 'basic' | 'preparation' =
+      isRamadanActive ? 'ramadan' : isBasicPhase ? 'basic' : 'preparation';
+
+    // Вычисляем номер дня Рамадана (нужен только в фазе Рамадана)
+    const getRamadanDay = () => {
+      const [sy, sm, sd] = userData.startDate.split('-').map(Number);
+      const startDate = new Date(sy, sm - 1, sd);
+      const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diff = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.min(diff + 1, 29);
+    };
 
     if (isCurrentUser) {
-      const tasks = isRamadan ? (userData.progress[ramadanDay!] || {}) : {};
+      let tasks: any = {};
+      if (isRamadanActive) {
+        tasks = userData.progress[getRamadanDay()] || {};
+      } else if (isBasicPhase) {
+        tasks = (userData.basicProgress as any)?.[today] || {};
+      }
       const customTasks = userData.customTasks || [];
-      setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks, customTasks, isLoading: false, isRamadan } }));
+      setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks, customTasks, isLoading: false, phase } }));
     } else {
-      setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks: {}, customTasks: [], isLoading: true, isRamadan } }));
+      setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks: {}, customTasks: [], isLoading: true, phase } }));
       try {
         const memberData = await getUserData(member.userId);
-        const tasks = isRamadan && memberData?.progress ? (memberData.progress[ramadanDay!] || {}) : {};
+        let tasks: any = {};
+        if (isRamadanActive && memberData?.progress) {
+          tasks = memberData.progress[getRamadanDay()] || {};
+        } else if (isBasicPhase && memberData?.basicProgress) {
+          tasks = memberData.basicProgress[today] || {};
+        }
         const customTasks = memberData?.customTasks || [];
-        setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks, customTasks, isLoading: false, isRamadan } }));
+        setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks, customTasks, isLoading: false, phase } }));
       } catch {
-        setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks: {}, customTasks: [], isLoading: false, isRamadan } }));
+        setExpandedTasksMap(prev => ({ ...prev, [member.userId]: { tasks: {}, customTasks: [], isLoading: false, phase } }));
       }
     }
   };
@@ -898,15 +945,13 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                                 {language === 'kk' ? 'Жүктелуде...' : 'Загрузка...'}
                               </span>
                             </div>
-                          ) : expandedTasksMap[member.userId]?.isRamadan ? (
+                          ) : expandedTasksMap[member.userId]?.phase === 'ramadan' ? (
                             <div className="space-y-3">
                               {RAMADAN_TASK_GROUPS.map((group, gi) => (
                                 <div key={gi}>
-                                  {/* Заголовок категории */}
                                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
                                     {language === 'kk' ? group.kk : group.ru}
                                   </p>
-                                  {/* Задачи — 3 колонны */}
                                   <div className="grid grid-cols-3 gap-x-2 gap-y-1">
                                     {group.tasks.map((task) => {
                                       const done = expandedTasksMap[member.userId]?.tasks?.[task.key] === true;
@@ -920,9 +965,33 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
                                       );
                                     })}
                                   </div>
-
-                                  {/* Разделитель (кроме последней группы) */}
                                   {gi < RAMADAN_TASK_GROUPS.length - 1 && (
+                                    <div className="mt-3 border-t border-slate-100"></div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : expandedTasksMap[member.userId]?.phase === 'basic' ? (
+                            <div className="space-y-3">
+                              {BASIC_TASK_GROUPS.map((group, gi) => (
+                                <div key={gi}>
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                                    {language === 'kk' ? group.kk : group.ru}
+                                  </p>
+                                  <div className="grid grid-cols-3 gap-x-2 gap-y-1">
+                                    {group.tasks.map((task) => {
+                                      const done = expandedTasksMap[member.userId]?.tasks?.[task.key] === true;
+                                      return (
+                                        <div key={task.key} className="flex items-center justify-between">
+                                          <span className={`text-[10px] font-bold truncate ${done ? 'text-slate-700' : 'text-slate-300'}`}>
+                                            {language === 'kk' ? task.kk : task.ru}
+                                          </span>
+                                          {done && <span className="text-emerald-500 text-[9px] font-black ml-1 flex-shrink-0">✓</span>}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  {gi < BASIC_TASK_GROUPS.length - 1 && (
                                     <div className="mt-3 border-t border-slate-100"></div>
                                   )}
                                 </div>
