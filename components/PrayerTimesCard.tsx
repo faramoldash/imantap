@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Language } from '../src/types/types';
+import { PRAYER_ICONS } from '../constants';
 
 interface PrayerTimes {
   fajr: string;
@@ -17,12 +18,12 @@ interface Props {
 }
 
 const PRAYERS = [
-  { key: 'fajr',    icon: '🌙', kk: 'Таңғы (Фаджр)',   ru: 'Фаджр'   },
-  { key: 'sunrise', icon: '🌅', kk: 'Күн шығу',         ru: 'Восход'  },
-  { key: 'dhuhr',   icon: '☀️', kk: 'Бесін (Зухр)',     ru: 'Зухр'    },
-  { key: 'asr',     icon: '🌤', kk: 'Екінті (Аср)',     ru: 'Аср'     },
-  { key: 'maghrib', icon: '🌇', kk: 'Ақшам (Мағриб)',   ru: 'Магриб'  },
-  { key: 'isha',    icon: '🌃', kk: 'Құптан (Иша)',     ru: 'Иша'     },
+  { key: 'fajr',    icon: PRAYER_ICONS.fajr,    kk: 'Таңғы (Фаджр)',   ru: 'Фаджр'   },
+  { key: 'sunrise', icon: PRAYER_ICONS.sunrise,  kk: 'Күн шығу',         ru: 'Восход'  },
+  { key: 'dhuhr',   icon: PRAYER_ICONS.dhuhr,    kk: 'Бесін (Зухр)',     ru: 'Зухр'    },
+  { key: 'asr',     icon: PRAYER_ICONS.asr,      kk: 'Екінті (Аср)',     ru: 'Аср'     },
+  { key: 'maghrib', icon: PRAYER_ICONS.maghrib,  kk: 'Ақшам (Мағриб)',   ru: 'Магриб'  },
+  { key: 'isha',    icon: PRAYER_ICONS.isha,      kk: 'Құптан (Иша)',     ru: 'Иша'     },
 ];
 
 function getTimeInSeconds(timeStr: string): number {

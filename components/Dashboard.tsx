@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DayProgress, Language, UserData, ViewType } from '../src/types/types';
-import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, TOTAL_DAYS, PREPARATION_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE, EID_AL_FITR_DATE } from '../constants';
+import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, TOTAL_DAYS, PREPARATION_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE, EID_AL_FITR_DATE, PRAYER_ICONS } from '../constants';
 import { haptics } from '../src/utils/haptics';
 import RealCalendar from './RealCalendar';
 import SubscriptionStatus from '../components/SubscriptionStatus';
@@ -857,12 +857,12 @@ const Dashboard: React.FC<DashboardProps> = ({
           {language === 'kk' ? 'Намаздар' : 'Намазы'}
         </h4>
         <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="fajr" icon={<span className="text-2xl">🌅</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          <ItemButton id="duha" icon={<span className="text-2xl">☀️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          <ItemButton id="dhuhr" icon={<span className="text-2xl">🌞</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          <ItemButton id="asr" icon={<span className="text-2xl">🌤️</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          <ItemButton id="maghrib" icon={<span className="text-2xl">🌆</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          <ItemButton id="isha" icon={<span className="text-2xl">🌙</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="fajr" icon={<span className="text-2xl">{PRAYER_ICONS.fajr}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="duha" icon={<span className="text-2xl">{PRAYER_ICONS.duha}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="dhuhr" icon={<span className="text-2xl">{PRAYER_ICONS.dhuhr}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="asr" icon={<span className="text-2xl">{PRAYER_ICONS.asr}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="maghrib" icon={<span className="text-2xl">{PRAYER_ICONS.maghrib}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+          <ItemButton id="isha" icon={<span className="text-2xl">{PRAYER_ICONS.isha}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
           {selectedDayInfo.phase === 'ramadan' && (
             <>
               <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />

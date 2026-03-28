@@ -48,6 +48,16 @@ export const INITIAL_DAY_PROGRESS = (day: number): DayProgress => ({
   date: new Date().toISOString(),
 });
 
+export const PRAYER_ICONS: Record<string, string> = {
+  fajr:    '🌄',
+  duha:    '🌤️',
+  dhuhr:   '☀️',
+  asr:     '🌥️',
+  maghrib: '🌇',
+  isha:    '🌙',
+  sunrise: '🌅',
+};
+
 export const TRACKER_KEYS = [
   'fasting', 'tahajjud', 'fajr', 'morningDhikr', 'quranRead', 'names99', 'salawat', 
   'hadith', 'duha', 'charity', 'dhuhr', 'lessons', 'asr', 'book', 

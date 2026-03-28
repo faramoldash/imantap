@@ -1,5 +1,6 @@
 import React, { useMemo, useCallback } from 'react';
 import { DayProgress, Language, UserData } from '../src/types/types';
+import { PRAYER_ICONS } from '../constants';
 import { haptics } from '../src/utils/haptics';
 
 interface BasicTrackerProps {
@@ -176,12 +177,12 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
           {t.prayers}
         </h4>
         <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="fajr" icon="🌅" small />
-          <ItemButton id="duha" icon="☀️" small />
-          <ItemButton id="dhuhr" icon="🌞" small />
-          <ItemButton id="asr" icon="🌤️" small />
-          <ItemButton id="maghrib" icon="🌆" small />
-          <ItemButton id="isha" icon="🌙" small />
+          <ItemButton id="fajr" icon={PRAYER_ICONS.fajr} small />
+          <ItemButton id="duha" icon={PRAYER_ICONS.duha} small />
+          <ItemButton id="dhuhr" icon={PRAYER_ICONS.dhuhr} small />
+          <ItemButton id="asr" icon={PRAYER_ICONS.asr} small />
+          <ItemButton id="maghrib" icon={PRAYER_ICONS.maghrib} small />
+          <ItemButton id="isha" icon={PRAYER_ICONS.isha} small />
         </div>
       </div>
 

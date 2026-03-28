@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { UserData, Language, DayProgress } from '../src/types/types';
-import { TRANSLATIONS, XP_VALUES, BADGES } from '../constants';
+import { TRANSLATIONS, XP_VALUES, BADGES, PRAYER_ICONS } from '../constants';
 import { getUserLevelInfo } from '../src/utils/levelHelper';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://imantap-bot-production.up.railway.app';
@@ -560,11 +560,11 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
           
           <div className="space-y-3">
             {[
-              { key: 'fajr', name: language === 'kk' ? 'Таң' : 'Фаджр', icon: '🌅' },
-              { key: 'dhuhr', name: language === 'kk' ? 'Бесін' : 'Зухр', icon: '☀️' },
-              { key: 'asr', name: language === 'kk' ? 'Екінті' : 'Аср', icon: '🌤️' },
-              { key: 'maghrib', name: language === 'kk' ? 'Шам' : 'Магриб', icon: '🌆' },
-              { key: 'isha', name: language === 'kk' ? 'Құптан' : 'Иша', icon: '🌙' },
+              { key: 'fajr', name: language === 'kk' ? 'Таң' : 'Фаджр', icon: PRAYER_ICONS.fajr },
+              { key: 'dhuhr', name: language === 'kk' ? 'Бесін' : 'Зухр', icon: PRAYER_ICONS.dhuhr },
+              { key: 'asr', name: language === 'kk' ? 'Екінті' : 'Аср', icon: PRAYER_ICONS.asr },
+              { key: 'maghrib', name: language === 'kk' ? 'Шам' : 'Магриб', icon: PRAYER_ICONS.maghrib },
+              { key: 'isha', name: language === 'kk' ? 'Құптан' : 'Иша', icon: PRAYER_ICONS.isha },
             ].map(prayer => {
               const count = stats.prayerStats[prayer.key as keyof typeof stats.prayerStats];
               const percent = stats.daysInPeriod > 0 ? Math.round((count / stats.daysInPeriod) * 100) : 0;
