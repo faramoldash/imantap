@@ -93,7 +93,7 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
               filter === f ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'
             } uppercase tracking-widest`}
           >
-            {f === 'all' ? 'БАРЛЫҒЫ' : f === 'learning' ? t.namesStatusToLearn : t.namesStatusLearned}
+            {f === 'all' ? (language === 'kk' ? 'БАРЛЫҒЫ' : 'ВСЕ') : f === 'learning' ? t.namesStatusToLearn : t.namesStatusLearned}
           </button>
         ))}
       </div>

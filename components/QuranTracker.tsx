@@ -146,7 +146,7 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-slate-50 px-6 py-5 flex items-center justify-between border-b border-slate-100 sticky top-0 z-10">
           <h4 className="text-[12px] font-black text-slate-800 uppercase tracking-widest">{t.quranScheduleTitle}</h4>
-          <span className="text-[10px] font-bold text-slate-400 uppercase">30 КҮН</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase">{language === 'kk' ? '30 КҮН' : '30 ДНЕЙ'}</span>
         </div>
         <div className="divide-y divide-slate-50">
           {QURAN_SCHEDULE.map((item) => {

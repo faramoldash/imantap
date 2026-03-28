@@ -52,11 +52,13 @@ function getNextPrayer(prayerTimes: PrayerTimes): { key: string; timeStr: string
   return { key: 'fajr', timeStr: prayerTimes.fajr, minutesLeft: diff };
 }
 
-function formatCountdown(minutes: number): string {
+function formatCountdown(minutes: number, language: string): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  if (h > 0) return `${h}ч ${m}м`;
-  return `${m}м`;
+  const hSuffix = language === 'kk' ? 'с' : 'ч';
+  const mSuffix = 'м';
+  if (h > 0) return `${h}${hSuffix} ${m}${mSuffix}`;
+  return `${m}${mSuffix}`;
 }
 
 const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
@@ -102,7 +104,7 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
               {language === 'kk' ? 'Келесі намаз' : 'Следующий намаз'}
             </p>
             <p className="text-white font-black text-lg leading-tight">
-              {formatCountdown(nextPrayer.minutesLeft)}
+              {formatCountdown(nextPrayer.minutesLeft, language)}
             </p>
             <p className="text-emerald-200 text-[10px]">
               {nextPrayerInfo.icon} {language === 'kk' ? nextPrayerInfo.kk : nextPrayerInfo.ru}
