@@ -93,6 +93,64 @@
         .animate-xp-float {
             animation: xpFloat 2s ease-out forwards;
         }
+
+        /* ═══════════════════════════════
+           DARK THEME  (html.dark)
+        ═══════════════════════════════ */
+
+        /* Page backgrounds */
+        .dark body,
+        .dark #root,
+        .dark .bg-slate-50 {
+            background-color: #0a0f1e !important;
+            color: #e2e8f0;
+        }
+
+        /* Inner surfaces */
+        .dark .bg-slate-100 {
+            background: rgba(255, 255, 255, 0.07) !important;
+        }
+
+        /* Cards — white → glassmorphism */
+        .dark .bg-white {
+            background: rgba(255, 255, 255, 0.06) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        /* Navigation — dark opaque glass (overrides bg-white above) */
+        .dark nav.bg-white {
+            background: rgba(10, 15, 30, 0.96) !important;
+            backdrop-filter: blur(24px) !important;
+            -webkit-backdrop-filter: blur(24px) !important;
+        }
+        .dark .border-t.border-slate-200 {
+            border-top-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        /* Text */
+        .dark .text-slate-900 { color: #f1f5f9 !important; }
+        .dark .text-slate-800 { color: #e2e8f0 !important; }
+        .dark .text-slate-700 { color: #cbd5e1 !important; }
+        .dark .text-slate-600 { color: #94a3b8 !important; }
+        .dark .text-slate-500 { color: #64748b !important; }
+        .dark .text-slate-400 { color: #475569 !important; }
+
+        /* Borders */
+        .dark .border-slate-100 { border-color: rgba(255, 255, 255, 0.08) !important; }
+        .dark .border-slate-200 { border-color: rgba(255, 255, 255, 0.10) !important; }
+
+        /* Tracker active-state buttons */
+        .dark .bg-sky-50   { background: rgba(56, 189, 248, 0.12) !important; }
+        .dark .bg-emerald-50 { background: rgba(52, 211, 153, 0.12) !important; }
+
+        /* Form elements */
+        .dark select,
+        .dark input {
+            background: rgba(255, 255, 255, 0.06) !important;
+            color: #e2e8f0 !important;
+            border-color: rgba(255, 255, 255, 0.10) !important;
+        }
     </style>
 <script type="importmap">
 {

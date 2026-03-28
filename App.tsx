@@ -19,6 +19,7 @@ import PreparationTracker from './components/PreparationTracker';
 import BasicTracker from './components/BasicTracker';
 import { initTelegramApp, getTelegramUserId, getTelegramWebApp } from './src/utils/telegram';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
+import { useTheme } from './src/hooks/useTheme';
 import CirclesView from './components/CirclesView';
 import { getUserCircles } from './src/services/api';
 import { PREPARATION_START_DATE } from './constants';
@@ -75,6 +76,7 @@ function normalizeUserData(raw: UserData): UserData {
 }
 
 const App: React.FC = () => {
+  useTheme();
   useEffect(() => { initTelegramApp(); }, []);
 
   useEffect(() => {
