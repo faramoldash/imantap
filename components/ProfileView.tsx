@@ -286,7 +286,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       console.log('📊 Today tasks:', {
         todayTasks,
         totalTodayTasks,
-        isRamadanStarted,
+        isRamadanActive,
         dayOfWeek: now.getDay()
       });
     }
