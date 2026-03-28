@@ -141,7 +141,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       dayInPhase = selectedDay;
     } else if (selectedDateMs >= eidDateMs) {
       phase = 'basic';
-      dayInPhase = selectedDay;
+      dayInPhase = Math.floor((selectedDateMs - eidDateMs) / 86400000) + 1;
     } else {
       phase = 'ramadan';
       dayInPhase = Math.floor((selectedDateMs - ramadanStartMs) / 86400000) + 1;

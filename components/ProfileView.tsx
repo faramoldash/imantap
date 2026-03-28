@@ -70,18 +70,29 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
 
   // ===== ФИЛЬТРАЦИЯ ПО ПЕРИОДАМ =====
   const getFilteredProgress = (): DayProgress[] => {
-    // ✅ Определяем источник данных в зависимости от периода
-    const ramadanStartDate = new Date(2026, 1, 19); // локальный TZ браузера
-    const isRamadanStarted = new Date() >= ramadanStartDate;
-    
-    // До Рамадана читаем из basicProgress, после - из progress
-    const progressArray = isRamadanStarted 
-    ? (Object.values(userData.progress || {}) as DayProgress[])
-    : (Object.values(userData.preparationProgress || {}) as DayProgress[]);
-    
+    const now = new Date();
+    const ramadanStartDate = new Date(2026, 1, 19); // 19 февраля
+    const eidDate         = new Date(2026, 2, 20);  // 20 марта (Ораза айт)
+    const isPrepPhase     = now < ramadanStartDate;
+    const isRamadanActive = now >= ramadanStartDate && now < eidDate;
+
+    // Три фазы: подготовка → Рамадан → базовая/Шавваль
+    let progressArray: DayProgress[];
+    if (isPrepPhase) {
+      progressArray = Object.values(userData.preparationProgress || {}) as DayProgress[];
+    } else if (isRamadanActive) {
+      progressArray = Object.values(userData.progress || {}) as DayProgress[];
+    } else {
+      // После Рамадана: ключи basicProgress — строки дат, добавляем .date из ключа
+      progressArray = Object.entries(userData.basicProgress || {}).map(([dateKey, data]) => ({
+        ...(data as DayProgress),
+        date: dateKey,
+      }));
+    }
+
     console.log('🔍 getFilteredProgress:', {
-      isRamadanStarted,
-      source: isRamadanStarted ? 'progress (Ramadan)' : 'preparationProgress (Preparation)',
+      phase: isPrepPhase ? 'preparation' : isRamadanActive ? 'ramadan' : 'basic',
+      source: isPrepPhase ? 'preparationProgress' : isRamadanActive ? 'progress (Ramadan)' : 'basicProgress',
       totalItems: progressArray.length,
       periodFilter,
       sampleItem: progressArray[0],
@@ -118,7 +129,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     const withDates = progressArray.map(p => {
       if (p.date) return p;
       if (p.day) {
-        const startDay = isRamadanStarted ? 19 : 9;
+        const startDay = isRamadanActive ? 19 : 9; // Рамадан: 19 фев, Подготовка: 9 фев
         const d = new Date(2026, 1, startDay + (p.day - 1));
         return { ...p, date: d.toISOString() };
       }
@@ -229,14 +240,14 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     let totalTodayTasks = 0;
 
     if (todayProgress) {
-      // Определяем список задач в зависимости от периода
+      // Определяем список задач в зависимости от фазы
       const now = new Date();
-      const isRamadanStarted = now >= new Date(2026, 1, 19); // локальный TZ браузера
-      
-      if (isRamadanStarted) {
+      const isRamadanActive = now >= new Date(2026, 1, 19) && now < new Date(2026, 2, 20);
+
+      if (isRamadanActive) {
         // РАМАДАН: 19 задач (10 намазов + 9 духовных)
         const ramadanTasks = [
-          'fasting', 
+          'fasting',
           'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha', 'taraweeh', 'tahajjud', 'witr',
           'quranRead', 'morningDhikr', 'eveningDhikr', 'salawat', 'hadith', 'charity', 'names99', 'lessons', 'book'
         ];
@@ -286,14 +297,16 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     // Формула: 1 + (streak * 0.1), максимум 3.0
     const streakMultiplier = Math.min(1 + (userData.currentStreak * 0.1), 3.0);
 
-    const ramadanTasks = [
-      'fasting', 'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
-      'taraweeh', 'tahajjud', 'witr', 'quranRead', 'morningDhikr',
-      'eveningDhikr', 'salawat', 'hadith', 'charity', 'names99', 'lessons', 'book'
-    ];
+    const isRamadanActiveXP = new Date() >= new Date(2026, 1, 19) && new Date() < new Date(2026, 2, 20);
+    const tasksForXP = isRamadanActiveXP
+      ? ['fasting', 'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
+         'taraweeh', 'tahajjud', 'witr', 'quranRead', 'morningDhikr',
+         'eveningDhikr', 'salawat', 'hadith', 'charity', 'names99', 'lessons', 'book']
+      : ['fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
+         'morningDhikr', 'eveningDhikr', 'quranRead', 'salawat', 'charity', 'book'];
     const todayXP = todayProgress
       ? Math.round(
-          ramadanTasks
+          tasksForXP
             .filter(task => todayProgress[task as keyof typeof todayProgress])
             .reduce((sum, task) => sum + (XP_VALUES[task as keyof typeof XP_VALUES] || 10), 0)
           * streakMultiplier

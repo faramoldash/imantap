@@ -188,7 +188,7 @@ const App: React.FC = () => {
     const diffTime = currentDate.getTime() - startDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     const isStarted = diffDays >= 0;
-    const currentDay = isStarted ? diffDays + 1 : 0;
+    const currentDay = isStarted ? Math.min(diffDays + 1, TOTAL_DAYS) : 0;
     const daysUntil = !isStarted ? -diffDays : 0;
     return { isStarted, currentDay, daysUntil };
   }, [userData.startDate]);
