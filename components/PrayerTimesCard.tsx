@@ -52,17 +52,14 @@ function getNextPrayer(prayerTimes: PrayerTimes): { key: string; timeStr: string
   return { key: 'fajr', timeStr: prayerTimes.fajr, secondsLeft: diff };
 }
 
-function formatCountdown(seconds: number, language: string): string {
+function formatCountdown(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
-  const hSuffix = language === 'kk' ? 'сағ' : 'ч';
-  const mSuffix = language === 'kk' ? 'мин' : 'м';
-  const sSuffix = language === 'kk' ? 'сек' : 'с';
+  const mm = String(m).padStart(2, '0');
   const ss = String(s).padStart(2, '0');
-  if (h > 0) return `${h}${hSuffix} ${m}${mSuffix} ${ss}${sSuffix}`;
-  if (m > 0) return `${m}${mSuffix} ${ss}${sSuffix}`;
-  return `${ss}${sSuffix}`;
+  if (h > 0) return `${h}:${mm}:${ss}`;
+  return `${mm}:${ss}`;
 }
 
 const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
@@ -111,7 +108,7 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
               {nextPrayerInfo.icon} {language === 'kk' ? nextPrayerInfo.kk.split(' ')[0] : nextPrayerInfo.ru}
             </p>
             <p className="text-white font-black text-sm leading-tight mt-0.5">
-              {formatCountdown(nextPrayer.secondsLeft, language)}
+              {formatCountdown(nextPrayer.secondsLeft)}
             </p>
           </div>
         )}
