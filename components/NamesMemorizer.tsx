@@ -51,7 +51,7 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
      }
   };
 
-  const hasNext = selectedId !== null && selectedId < 99;
+  const hasNext = selectedId !== null && NAMES_99.findIndex(n => n.id === selectedId) < NAMES_99.length - 1;
 
   return (
     <div className="space-y-6 pb-8 pt-4">
