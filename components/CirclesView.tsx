@@ -91,38 +91,54 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
 
   const [modal, setModal] = useState<CirclesModal>({ type: 'none' });
   
-  // 19 ибадат-задач Рамадана (те же что считает бэкенд)
+  // Задачи Рамадана — те же 10, что считает бэкенд (circleService.js)
   const RAMADAN_TASKS = [
-    'fasting', 'tahajjud', 'fajr', 'morningDhikr', 'quranRead',
-    'names99', 'salawat', 'hadith', 'duha', 'charity', 'dhuhr',
-    'lessons', 'asr', 'book', 'eveningDhikr', 'maghrib', 'isha',
-    'taraweeh', 'witr'
+    'fasting', 'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
+    'quranRead', 'morningDhikr', 'eveningDhikr'
+  ];
+  // Задачи базовой/Шавваль фазы — те же 12, что считает бэкенд
+  const BASIC_TASKS = [
+    'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
+    'morningDhikr', 'eveningDhikr', 'quranRead',
+    'salawat', 'charity', 'book'
   ];
 
   // ✅ Локальный расчёт прогресса — мгновенно, без ожидания API
   const getMyLocalProgress = useCallback(() => {
-    // Вычисляем текущий день Рамадана из startDate
-    const [sy, sm, sd] = userData.startDate.split('-').map(Number);
-    const startDate = new Date(sy, sm - 1, sd);
     const now = new Date();
-    const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const diffDays = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const ramadanDay = diffDays >= 0 ? diffDays + 1 : null;
+    const today = now.toLocaleDateString('en-CA'); // 'YYYY-MM-DD' в локальном TZ
 
-    // Рамадан идёт — считаем 19 ибадат-задач
-    if (ramadanDay) {
+    const ramadanStartDate = new Date(2026, 1, 19); // 19 февраля
+    const eidDate          = new Date(2026, 2, 20); // 20 марта
+
+    const isRamadanActive = now >= ramadanStartDate && now < eidDate;
+    const isBasicPhase    = now >= eidDate;
+
+    if (isRamadanActive) {
+      // Рамадан: ключ — числовой день (1–29)
+      const [sy, sm, sd] = userData.startDate.split('-').map(Number);
+      const startDate = new Date(sy, sm - 1, sd);
+      const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diffDays = Math.floor((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const ramadanDay = Math.min(diffDays + 1, 29);
       const dayProgress = (userData.progress[ramadanDay] || {}) as any;
-      const total = RAMADAN_TASKS.length; // 19
+      const total = RAMADAN_TASKS.length;
       const completed = RAMADAN_TASKS.filter(key => dayProgress[key] === true).length;
-      const percent = Math.round((completed / total) * 100);
-      return { completed, total, percent };
+      return { completed, total, percent: Math.round((completed / total) * 100) };
     }
 
-    // До Рамадана — считаем customTasks + цели
+    if (isBasicPhase) {
+      // Базовая/Шавваль фаза: ключ — строка даты
+      const dayProgress = (userData.basicProgress as any)?.[today] || {};
+      const total = BASIC_TASKS.length;
+      const completed = BASIC_TASKS.filter(key => dayProgress[key] === true).length;
+      return { completed, total, percent: Math.round((completed / total) * 100) };
+    }
+
+    // Подготовка: считаем customTasks + цели
     const customTasks = userData.customTasks || [];
     let totalGoals = customTasks.length;
     let completedGoals = customTasks.filter((t: any) => t.completed).length;
-    const today = new Date().toISOString().split('T')[0];
     const basicToday = (userData.basicProgress as any)?.[today];
     if ((userData.dailyQuranGoal || 0) > 0) {
       totalGoals++;
@@ -134,7 +150,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     }
     const percent = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
     return { completed: completedGoals, total: totalGoals, percent };
-  }, [userData.progress, userData.startDate, userData.customTasks, userData.basicProgress, userData.dailyQuranGoal, userData.dailyCharityGoal]);
+  }, [userData.progress, userData.startDate, userData.basicProgress, userData.customTasks, userData.dailyQuranGoal, userData.dailyCharityGoal]);
 
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [expandedMemberId, setExpandedMemberId] = useState<number | null>(null);
