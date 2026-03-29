@@ -52,6 +52,16 @@ function getNextPrayer(prayerTimes: PrayerTimes): { key: string; timeStr: string
   return { key: 'fajr', timeStr: prayerTimes.fajr, secondsLeft: diff };
 }
 
+function getCurrentPrayer(prayerTimes: PrayerTimes, nowSec: number): string {
+  const prayersOnly = PRAYERS.filter(p => p.key !== 'sunrise');
+  let current = 'isha'; // до Фаджра считаем текущим Ишу
+  for (const prayer of prayersOnly) {
+    const prayerSec = getTimeInSeconds(prayerTimes[prayer.key as keyof PrayerTimes]);
+    if (prayerSec <= nowSec) current = prayer.key;
+  }
+  return current;
+}
+
 function formatCountdown(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -76,6 +86,7 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
 
   const nextPrayer = getNextPrayer(prayerTimes);
   const nextPrayerInfo = PRAYERS.find(p => p.key === nextPrayer?.key);
+  const currentPrayerKey = getCurrentPrayer(prayerTimes, nowSec);
 
   // Хиджри дата
   const today = new Date();
@@ -84,34 +95,26 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
     { day: 'numeric', month: 'long', year: 'numeric' }
   ).format(today);
 
-  const locale = language === 'kk' ? 'kk-KZ' : 'ru-RU';
-  const day = today.toLocaleDateString(locale, { day: 'numeric' });
-  const month = today.toLocaleDateString(locale, { month: 'long' });
-  const year = today.getFullYear();
-  const yearSuffix = language === 'kk' ? ' ж.' : ' г.';
-  const gregorianDate = `${day} ${month} ${year}${yearSuffix}`;
-
   return (
     <div className="bg-header rounded-[2rem] p-4 text-white shadow-xl">
 
-      {/* Шапка: город, дата, таймер */}
+      {/* Шапка: таймер слева, город/дата справа */}
       <div className="flex items-center justify-between mb-3">
-        <div>
-          <p className="text-[10px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>📍 {city}</p>
-          <p className="text-white font-black text-xs leading-tight mt-0.5">{gregorianDate}</p>
-          <p className="text-[9px] mt-0.5 opacity-80" style={{ color: 'var(--bronze-disabled)' }}>{hijriDate}</p>
-        </div>
-
         {nextPrayer && nextPrayerInfo && (
           <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center">
             <p className="text-[9px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>
-              {nextPrayerInfo.icon} {language === 'kk' ? nextPrayerInfo.kk.split(' ')[0] : nextPrayerInfo.ru}
+              {language === 'kk' ? nextPrayerInfo.kk.split(' ')[0] : nextPrayerInfo.ru}
             </p>
             <p className="text-white font-black text-sm leading-tight mt-0.5">
               {formatCountdown(nextPrayer.secondsLeft)}
             </p>
           </div>
         )}
+
+        <div className="text-right">
+          <p className="text-[10px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>📍 {city}</p>
+          <p className="text-[9px] mt-0.5 opacity-80" style={{ color: 'var(--bronze-disabled)' }}>{hijriDate}</p>
+        </div>
       </div>
 
       {/* Список намазов — один ряд */}
@@ -120,21 +123,22 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
           const timeStr = prayerTimes[prayer.key as keyof PrayerTimes];
           const prayerSec = getTimeInSeconds(timeStr);
           const isPast = prayer.key !== 'sunrise' && prayerSec < nowSec;
-          const isNext = prayer.key === nextPrayer?.key;
+          const isCurrent = prayer.key === currentPrayerKey;
+          const name = language === 'kk' ? prayer.kk.split(' ')[0] : prayer.ru;
 
           return (
             <div
               key={prayer.key}
               className={`rounded-xl p-1.5 text-center transition-all ${
-                isNext
+                isCurrent
                   ? 'bg-white shadow-md scale-105'
                   : isPast
                   ? 'bg-white/10 text-white/50'
                   : 'bg-white/15 text-white'
               }`}
-              style={isNext ? { color: 'var(--bronze-pressed)' } : undefined}
+              style={isCurrent ? { color: 'var(--bronze-pressed)' } : undefined}
             >
-              <p className="text-sm leading-none">{prayer.icon}</p>
+              <p className="text-[8px] font-bold leading-none truncate">{name}</p>
               <p className="text-[9px] font-black mt-0.5 leading-none">
                 {timeStr}
               </p>

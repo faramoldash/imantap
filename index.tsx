@@ -14,8 +14,8 @@ const webApp = telegram?.WebApp;
 if (webApp) {
   webApp.ready();
   webApp.expand();
-  webApp.setHeaderColor('#065f46');
-  webApp.setBackgroundColor('#f8fafc');
+  webApp.setHeaderColor('#3D2010');
+  webApp.setBackgroundColor('#F0EEEC');
 }
 
 // Рендерим БЕЗ передачи telegramUser (получим внутри App)
