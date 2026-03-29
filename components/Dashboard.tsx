@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { DayProgress, Language, UserData, ViewType } from '../src/types/types';
-import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, TOTAL_DAYS, PREPARATION_DAYS, NAMES_99, XP_VALUES, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE, EID_AL_FITR_DATE, PRAYER_ICONS } from '../constants';
+import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, NAMES_99, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE, EID_AL_FITR_DATE, PRAYER_ICONS } from '../constants';
 import { haptics } from '../src/utils/haptics';
 import RealCalendar from './RealCalendar';
 import SubscriptionStatus from '../components/SubscriptionStatus';
@@ -108,10 +108,6 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   // Проверяем все ли имена выучены
   const allNamesLearned = (userData?.memorizedNames?.length || 0) === 99;
-  // ✅ REF для шапки трекера
-  const headerRef = React.useRef<HTMLDivElement>(null);
-  // ✅ Флаг для отслеживания навигации (не скроллим при первом рендере)
-  const hasNavigated = React.useRef(false);
 
   // ✅ ОПРЕДЕЛЯЕМ ТЕКУЩИЙ ДЕНЬ С УЧЕТОМ ФАЗЫ
   const currentDay = (() => {
@@ -182,32 +178,6 @@ const Dashboard: React.FC<DashboardProps> = ({
   const isToday = selectedDay === currentDay;
   const isFutureDay = selectedDay > currentDay;
 
-  // ✅ НАВИГАЦИЯ
-  const canGoPrev = true; // ✅ Бесконечно назад
-  const LAST_BROWSABLE_DAY = PREPARATION_DAYS + TOTAL_DAYS + 1; // день 40 = Ораза айт
-  const canGoNext = selectedDay < Math.max(currentDay, LAST_BROWSABLE_DAY);
-
-  const goToPrevDay = () => {
-    if (canGoPrev) {
-      hasNavigated.current = true; // ✅ Устанавливаем флаг
-      haptics.selection();
-      onDaySelect(selectedDay - 1);
-    }
-  };
-
-  const goToNextDay = () => {
-    if (canGoNext) {
-      hasNavigated.current = true; // ✅ Устанавливаем флаг
-      haptics.selection();
-      onDaySelect(selectedDay + 1);
-    }
-  };
-
-  const goToToday = () => {
-    hasNavigated.current = true;
-    haptics.medium();
-    onDaySelect(currentDay);
-  };
 
   const markShawwalFast = async (dateStr?: string) => {
     if (shawwalLoading) return;
@@ -404,15 +374,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     }
   }, [isInitialized]);
 
-  // ✅ Скроллим к шапке только после навигации
-  useEffect(() => {
-    if (hasNavigated.current && headerRef.current) {
-      headerRef.current.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start' 
-      });
-    }
-  }, [selectedDay]);
 
   return (
     <div className="space-y-6 pb-4 relative">
@@ -483,122 +444,6 @@ const Dashboard: React.FC<DashboardProps> = ({
         </section>
       )}
 
-      {/* ✅ ТРЕКЕР ВЫБРАННОГО ДНЯ - ШАПКА С НАВИГАЦИЕЙ */}
-      <section 
-        ref={headerRef}
-        style={{ scrollMarginTop: '24px' }}
-        className="px-6 pt-4 pb-6 -mx-6 rounded-b-[3rem] rounded-t-none shadow-xl text-white relative overflow-hidden bg-header">
-        <div className="absolute top-0 right-0 p-10 opacity-10">
-          <span className="text-9xl">🌙</span>
-        </div>
-        
-        <div className="relative z-10">
-          {/* Навигация */}
-          <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={goToPrevDay}
-              disabled={!canGoPrev}
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all font-bold text-lg ${
-                canGoPrev 
-                  ? 'bg-white/20 hover:bg-white/30 active:scale-95 text-white' 
-                  : 'bg-white/5 text-white/30 cursor-not-allowed'
-              }`}
-            >
-              ←
-            </button>
-            
-            {/* Центральная кнопка */}
-            {isToday ? (
-              <div className="bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-2xl text-xs font-black uppercase border border-white/30">
-                {language === 'kk' ? 'Бүгін' : 'Сегодня'}
-              </div>
-            ) : (
-              <button
-                onClick={goToToday}
-                className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-2xl text-xs font-black uppercase transition-all active:scale-95 border border-white/30"
-              >
-                {language === 'kk' ? 'Бүгінге өту' : 'К сегодня'}
-              </button>
-            )}
-            
-            <button
-              onClick={goToNextDay}
-              disabled={!canGoNext}
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all font-bold text-lg ${
-                canGoNext 
-                  ? 'bg-white/20 hover:bg-white/30 active:scale-95 text-white' 
-                  : 'bg-white/5 text-white/30 cursor-not-allowed'
-              }`}
-            >
-              →
-            </button>
-          </div>
-          
-          <div className="text-center">
-            {/* Название фазы - НЕ показываем для базовых дней */}
-            {selectedDayInfo.phase !== 'basic' && (
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-90 mb-2">
-                {selectedDayInfo.phase === 'ramadan'
-                  ? (language === 'kk' ? 'Рамазан' : 'Рамадан')
-                  : (language === 'kk' ? 'Рамазанға дайындық' : 'Подготовка к Рамадану')}
-              </p>
-            )}
-            
-            {/* Заголовок "День X" - только для Рамадана */}
-            {selectedDayInfo.phase === 'ramadan' && (
-              <h1 className="text-2xl font-black mb-2">
-                {language === 'kk' ? 'Күн' : 'День'} {selectedDayInfo.dayInPhase}
-              </h1>
-            )}
-            
-            
-            {/* Бейджи - для подготовки и базовых дней */}
-            {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
-              const dayOfWeekStr = selectedDayInfo.selectedDate.toLocaleDateString('en-US', {
-                timeZone: 'Asia/Almaty', weekday: 'short'
-              });
-              const isMondayOrThursday = dayOfWeekStr === 'Mon' || dayOfWeekStr === 'Thu';
-              const isFirstTaraweehDay = toLocalDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
-              const isEidDay = toLocalDateStr(selectedDayInfo.selectedDate) === EID_AL_FITR_DATE;
-              
-              if (!isMondayOrThursday && !isFirstTaraweehDay && !isEidDay) return null;
-              
-              return (
-                <div className="flex justify-center gap-2 flex-wrap mt-3">
-                  {isMondayOrThursday && (
-                    <div className="bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/20">
-                      <p className="text-xs font-bold">🌙 {language === 'kk' ? 'Дүйсенбі/Бейсенбі оразасы' : 'Ораза в пн/чт'}</p>
-                    </div>
-                  )}
-                  {isFirstTaraweehDay && (
-                    <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/30">
-                      <p className="text-xs font-bold">⭐ {language === 'kk' ? 'Бірінші тарауық!' : 'Первый таравих!'}</p>
-                    </div>
-                  )}
-                  {isEidDay && (
-                    <div className="bg-gradient-to-r from-amber-400 to-orange-400 backdrop-blur-sm rounded-full px-4 py-2 border-2 border-amber-200 shadow-lg">
-                      <p className="text-sm font-black text-white">🎉 {language === 'kk' ? 'ОРАЗА АЙТ!' : 'ОРАЗА АЙТ!'}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-            {/* ⚠️ Предупреждение для прошлых дней подготовки/Рамадана */}
-            {!isToday && !isFutureDay && (selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'ramadan') && (
-              <div className="mt-3 pt-3 border-t border-white/20">
-                <p className="text-[10px] font-bold text-white/80 text-center flex items-center justify-center space-x-1.5">
-                  <span>⚠️</span>
-                  <span>
-                    {language === 'kk' 
-                      ? 'XP тек бүгінгі күн үшін есептеледі' 
-                      : 'XP начисляется только за сегодняшний день'}
-                  </span>
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
 
       {/* 🌙 Shawwal Banner */}
       {(isShawwalActive || isShawwalDone) && !isFutureDay && (() => {
@@ -992,10 +837,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         preparationProgress={userData?.preparationProgress || {}}
         selectedDay={selectedDay}
         realTodayDay={realTodayDay}
-        onDaySelect={(day) => {
-          hasNavigated.current = true;
-          onDaySelect(day);
-        }}
+        onDaySelect={onDaySelect}
         onPreparationDaySelect={onPreparationDaySelect}
         onBasicDateSelect={onBasicDateSelect}
         trackerKeys={[...TRACKER_KEYS]}

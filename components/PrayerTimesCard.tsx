@@ -91,8 +91,10 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
   const today = new Date();
 
   // Григорианская дата
-  const locale = language === 'kk' ? 'kk-KZ' : 'ru-RU';
-  const gregorianDate = today.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+  const monthNamesKk = ['қаңтар','ақпан','наурыз','сәуір','мамыр','маусым','шілде','тамыз','қыркүйек','қазан','қараша','желтоқсан'];
+  const monthNamesRu = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  const monthNames = language === 'kk' ? monthNamesKk : monthNamesRu;
+  const gregorianDate = `${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}`;
 
   // Хиджри дата
   const hijriDate = new Intl.DateTimeFormat(
@@ -119,7 +121,7 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
         <div className="text-right">
           <p className="text-[10px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>📍 {city}</p>
           <p className="text-white font-black text-xs leading-tight mt-0.5">{gregorianDate}</p>
-          <p className="text-[9px] mt-0.5 opacity-80" style={{ color: 'var(--bronze-disabled)' }}>{hijriDate}</p>
+          <p className="text-[9px] mt-0.5 text-white/70 font-medium">{hijriDate}</p>
         </div>
       </div>
 

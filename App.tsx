@@ -720,7 +720,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <header className={`px-6 pt-6 pb-4 text-center bg-header shadow-xl relative overflow-hidden ${currentView === 'dashboard' ? 'rounded-b-none' : 'rounded-b-[3rem]'}`}>
+      <header className="px-6 pt-6 pb-4 text-center bg-header rounded-b-[3rem] shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10"><span className="text-9xl">🌙</span></div>
         <div className="flex items-center mb-4 relative z-10">
           <div className="flex-1" />
