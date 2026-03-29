@@ -487,7 +487,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       <section 
         ref={headerRef}
         style={{ scrollMarginTop: '24px' }}
-        className="p-6 rounded-[3rem] shadow-xl text-white relative overflow-hidden bg-header">
+        className="px-6 pt-4 pb-6 -mx-6 rounded-b-[3rem] rounded-t-none shadow-xl text-white relative overflow-hidden bg-header">
         <div className="absolute top-0 right-0 p-10 opacity-10">
           <span className="text-9xl">🌙</span>
         </div>
@@ -551,21 +551,6 @@ const Dashboard: React.FC<DashboardProps> = ({
               </h1>
             )}
             
-            {/* Дата */}
-            <p className={`text-sm font-bold opacity-90 ${selectedDayInfo.phase === 'ramadan' ? '' : 'mb-2'}`}>
-              {(() => {
-                const currentDayDate = selectedDayInfo.selectedDate;
-                
-                const monthNames = language === 'kk' 
-                  ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
-                  : ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-                const weekDays = language === 'kk'
-                  ? ['Жексенбі', 'Дүйсенбі', 'Сейсенбі', 'Сәрсенбі', 'Бейсенбі', 'Жұма', 'Сенбі']
-                  : ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-                
-                return `${weekDays[currentDayDate.getDay()]}, ${currentDayDate.getDate()} ${monthNames[currentDayDate.getMonth()]}`;
-              })()}
-            </p>
             
             {/* Бейджи - для подготовки и базовых дней */}
             {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {

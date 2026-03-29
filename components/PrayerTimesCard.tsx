@@ -18,12 +18,12 @@ interface Props {
 }
 
 const PRAYERS = [
-  { key: 'fajr',    icon: PRAYER_ICONS.fajr,    kk: 'Таңғы (Фаджр)',   ru: 'Фаджр'   },
-  { key: 'sunrise', icon: PRAYER_ICONS.sunrise,  kk: 'Күн шығу',         ru: 'Восход'  },
-  { key: 'dhuhr',   icon: PRAYER_ICONS.dhuhr,    kk: 'Бесін (Зухр)',     ru: 'Зухр'    },
-  { key: 'asr',     icon: PRAYER_ICONS.asr,      kk: 'Екінті (Аср)',     ru: 'Аср'     },
-  { key: 'maghrib', icon: PRAYER_ICONS.maghrib,  kk: 'Ақшам (Мағриб)',   ru: 'Магриб'  },
-  { key: 'isha',    icon: PRAYER_ICONS.isha,      kk: 'Құптан (Иша)',     ru: 'Иша'     },
+  { key: 'fajr',    icon: PRAYER_ICONS.fajr,    kk: 'Таңғы (Фаджр)',   ru: 'Фаджр',   kkCountdown: 'Таң намазына дейін',    ruCountdown: 'До намаза Фаджр'   },
+  { key: 'sunrise', icon: PRAYER_ICONS.sunrise,  kk: 'Күн шығу',         ru: 'Восход',  kkCountdown: 'Күннің шығуына дейін',  ruCountdown: 'До восхода'        },
+  { key: 'dhuhr',   icon: PRAYER_ICONS.dhuhr,    kk: 'Бесін (Зухр)',     ru: 'Зухр',    kkCountdown: 'Бесін намазына дейін',  ruCountdown: 'До намаза Зухр'    },
+  { key: 'asr',     icon: PRAYER_ICONS.asr,      kk: 'Екінті (Аср)',     ru: 'Аср',     kkCountdown: 'Екінті намазына дейін', ruCountdown: 'До намаза Аср'     },
+  { key: 'maghrib', icon: PRAYER_ICONS.maghrib,  kk: 'Ақшам (Мағриб)',   ru: 'Магриб',  kkCountdown: 'Ақшам намазына дейін',  ruCountdown: 'До намаза Магриб'  },
+  { key: 'isha',    icon: PRAYER_ICONS.isha,      kk: 'Құптан (Иша)',     ru: 'Иша',     kkCountdown: 'Құптан намазына дейін', ruCountdown: 'До намаза Иша'     },
 ];
 
 function getTimeInSeconds(timeStr: string): number {
@@ -88,8 +88,13 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
   const nextPrayerInfo = PRAYERS.find(p => p.key === nextPrayer?.key);
   const currentPrayerKey = getCurrentPrayer(prayerTimes, nowSec);
 
-  // Хиджри дата
   const today = new Date();
+
+  // Григорианская дата
+  const locale = language === 'kk' ? 'kk-KZ' : 'ru-RU';
+  const gregorianDate = today.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Хиджри дата
   const hijriDate = new Intl.DateTimeFormat(
     language === 'kk' ? 'kk-KZ-u-ca-islamic' : 'ru-RU-u-ca-islamic',
     { day: 'numeric', month: 'long', year: 'numeric' }
@@ -103,7 +108,7 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
         {nextPrayer && nextPrayerInfo && (
           <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center">
             <p className="text-[9px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>
-              {language === 'kk' ? nextPrayerInfo.kk.split(' ')[0] : nextPrayerInfo.ru}
+              {language === 'kk' ? nextPrayerInfo.kkCountdown : nextPrayerInfo.ruCountdown}
             </p>
             <p className="text-white font-black text-sm leading-tight mt-0.5">
               {formatCountdown(nextPrayer.secondsLeft)}
@@ -113,6 +118,7 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
 
         <div className="text-right">
           <p className="text-[10px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>📍 {city}</p>
+          <p className="text-white font-black text-xs leading-tight mt-0.5">{gregorianDate}</p>
           <p className="text-[9px] mt-0.5 opacity-80" style={{ color: 'var(--bronze-disabled)' }}>{hijriDate}</p>
         </div>
       </div>
