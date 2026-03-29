@@ -15,6 +15,7 @@ interface Props {
   language: Language;
   city: string;
   xp: number;
+  onXpClick?: () => void;
 }
 
 const PRAYER_COUNTDOWN_LABELS: Record<string, { kk: string; ru: string }> = {
@@ -60,7 +61,7 @@ function formatCountdown(seconds: number): string {
   return `${mm}:${ss}`;
 }
 
-const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city, xp }) => {
+const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city, xp, onXpClick }) => {
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -80,15 +81,6 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city, xp }) =
   const monthNames = language === 'kk' ? monthNamesKk : monthNamesRu;
   const gregorianDate = `${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}`;
 
-  const hijriParts = new Intl.DateTimeFormat(
-    language === 'kk' ? 'kk-KZ-u-ca-islamic' : 'ru-RU-u-ca-islamic',
-    { day: 'numeric', month: 'long', year: 'numeric' }
-  ).formatToParts(today);
-  const hijriDay = hijriParts.find(p => p.type === 'day')?.value ?? '';
-  const hijriMonth = hijriParts.find(p => p.type === 'month')?.value ?? '';
-  const hijriYear = hijriParts.find(p => p.type === 'year')?.value?.replace(/[^\d]/g, '') ?? '';
-  const hijriDate = `${hijriDay} ${hijriMonth} ${hijriYear}`;
-
   return (
     <div className="px-4 pb-4 pt-1 text-white">
       <div className="flex items-center justify-between gap-2">
@@ -107,7 +99,8 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city, xp }) =
 
         {/* XP — центр, акцент */}
         <div
-          className="flex flex-col items-center justify-center rounded-2xl px-4 py-2 flex-shrink-0 shadow-lg"
+          onClick={onXpClick}
+          className="flex flex-col items-center justify-center rounded-2xl px-4 py-2 flex-shrink-0 shadow-lg active:scale-95 transition-transform cursor-pointer"
           style={{ background: 'linear-gradient(135deg, #C8860A, #E8A020)' }}
         >
           <span className="text-lg leading-none">🏆</span>
@@ -116,10 +109,9 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city, xp }) =
         </div>
 
         {/* Город/дата */}
-        <div className="text-right flex-shrink-0">
-          <p className="text-[10px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>📍 {city}</p>
+        <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center flex-shrink-0">
+          <p className="text-[9px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>📍 {city}</p>
           <p className="text-white font-black text-xs leading-tight mt-0.5">{gregorianDate}</p>
-          <p className="text-[9px] text-white/70 font-medium mt-0.5">{hijriDate}</p>
         </div>
 
       </div>

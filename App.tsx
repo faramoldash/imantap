@@ -720,21 +720,14 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <header className="px-6 pt-6 pb-2 bg-header rounded-b-[3rem] shadow-xl relative overflow-hidden">
+      <header className="px-6 py-4 bg-header rounded-b-[3rem] shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10"><span className="text-9xl">🌙</span></div>
-        <div className="flex justify-end mb-1 relative z-10">
-          <button
-            onClick={() => setCurrentView('dashboard')}
-            className={`bg-white/10 backdrop-blur-lg p-3 rounded-2xl border border-white/10 active:scale-90 transition-transform shadow-lg ${currentView !== 'dashboard' ? 'visible' : 'invisible'}`}
-          >
-            🏠
-          </button>
-        </div>
         <PrayerTimesCard
           prayerTimes={(userData as any)?.prayerTimes || null}
           language={lang}
           city={(userData as any)?.location?.city || 'Астана'}
           xp={userData.xp}
+          onXpClick={() => setCurrentView('rewards')}
         />
       </header>
 
