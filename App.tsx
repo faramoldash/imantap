@@ -720,8 +720,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <header className="px-6 py-4 bg-header rounded-b-[3rem] shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-10 opacity-10"><span className="text-9xl">🌙</span></div>
+      <header className="px-6 pt-8 pb-5 bg-header rounded-b-[3rem] shadow-xl relative overflow-hidden">
         <PrayerTimesCard
           prayerTimes={(userData as any)?.prayerTimes || null}
           language={lang}
