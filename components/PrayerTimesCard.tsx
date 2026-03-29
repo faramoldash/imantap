@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Language } from '../src/types/types';
-import { PRAYER_ICONS } from '../constants';
 
 interface PrayerTimes {
   fajr: string;
@@ -15,16 +14,19 @@ interface Props {
   prayerTimes: PrayerTimes | null;
   language: Language;
   city: string;
+  xp: number;
 }
 
-const PRAYERS = [
-  { key: 'fajr',    icon: PRAYER_ICONS.fajr,    kk: 'Таңғы (Фаджр)',   ru: 'Фаджр',   kkShort: 'Таң',       kkCountdown: 'Таң намазына дейін',    ruCountdown: 'До намаза Фаджр'   },
-  { key: 'sunrise', icon: PRAYER_ICONS.sunrise,  kk: 'Күн шығу',         ru: 'Восход',  kkShort: 'Күн шығу', kkCountdown: 'Күннің шығуына дейін',  ruCountdown: 'До восхода'        },
-  { key: 'dhuhr',   icon: PRAYER_ICONS.dhuhr,    kk: 'Бесін (Зухр)',     ru: 'Зухр',    kkShort: 'Бесін',    kkCountdown: 'Бесін намазына дейін',  ruCountdown: 'До намаза Зухр'    },
-  { key: 'asr',     icon: PRAYER_ICONS.asr,      kk: 'Екінті (Аср)',     ru: 'Аср',     kkShort: 'Екінті',   kkCountdown: 'Екінті намазына дейін', ruCountdown: 'До намаза Аср'     },
-  { key: 'maghrib', icon: PRAYER_ICONS.maghrib,  kk: 'Ақшам (Мағриб)',   ru: 'Магриб',  kkShort: 'Ақшам',   kkCountdown: 'Ақшам намазына дейін',  ruCountdown: 'До намаза Магриб'  },
-  { key: 'isha',    icon: PRAYER_ICONS.isha,      kk: 'Құптан (Иша)',     ru: 'Иша',     kkShort: 'Құптан',  kkCountdown: 'Құптан намазына дейін', ruCountdown: 'До намаза Иша'     },
-];
+const PRAYER_COUNTDOWN_LABELS: Record<string, { kk: string; ru: string }> = {
+  fajr:    { kk: 'Таң намазына дейін',    ru: 'До намаза Фаджр'   },
+  sunrise: { kk: 'Күннің шығуына дейін',  ru: 'До восхода'        },
+  dhuhr:   { kk: 'Бесін намазына дейін',  ru: 'До намаза Зухр'    },
+  asr:     { kk: 'Екінті намазына дейін', ru: 'До намаза Аср'     },
+  maghrib: { kk: 'Ақшам намазына дейін',  ru: 'До намаза Магриб'  },
+  isha:    { kk: 'Құптан намазына дейін', ru: 'До намаза Иша'     },
+};
+
+const PRAYER_KEYS_FOR_NEXT = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
 function getTimeInSeconds(timeStr: string): number {
   const [h, m] = timeStr.split(':').map(Number);
@@ -36,30 +38,16 @@ function getNowSeconds(): number {
   return now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
 }
 
-function getNextPrayer(prayerTimes: PrayerTimes): { key: string; timeStr: string; secondsLeft: number } | null {
+function getNextPrayer(prayerTimes: PrayerTimes): { key: string; secondsLeft: number } | null {
   const nowSec = getNowSeconds();
-  const prayersOnly = PRAYERS.filter(p => p.key !== 'sunrise');
-
-  for (const prayer of prayersOnly) {
-    const prayerSec = getTimeInSeconds(prayerTimes[prayer.key as keyof PrayerTimes]);
+  for (const key of PRAYER_KEYS_FOR_NEXT) {
+    const prayerSec = getTimeInSeconds(prayerTimes[key as keyof PrayerTimes]);
     if (prayerSec > nowSec) {
-      return { key: prayer.key, timeStr: prayerTimes[prayer.key as keyof PrayerTimes], secondsLeft: prayerSec - nowSec };
+      return { key, secondsLeft: prayerSec - nowSec };
     }
   }
-  // После Иша — следующий Фаджр
   const fajrSec = getTimeInSeconds(prayerTimes.fajr);
-  const diff = (24 * 3600 - nowSec) + fajrSec;
-  return { key: 'fajr', timeStr: prayerTimes.fajr, secondsLeft: diff };
-}
-
-function getCurrentPrayer(prayerTimes: PrayerTimes, nowSec: number): string {
-  const prayersOnly = PRAYERS.filter(p => p.key !== 'sunrise');
-  let current = 'isha'; // до Фаджра считаем текущим Ишу
-  for (const prayer of prayersOnly) {
-    const prayerSec = getTimeInSeconds(prayerTimes[prayer.key as keyof PrayerTimes]);
-    if (prayerSec <= nowSec) current = prayer.key;
-  }
-  return current;
+  return { key: 'fajr', secondsLeft: (24 * 3600 - nowSec) + fajrSec };
 }
 
 function formatCountdown(seconds: number): string {
@@ -72,31 +60,26 @@ function formatCountdown(seconds: number): string {
   return `${mm}:${ss}`;
 }
 
-const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
-  const [nowSec, setNowSec] = useState(getNowSeconds());
+const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city, xp }) => {
+  const [, setTick] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setNowSec(getNowSeconds());
-    }, 1000);
+    const interval = setInterval(() => setTick(t => t + 1), 1000);
     return () => clearInterval(interval);
   }, []);
 
   if (!prayerTimes) return null;
 
   const nextPrayer = getNextPrayer(prayerTimes);
-  const nextPrayerInfo = PRAYERS.find(p => p.key === nextPrayer?.key);
-  const currentPrayerKey = getCurrentPrayer(prayerTimes, nowSec);
+  const countdownLabel = nextPrayer ? PRAYER_COUNTDOWN_LABELS[nextPrayer.key] : null;
 
   const today = new Date();
 
-  // Григорианская дата
   const monthNamesKk = ['қаңтар','ақпан','наурыз','сәуір','мамыр','маусым','шілде','тамыз','қыркүйек','қазан','қараша','желтоқсан'];
   const monthNamesRu = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
   const monthNames = language === 'kk' ? monthNamesKk : monthNamesRu;
   const gregorianDate = `${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}`;
 
-  // Хиджри дата (без суффиксов вроде "ХЖ")
   const hijriParts = new Intl.DateTimeFormat(
     language === 'kk' ? 'kk-KZ-u-ca-islamic' : 'ru-RU-u-ca-islamic',
     { day: 'numeric', month: 'long', year: 'numeric' }
@@ -107,56 +90,38 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
   const hijriDate = `${hijriDay} ${hijriMonth} ${hijriYear}`;
 
   return (
-    <div className="bg-header rounded-[2rem] p-4 text-white shadow-xl">
+    <div className="px-4 pb-4 pt-1 text-white">
+      <div className="flex items-center justify-between gap-2">
 
-      {/* Шапка: таймер слева, город/дата справа */}
-      <div className="flex items-center justify-between mb-3">
-        {nextPrayer && nextPrayerInfo && (
-          <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center">
+        {/* Обратный отсчёт */}
+        {nextPrayer && countdownLabel ? (
+          <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center flex-shrink-0">
             <p className="text-[9px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>
-              {language === 'kk' ? nextPrayerInfo.kkCountdown : nextPrayerInfo.ruCountdown}
+              {language === 'kk' ? countdownLabel.kk : countdownLabel.ru}
             </p>
             <p className="text-white font-black text-sm leading-tight mt-0.5">
               {formatCountdown(nextPrayer.secondsLeft)}
             </p>
           </div>
-        )}
+        ) : <div />}
 
-        <div className="text-right">
+        {/* XP — центр, акцент */}
+        <div
+          className="flex flex-col items-center justify-center rounded-2xl px-4 py-2 flex-shrink-0 shadow-lg"
+          style={{ background: 'linear-gradient(135deg, #C8860A, #E8A020)' }}
+        >
+          <span className="text-lg leading-none">🏆</span>
+          <span className="text-white font-black text-base leading-tight tracking-tight">{xp.toLocaleString()}</span>
+          <span className="text-white/80 font-black text-[9px] uppercase tracking-widest leading-none">XP</span>
+        </div>
+
+        {/* Город/дата */}
+        <div className="text-right flex-shrink-0">
           <p className="text-[10px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>📍 {city}</p>
           <p className="text-white font-black text-xs leading-tight mt-0.5">{gregorianDate}</p>
-          <p className="text-[9px] mt-0.5 text-white/70 font-medium">{hijriDate}</p>
+          <p className="text-[9px] text-white/70 font-medium mt-0.5">{hijriDate}</p>
         </div>
-      </div>
 
-      {/* Список намазов — один ряд */}
-      <div className="grid grid-cols-6 gap-1.5">
-        {PRAYERS.map(prayer => {
-          const timeStr = prayerTimes[prayer.key as keyof PrayerTimes];
-          const prayerSec = getTimeInSeconds(timeStr);
-          const isPast = prayerSec < nowSec;
-          const isCurrent = prayer.key === currentPrayerKey;
-          const name = language === 'kk' ? prayer.kkShort : prayer.ru;
-
-          return (
-            <div
-              key={prayer.key}
-              className={`rounded-xl p-1.5 text-center transition-all ${
-                isCurrent
-                  ? 'bg-white shadow-md scale-105'
-                  : isPast
-                  ? 'bg-white/10 text-white/50'
-                  : 'bg-white/15 text-white'
-              }`}
-              style={isCurrent ? { color: 'var(--bronze-pressed)' } : undefined}
-            >
-              <p className="text-[8px] font-bold leading-none truncate">{name}</p>
-              <p className="text-[9px] font-black mt-0.5 leading-none">
-                {timeStr}
-              </p>
-            </div>
-          );
-        })}
       </div>
     </div>
   );

@@ -40,13 +40,13 @@ interface DashboardProps {
   onPreparationDaySelect: (day: number) => void;
 }
 
-const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t, disabled }: any) => (
-    <button 
-      onClick={(e) => !disabled && toggleItem(id, e)} 
+const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t, disabled, prayerTime }: any) => (
+    <button
+      onClick={(e) => !disabled && toggleItem(id, e)}
       disabled={disabled}
       className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative ${
-        disabled 
-          ? 'cursor-not-allowed opacity-40' 
+        disabled
+          ? 'cursor-not-allowed opacity-40'
           : 'active:scale-95 cursor-pointer'
       } ${small ? 'h-20' : 'h-24'} ${
         displayedData[id]
@@ -56,6 +56,7 @@ const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t, 
     >
       {icon}
       <span className="text-[11px] font-bold text-center leading-tight">{t.items[id]}</span>
+      {prayerTime && <span className="text-[10px] font-black text-secondary leading-none">{prayerTime}</span>}
       {displayedData[id] && <span className="absolute top-1 right-1 text-xs">✓</span>}
       {disabled && <span className="absolute top-1 right-1 text-xs">🔒</span>}
     </button>
@@ -685,33 +686,37 @@ const Dashboard: React.FC<DashboardProps> = ({
       })()}
 
       {/* Намазы */}
-      <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
-        <h4 className="text-[10px] font-black text-secondary mb-5 tracking-widest uppercase px-1">
-          {language === 'kk' ? 'Намаздар' : 'Намазы'}
-        </h4>
-        <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="fajr" icon={<span className="text-2xl">{PRAYER_ICONS.fajr}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          <ItemButton id="duha" icon={<span className="text-2xl">{PRAYER_ICONS.duha}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          <ItemButton id="dhuhr" icon={<span className="text-2xl">{PRAYER_ICONS.dhuhr}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          <ItemButton id="asr" icon={<span className="text-2xl">{PRAYER_ICONS.asr}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          <ItemButton id="maghrib" icon={<span className="text-2xl">{PRAYER_ICONS.maghrib}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          <ItemButton id="isha" icon={<span className="text-2xl">{PRAYER_ICONS.isha}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-          {selectedDayInfo.phase === 'ramadan' && (
-            <>
-              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-              <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-              <ItemButton id="witr" icon={<span className="text-2xl">✨</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-            </>
-          )}
-          {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
-            const isFirstTaraweehDay = toLocalDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
-            
-            return isFirstTaraweehDay ? (
-              <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-            ) : null;
-          })()}
-        </div>
-      </div>
+      {(() => {
+        const pt = (userData as any)?.prayerTimes;
+        return (
+          <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
+            <h4 className="text-[10px] font-black text-secondary mb-5 tracking-widest uppercase px-1">
+              {language === 'kk' ? 'Намаздар' : 'Намазы'}
+            </h4>
+            <div className="grid grid-cols-3 gap-3">
+              <ItemButton id="fajr"    icon={<span className="text-2xl">{PRAYER_ICONS.fajr}</span>}    small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.fajr} />
+              <ItemButton id="duha"    icon={<span className="text-2xl">{PRAYER_ICONS.duha}</span>}    small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+              <ItemButton id="dhuhr"   icon={<span className="text-2xl">{PRAYER_ICONS.dhuhr}</span>}   small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.dhuhr} />
+              <ItemButton id="asr"     icon={<span className="text-2xl">{PRAYER_ICONS.asr}</span>}     small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.asr} />
+              <ItemButton id="maghrib" icon={<span className="text-2xl">{PRAYER_ICONS.maghrib}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.maghrib} />
+              <ItemButton id="isha"    icon={<span className="text-2xl">{PRAYER_ICONS.isha}</span>}    small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.isha} />
+              {selectedDayInfo.phase === 'ramadan' && (
+                <>
+                  <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+                  <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+                  <ItemButton id="witr"     icon={<span className="text-2xl">✨</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+                </>
+              )}
+              {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
+                const isFirstTaraweehDay = toLocalDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
+                return isFirstTaraweehDay ? (
+                  <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+                ) : null;
+              })()}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Духовные практики */}
       <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">

@@ -111,10 +111,11 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
   const completedCount = trackerKeys.filter(key => data[key]).length;
   const progressPercent = Math.round((completedCount / trackerKeys.length) * 100);
 
-  const ItemButton = useCallback(({ id, icon, small = false }: {
+  const ItemButton = useCallback(({ id, icon, small = false, prayerTime }: {
     id: keyof DayProgress;
     icon: string;
     small?: boolean;
+    prayerTime?: string;
   }) => (
     <button
       onClick={(e) => {
@@ -133,6 +134,7 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
       <span className="text-[11px] font-bold text-center leading-tight">
         {t[id as keyof typeof t]}
       </span>
+      {prayerTime && <span className="text-[10px] font-black text-secondary leading-none">{prayerTime}</span>}
       {data[id as keyof typeof data] && (
         <span className="absolute top-1 right-1 text-xs">✓</span>
       )}
@@ -176,14 +178,19 @@ const BasicTracker: React.FC<BasicTrackerProps> = ({
         <h4 className="text-[10px] font-black text-secondary mb-5 tracking-widest uppercase px-1">
           {t.prayers}
         </h4>
-        <div className="grid grid-cols-3 gap-3">
-          <ItemButton id="fajr" icon={PRAYER_ICONS.fajr} small />
-          <ItemButton id="duha" icon={PRAYER_ICONS.duha} small />
-          <ItemButton id="dhuhr" icon={PRAYER_ICONS.dhuhr} small />
-          <ItemButton id="asr" icon={PRAYER_ICONS.asr} small />
-          <ItemButton id="maghrib" icon={PRAYER_ICONS.maghrib} small />
-          <ItemButton id="isha" icon={PRAYER_ICONS.isha} small />
-        </div>
+        {(() => {
+          const pt = (userData as any)?.prayerTimes;
+          return (
+            <div className="grid grid-cols-3 gap-3">
+              <ItemButton id="fajr"    icon={PRAYER_ICONS.fajr}    small prayerTime={pt?.fajr} />
+              <ItemButton id="duha"    icon={PRAYER_ICONS.duha}    small />
+              <ItemButton id="dhuhr"   icon={PRAYER_ICONS.dhuhr}   small prayerTime={pt?.dhuhr} />
+              <ItemButton id="asr"     icon={PRAYER_ICONS.asr}     small prayerTime={pt?.asr} />
+              <ItemButton id="maghrib" icon={PRAYER_ICONS.maghrib} small prayerTime={pt?.maghrib} />
+              <ItemButton id="isha"    icon={PRAYER_ICONS.isha}    small prayerTime={pt?.isha} />
+            </div>
+          );
+        })()}
       </div>
 
       {/* Духовные практики */}
