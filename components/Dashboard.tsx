@@ -49,9 +49,9 @@ const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t, 
           ? 'cursor-not-allowed opacity-40' 
           : 'active:scale-95 cursor-pointer'
       } ${small ? 'h-20' : 'h-24'} ${
-        displayedData[id] 
-          ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-inner' 
-          : 'bg-white border-slate-100 text-slate-600 shadow-sm'
+        displayedData[id]
+          ? 'btn-tracker-active shadow-inner'
+          : 'btn-tracker-inactive shadow-sm'
       }`}
     >
       {icon}
@@ -448,14 +448,14 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Real-time Countdown Card */}
       {!ramadanInfo.isStarted && isToday && (
-        <section className="bg-gradient-to-br from-emerald-950 to-emerald-900 p-8 rounded-[3rem] shadow-2xl relative overflow-hidden text-center text-white border border-emerald-800 animate-in fade-in">
+        <section className="bg-header p-8 rounded-[3rem] shadow-2xl relative overflow-hidden text-center text-white border border-white/10 animate-in fade-in">
           <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
             <span className="text-8xl">🌙</span>
           </div>
           
           <div className="flex flex-col items-center justify-center relative z-10">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-3 mb-4 border border-white/20">
-              <p className="text-sm font-black text-emerald-300">
+              <p className="text-sm font-black" style={{ color: 'var(--bronze-hover)' }}>
                 {(() => {
                   const [rY, rM, rD] = RAMADAN_START_DATE.split('-').map(Number);
                   const d = new Date(rY, rM - 1, rD);
@@ -470,7 +470,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               </p>
             </div>
             
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2" style={{ color: 'var(--bronze-hover)' }}>
               {language === 'kk' ? 'РАМАЗАНҒА ДЕЙІН' : 'ДО РАМАДАНА'}
             </p>
             <h3 className="text-8xl font-black leading-none drop-shadow-lg">
@@ -487,13 +487,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       <section 
         ref={headerRef}
         style={{ scrollMarginTop: '24px' }}
-        className={`p-6 rounded-[3rem] shadow-xl text-white relative overflow-hidden ${
-        selectedDayInfo.phase === 'ramadan'
-          ? 'bg-gradient-to-br from-emerald-900 to-emerald-700'
-          : selectedDayInfo.phase === 'preparation'
-          ? 'bg-gradient-to-br from-orange-600 to-orange-400'
-          : 'bg-gradient-to-br from-blue-900 to-blue-600'
-      }`}>
+        className="p-6 rounded-[3rem] shadow-xl text-white relative overflow-hidden bg-header">
         <div className="absolute top-0 right-0 p-10 opacity-10">
           <span className="text-9xl">🌙</span>
         </div>
@@ -631,7 +625,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className={`p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden border-2 ${
           isShawwalDone
             ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-200'
-            : 'bg-gradient-to-br from-teal-800 to-teal-600 border-teal-500'
+            : 'bg-header border-white/10'
         } text-white`}>
           <div className="absolute top-0 right-0 p-8 opacity-10 text-8xl">🌙</div>
 
@@ -675,7 +669,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   {Array.from({ length: 6 }).map((_, i) => (
                     <div key={i} className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-black border-2 transition-all ${
                       i < shawwalCompleted
-                        ? 'bg-white text-teal-700 border-white shadow-lg'
+                        ? 'bg-white text-brand border-white shadow-lg'
                         : 'bg-white/10 border-white/30 text-white/50'
                     }`}>
                       {i < shawwalCompleted ? '✓' : i + 1}
@@ -691,7 +685,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     className={`w-full font-black py-3 rounded-2xl transition-all shadow-lg text-sm ${
                       ((userData as any)?.shawwalDates || []).includes(toLocalDateStr(selectedDayInfo.selectedDate))
                         ? 'bg-white/30 text-white/60 cursor-not-allowed'
-                        : 'bg-white text-teal-700 active:scale-95'
+                        : 'bg-white text-brand active:scale-95'
                     }`}
                   >
                     {shawwalLoading
@@ -765,17 +759,17 @@ const Dashboard: React.FC<DashboardProps> = ({
         if (!showFasting) return null;
         
         return (
-          <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-sky-100">
+          <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="w-14 h-14 bg-sky-100 rounded-[2rem] flex items-center justify-center text-2xl">
+                <div className="w-14 h-14 bg-brand-tint rounded-[2rem] flex items-center justify-center text-2xl">
                   🌙
                 </div>
                 <div>
-                  <h3 className="font-black text-slate-800">
+                  <h3 className="font-black text-primary">
                     {language === 'kk' ? 'Ораза' : 'Ораза'}
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-secondary">
                     {fastingType}
                   </p>
                 </div>
@@ -785,10 +779,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                 disabled={isFutureDay}
                 className={`w-12 h-12 rounded-2xl transition-all ${
                   isFutureDay
-                    ? 'cursor-not-allowed opacity-40 bg-slate-100 text-slate-300'
+                    ? 'cursor-not-allowed opacity-40 bg-surface text-secondary'
                     : displayedData.fasting
-                    ? 'bg-sky-600 text-white shadow-lg active:scale-95'
-                    : 'bg-slate-100 text-slate-400 active:scale-95'
+                    ? 'bg-brand text-white shadow-lg active:scale-95'
+                    : 'bg-surface text-secondary active:scale-95'
                 }`}
               >
                 {isFutureDay ? '🔒' : displayedData.fasting ? '✓' : ''}
@@ -852,8 +846,8 @@ const Dashboard: React.FC<DashboardProps> = ({
       })()}
 
       {/* Намазы */}
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-sky-100">
-        <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
+      <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
+        <h4 className="text-[10px] font-black text-secondary mb-5 tracking-widest uppercase px-1">
           {language === 'kk' ? 'Намаздар' : 'Намазы'}
         </h4>
         <div className="grid grid-cols-3 gap-3">
@@ -881,8 +875,8 @@ const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* Духовные практики */}
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-sky-100">
-        <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
+      <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
+        <h4 className="text-[10px] font-black text-secondary mb-5 tracking-widest uppercase px-1">
           {language === 'kk' ? 'Рухани амалдар' : 'Духовные практики'}
         </h4>
         <div className="grid grid-cols-3 gap-3">
@@ -906,14 +900,14 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* ✅ 99 ИМЕН АЛЛАХА - только для текущего дня */}
       {isToday && (
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 p-8 rounded-[3rem] shadow-2xl text-white relative overflow-hidden group">
+        <div className="bg-header p-8 rounded-[3rem] shadow-2xl text-white relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-10 opacity-5 text-9xl font-serif pointer-events-none group-hover:scale-110 transition-transform duration-1000">
             الله
           </div>
           <div className="relative z-10">
             <div className="flex justify-between items-center mb-6">
-              <h4 className="text-[10px] font-black text-emerald-400 tracking-[0.3em] uppercase flex items-center">
-                <span className="w-2 h-2 bg-emerald-400 rounded-full mr-2 animate-pulse"></span>
+              <h4 className="text-[10px] font-black text-brand tracking-[0.3em] uppercase flex items-center">
+                <span className="w-2 h-2 bg-brand rounded-full mr-2 animate-pulse"></span>
                 {language === 'kk' ? 'Алланың 99 есімі' : '99 имен Аллаха'}
               </h4>
               <button 
@@ -928,7 +922,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             </div>
             
             {allNamesLearned && (
-              <p className="text-xs text-emerald-200 mb-4 font-medium">
+              <p className="text-xs mb-4 font-medium" style={{ color: 'var(--bronze-disabled)' }}>
                 ✅ {language === 'kk' 
                   ? 'Барлық есімдер жаттадыңыз! МашаАллаһ!' 
                   : 'Все имена выучены! МашаАллаһ!'}
@@ -949,28 +943,28 @@ const Dashboard: React.FC<DashboardProps> = ({
                     } ${
                       allNamesLearned
                         ? 'bg-white/10 border-white/20 text-white cursor-default'
-                        : isLearned 
-                        ? 'bg-white/20 border-white/30 text-white shadow-lg cursor-pointer active:scale-[0.98]' 
-                        : 'bg-black/10 border-white/10 text-emerald-50 hover:bg-black/20 cursor-pointer active:scale-[0.98]'
+                        : isLearned
+                        ? 'bg-white/20 border-white/30 text-white shadow-lg cursor-pointer active:scale-[0.98]'
+                        : 'bg-black/10 border-white/10 text-white hover:bg-black/20 cursor-pointer active:scale-[0.98]'
                     }`}
                   >
                     <div className="flex items-center space-x-4 overflow-hidden">
                       <div className={`w-10 h-10 rounded-2xl flex-shrink-0 flex items-center justify-center text-[10px] font-black transition-all ${
                         isLearned 
-                          ? 'bg-emerald-400 text-emerald-900 shadow-md shadow-emerald-400/20' 
-                          : 'bg-white/10 text-emerald-200'
+                          ? 'bg-brand text-white shadow-md'
+                          : 'bg-white/10'
                       }`}>
                         {name.id}
                       </div>
                       <div className="overflow-hidden">
                         <span className="text-xl font-serif block leading-none mb-1 truncate">{name.arabic}</span>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-200/70 truncate">{name.translit}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest truncate" style={{ color: 'var(--bronze-disabled)' }}>{name.translit}</span>
                       </div>
                     </div>
                     {!allNamesLearned && (
                       <div className={`w-8 h-8 rounded-xl border-2 flex-shrink-0 flex items-center justify-center transition-all ${
                         isLearned 
-                          ? 'bg-white border-white text-emerald-700' 
+                          ? 'bg-white border-white text-brand'
                           : 'border-white/20 bg-transparent'
                       }`}>
                         {isLearned && <span className="text-sm font-black">✓</span>}
@@ -987,13 +981,13 @@ const Dashboard: React.FC<DashboardProps> = ({
                 <span className="text-white/60 font-bold">
                   {language === 'kk' ? 'Жаттадым' : 'Выучено'}
                 </span>
-                <span className="text-emerald-400 font-black">
+                <span className="text-brand font-black">
                   {userData?.memorizedNames?.length || 0} / 99
                 </span>
               </div>
               <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mt-2">
                 <div 
-                  className="h-full bg-gradient-to-r from-emerald-500 to-emerald-300 transition-all duration-500"
+                  className="h-full progress-bar transition-all duration-500"
                   style={{ width: `${Math.round(((userData?.memorizedNames?.length || 0) / 99) * 100)}%` }}
                 ></div>
               </div>
@@ -1029,7 +1023,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-[11px] font-black uppercase tracking-widest text-emerald-400">
+            <h4 className="text-[11px] font-black uppercase tracking-widest text-brand">
               {isToday 
                 ? (language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс')
                 : (language === 'kk' ? 'Прогресс' : 'Прогресс')}
@@ -1068,14 +1062,14 @@ const Dashboard: React.FC<DashboardProps> = ({
           
           <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300 transition-all duration-1000 ease-out"
+              className="h-full progress-bar transition-all duration-1000 ease-out"
               style={{ width: `${selectedDayProgress}%` }}
             ></div>
           </div>
           
           {/* Мотивационные сообщения */}
           {selectedDayProgress === 100 && (
-            <p className="text-xs font-black text-emerald-400 mt-3 text-center">
+            <p className="text-xs font-black text-brand mt-3 text-center">
               🎉 {language === 'kk' ? 'Жарайсыз! Барлық амалдар орындалды!' : 'Отлично! Все задачи выполнены!'}
             </p>
           )}

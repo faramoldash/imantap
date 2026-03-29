@@ -168,10 +168,10 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
         small ? 'h-20' : 'h-24'
       } ${
         !canEdit
-          ? 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed'
+          ? 'btn-tracker-disabled cursor-not-allowed'
           : data[id as keyof typeof data]
-            ? 'bg-sky-50 border-sky-200 text-sky-700 shadow-inner active:scale-95'
-            : 'bg-white border-slate-100 text-slate-600 shadow-sm active:scale-95'
+            ? 'btn-tracker-active shadow-inner active:scale-95'
+            : 'btn-tracker-inactive shadow-sm active:scale-95'
       }`}
     >
       <span className="text-2xl">{icon}</span>
@@ -190,7 +190,7 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
   return (
     <div className="space-y-6 pb-8">
       {/* Header */}
-      <div className="bg-gradient-to-br from-sky-600 to-blue-600 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
+      <div className="bg-header p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10">
           <span className="text-9xl">🌙</span>
         </div>
@@ -241,26 +241,26 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
 
       {/* Ораза (только в пн/чт) */}
       {isMondayOrThursday && (
-        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-sky-100">
+        <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-14 h-14 bg-sky-100 rounded-[2rem] flex items-center justify-center text-2xl">
+              <div className="w-14 h-14 bg-brand-tint rounded-[2rem] flex items-center justify-center text-2xl">
                 🌙
               </div>
               <div>
-                <h3 className="font-black text-slate-800">{t.fasting}</h3>
-                <p className="text-xs text-slate-500">{t.fastingDesc}</p>
+                <h3 className="font-black text-primary">{t.fasting}</h3>
+                <p className="text-xs text-secondary">{t.fastingDesc}</p>
               </div>
             </div>
             <button
               onClick={() => updateField('fasting', !data.fasting)}
               disabled={!canEdit}
               className={`w-12 h-12 rounded-2xl transition-all ${
-                !canEdit 
-                  ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
+                !canEdit
+                  ? 'bg-surface text-secondary cursor-not-allowed'
                   : data.fasting
-                    ? 'bg-sky-600 text-white shadow-lg active:scale-95'
-                    : 'bg-slate-100 text-slate-400 active:scale-95'
+                    ? 'bg-brand text-white shadow-lg active:scale-95'
+                    : 'bg-surface text-secondary active:scale-95'
               }`}
             >
               {!canEdit ? '🔒' : data.fasting ? '✓' : ''}
@@ -270,8 +270,8 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
       )}
 
       {/* Намазы */}
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-sky-100">
-        <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
+      <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
+        <h4 className="text-[10px] font-black text-secondary mb-5 tracking-widest uppercase px-1">
           {t.prayers}
         </h4>
         <div className="grid grid-cols-3 gap-3">
@@ -288,8 +288,8 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
       </div>
 
       {/* Духовные практики */}
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-sky-100">
-        <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
+      <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
+        <h4 className="text-[10px] font-black text-secondary mb-5 tracking-widest uppercase px-1">
           {t.spiritual}
         </h4>
         <div className="grid grid-cols-3 gap-3">
@@ -303,11 +303,11 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
       </div>
 
       {/* Прогресс */}
-      <div className="bg-sky-900 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
+      <div className="bg-header p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl">🎯</div>
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-[11px] font-black uppercase tracking-widest text-sky-400">
+            <h4 className="text-[11px] font-black uppercase tracking-widest text-brand">
               {t.progress}
             </h4>
           </div>
@@ -325,7 +325,7 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
           
           <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-sky-500 via-sky-400 to-blue-300 transition-all duration-1000 ease-out"
+              className="h-full progress-bar transition-all duration-1000 ease-out"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -333,13 +333,13 @@ const PreparationTracker: React.FC<PreparationTrackerProps> = ({
       </div>
 
       {/* Кнопка назад */}
-      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-sky-100">
+      <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
         <button
           onClick={() => {
             haptics.medium();
             onBack();
           }}
-          className="w-full bg-gradient-to-br from-sky-600 to-blue-700 text-white py-4 rounded-2xl font-black text-base shadow-lg active:scale-95 transition-all"
+          className="w-full btn-primary py-4 rounded-2xl font-black text-base shadow-lg active:scale-95 transition-all"
         >
           {t.backToHome}
         </button>

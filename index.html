@@ -13,144 +13,237 @@
     <title>ImanTap</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* ✅ Разрешаем нормальный скролл */
+
+        /* ═══════════════════════════════════════════════════
+           ЦВЕТОВЫЕ ТОКЕНЫ — СВЕТЛАЯ ТЕМА (default)
+        ═══════════════════════════════════════════════════ */
+        :root {
+            --bronze:          #C47A45;
+            --bronze-pressed:  #7A4520;
+            --bronze-hover:    #D4946A;
+            --bronze-disabled: #E8C4A8;
+            --bronze-tint:     #F7EDE4;
+
+            --text-primary:    #1A1A1A;
+            --text-secondary:  #6B6B6B;
+            --text-placeholder:#A0A0A0;
+
+            --border:          #D0CEC9;
+            --surface:         #E8E6E2;
+            --bg:              #F0EEEC;
+            --white:           #FFFFFF;
+
+            --success:         #3D7A62;
+            --success-bg:      #EAF4EF;
+            --success-border:  #B8D8CC;
+            --error:           #8B3A2E;
+            --error-bg:        #F7ECEA;
+            --warning:         #8B6030;
+            --warning-bg:      #F8F0E6;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           ЦВЕТОВЫЕ ТОКЕНЫ — ТЁМНАЯ ТЕМА (html.dark)
+        ═══════════════════════════════════════════════════ */
+        .dark {
+            --bronze:          #D4946A;
+            --bronze-pressed:  #C47A45;
+            --bronze-hover:    #E0A87C;
+            --bronze-disabled: #6B4A30;
+            --bronze-tint:     rgba(212, 148, 106, 0.15);
+
+            --text-primary:    #F0EEEC;
+            --text-secondary:  #A09890;
+            --text-placeholder:#6B6058;
+
+            --border:          rgba(255, 255, 255, 0.10);
+            --surface:         #1E1A16;
+            --bg:              #0F0D0B;
+            --white:           #2A2420;
+
+            --success:         #5A9A7A;
+            --success-bg:      rgba(90, 154, 122, 0.15);
+            --success-border:  rgba(90, 154, 122, 0.30);
+            --error:           #C46A5A;
+            --error-bg:        rgba(196, 106, 90, 0.15);
+            --warning:         #C49060;
+            --warning-bg:      rgba(196, 144, 96, 0.15);
+        }
+
+        /* ═══════════════════════════════════════════════════
+           УТИЛИТАРНЫЕ КЛАССЫ НА ОСНОВЕ ТОКЕНОВ
+        ═══════════════════════════════════════════════════ */
+
+        /* Фоны */
+        .bg-page    { background-color: var(--bg) !important; }
+        .bg-card    { background-color: var(--white) !important; }
+        .bg-surface { background-color: var(--surface) !important; }
+        .bg-brand   { background-color: var(--bronze) !important; }
+        .bg-brand-tint { background-color: var(--bronze-tint) !important; }
+        .bg-success { background-color: var(--success-bg) !important; }
+        .bg-error   { background-color: var(--error-bg) !important; }
+        .bg-warning { background-color: var(--warning-bg) !important; }
+
+        /* Текст */
+        .text-primary   { color: var(--text-primary) !important; }
+        .text-secondary { color: var(--text-secondary) !important; }
+        .text-placeholder { color: var(--text-placeholder) !important; }
+        .text-brand     { color: var(--bronze) !important; }
+        .text-success   { color: var(--success) !important; }
+        .text-error     { color: var(--error) !important; }
+        .text-warning   { color: var(--warning) !important; }
+
+        /* Рамки */
+        .border-default       { border-color: var(--border) !important; }
+        .border-brand         { border-color: var(--bronze) !important; }
+        .border-brand-subtle  { border-color: var(--bronze-disabled) !important; }
+        .border-success       { border-color: var(--success-border) !important; }
+
+        /* Кнопки */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--bronze), var(--bronze-pressed)) !important;
+            color: #FFFFFF !important;
+        }
+        .btn-primary:active { opacity: 0.85; }
+
+        .btn-secondary {
+            background-color: var(--bronze-tint) !important;
+            color: var(--bronze) !important;
+            border: 1px solid var(--bronze-disabled);
+        }
+
+        /* Прогресс-бар */
+        .progress-bar {
+            background: linear-gradient(90deg, var(--bronze), var(--bronze-hover)) !important;
+        }
+
+        /* Хедер / крупные градиентные блоки */
+        .bg-header {
+            background: linear-gradient(135deg, #3D2010, #6B3A1A) !important;
+        }
+
+        /* Активное состояние кнопок-трекера */
+        .btn-tracker-active {
+            background-color: var(--bronze-tint) !important;
+            border-color: var(--bronze-disabled) !important;
+            color: var(--bronze-pressed) !important;
+        }
+        .btn-tracker-inactive {
+            background-color: var(--white) !important;
+            border-color: var(--border) !important;
+            color: var(--text-secondary) !important;
+        }
+        .btn-tracker-disabled {
+            background-color: var(--surface) !important;
+            border-color: var(--border) !important;
+            color: var(--text-placeholder) !important;
+        }
+
+        /* Форм-элементы */
+        .input-default {
+            background-color: var(--white) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border) !important;
+        }
+
+        /* ═══════════════════════════════════════════════════
+           БАЗОВЫЕ СТИЛИ
+        ═══════════════════════════════════════════════════ */
+
         html {
             height: 100%;
             overflow: hidden;
         }
-        
+
         body {
             height: 100%;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
-            background-color: #f1f5f9;
-            color: #1e293b;
+            background-color: var(--bg);
+            color: var(--text-primary);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
             margin: 0;
             padding: 0;
         }
-        
-        /* ✅ #root теперь без overflow */
+
         #root {
             width: 100%;
             min-height: 100%;
-            background-color: #f1f5f9;
+            background-color: var(--bg);
         }
-        
-        /* Hide scrollbar for Chrome, Safari and Opera */
+
+        /* Hide scrollbar */
         .no-scrollbar::-webkit-scrollbar,
-        body::-webkit-scrollbar {
-            display: none;
-        }
-        
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .no-scrollbar,
-        body {
+        body::-webkit-scrollbar { display: none; }
+        .no-scrollbar, body {
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            to   { opacity: 1; transform: translateY(0); }
         }
+        .animate-in { animation: fadeIn 0.4s ease-out forwards; }
 
-        .animate-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-        
-        .dir-rtl {
-            direction: rtl;
-        }
+        .dir-rtl { direction: rtl; }
 
-        /* Smooth transitions for interactive elements */
-        button, div {
-            transition: all 0.2s ease-in-out;
-        }
+        button, div { transition: all 0.2s ease-in-out; }
 
-        /* ✅ XP Animation */
         @keyframes xpFloat {
-            0% {
-                opacity: 0;
-                transform: translateY(0) scale(0.8);
-            }
-            20% {
-                opacity: 1;
-                transform: translateY(-10px) scale(1.1);
-            }
-            40% {
-                opacity: 1;
-                transform: translateY(-20px) scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(-60px) scale(0.9);
-            }
+            0%   { opacity: 0; transform: translateY(0) scale(0.8); }
+            20%  { opacity: 1; transform: translateY(-10px) scale(1.1); }
+            40%  { opacity: 1; transform: translateY(-20px) scale(1); }
+            100% { opacity: 0; transform: translateY(-60px) scale(0.9); }
         }
+        .animate-xp-float { animation: xpFloat 2s ease-out forwards; }
 
-        .animate-xp-float {
-            animation: xpFloat 2s ease-out forwards;
-        }
-
-        /* ═══════════════════════════════
-           DARK THEME  (html.dark)
-        ═══════════════════════════════ */
+        /* ═══════════════════════════════════════════════════
+           ТЁМНАЯ ТЕМА — переопределение Tailwind-классов
+           (для компонентов ещё не мигрированных на токены)
+        ═══════════════════════════════════════════════════ */
 
         /* Page backgrounds */
         .dark body,
-        .dark #root,
-        .dark .bg-slate-50 {
-            background-color: #0a0f1e !important;
-            color: #e2e8f0;
-        }
+        .dark #root { background-color: var(--bg); }
 
-        /* Inner surfaces */
-        .dark .bg-slate-100 {
-            background: rgba(255, 255, 255, 0.07) !important;
-        }
+        /* Cards */
+        .dark .bg-white  { background-color: var(--white) !important; }
+        .dark .bg-slate-50  { background-color: var(--bg) !important; }
+        .dark .bg-slate-100 { background-color: var(--surface) !important; }
 
-        /* Cards — white → glassmorphism */
-        .dark .bg-white {
-            background: rgba(255, 255, 255, 0.06) !important;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-        /* Navigation — dark opaque glass (overrides bg-white above) */
+        /* Navigation */
         .dark nav.bg-white {
-            background: rgba(10, 15, 30, 0.96) !important;
-            backdrop-filter: blur(24px) !important;
-            -webkit-backdrop-filter: blur(24px) !important;
-        }
-        .dark .border-t.border-slate-200 {
-            border-top-color: rgba(255, 255, 255, 0.08) !important;
+            background-color: var(--white) !important;
+            border-top-color: var(--border) !important;
         }
 
         /* Text */
-        .dark .text-slate-900 { color: #f1f5f9 !important; }
-        .dark .text-slate-800 { color: #e2e8f0 !important; }
-        .dark .text-slate-700 { color: #cbd5e1 !important; }
-        .dark .text-slate-600 { color: #94a3b8 !important; }
-        .dark .text-slate-500 { color: #64748b !important; }
-        .dark .text-slate-400 { color: #475569 !important; }
+        .dark .text-slate-900 { color: var(--text-primary) !important; }
+        .dark .text-slate-800 { color: var(--text-primary) !important; }
+        .dark .text-slate-700 { color: var(--text-secondary) !important; }
+        .dark .text-slate-600 { color: var(--text-secondary) !important; }
+        .dark .text-slate-500 { color: var(--text-placeholder) !important; }
+        .dark .text-slate-400 { color: var(--text-placeholder) !important; }
 
         /* Borders */
-        .dark .border-slate-100 { border-color: rgba(255, 255, 255, 0.08) !important; }
-        .dark .border-slate-200 { border-color: rgba(255, 255, 255, 0.10) !important; }
+        .dark .border-slate-100 { border-color: var(--border) !important; }
+        .dark .border-slate-200 { border-color: var(--border) !important; }
 
-        /* Tracker active-state buttons */
-        .dark .bg-sky-50   { background: rgba(56, 189, 248, 0.12) !important; }
-        .dark .bg-emerald-50 { background: rgba(52, 211, 153, 0.12) !important; }
+        /* Active tracker buttons */
+        .dark .bg-sky-50     { background-color: var(--bronze-tint) !important; }
+        .dark .bg-emerald-50 { background-color: var(--bronze-tint) !important; }
 
         /* Form elements */
         .dark select,
         .dark input {
-            background: rgba(255, 255, 255, 0.06) !important;
-            color: #e2e8f0 !important;
-            border-color: rgba(255, 255, 255, 0.10) !important;
+            background-color: var(--white) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border) !important;
         }
+
     </style>
 <script type="importmap">
 {
@@ -164,7 +257,7 @@
 }
 </script>
 </head>
-<body class="bg-slate-50 no-scrollbar">
+<body class="no-scrollbar">
     <div id="root"></div>
     <script type="module" src="index.tsx"></script>
 </body>

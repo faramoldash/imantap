@@ -34,7 +34,7 @@ const UsefulMaterials: React.FC<UsefulMaterialsProps> = ({ language, setView }) 
         const text = trimmed.replace(/^###\s*/, '').trim();
         const parts = text.split(/(\*\*.*?\*\*)/g);
         return (
-            <h3 key={idx} className="text-xl font-black text-emerald-900 mt-8 mb-4">
+            <h3 key={idx} className="text-xl font-black text-primary mt-8 mb-4">
                 {parts.map((part, i) => {
                     if (part.startsWith('**') && part.endsWith('**')) {
                         return <span key={i}>{part.slice(2, -2)}</span>;
@@ -52,7 +52,7 @@ const UsefulMaterials: React.FC<UsefulMaterialsProps> = ({ language, setView }) 
           {parts.map((part, i) => {
             if (part.startsWith('**') && part.endsWith('**')) {
               // Extract text between stars and wrap in strong tag with black weight
-              return <strong key={i} className="font-black text-slate-900">{part.slice(2, -2)}</strong>;
+              return <strong key={i} className="font-black text-primary">{part.slice(2, -2)}</strong>;
             }
             return part;
           })}
@@ -64,45 +64,45 @@ const UsefulMaterials: React.FC<UsefulMaterialsProps> = ({ language, setView }) 
   if (selectedMaterial) {
     return (
       <div className="space-y-6 pb-8 animate-in fade-in slide-in-from-right duration-300">
-        <div className="flex items-center justify-between sticky top-0 z-40 bg-slate-50/80 backdrop-blur-md py-4">
-          <button 
+        <div className="flex items-center justify-between sticky top-0 z-40 bg-surface/80 backdrop-blur-md py-4">
+          <button
             onClick={() => setSelectedId(null)}
-            className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 font-bold text-xs text-slate-500 uppercase tracking-tighter"
+            className="bg-card p-3 rounded-2xl shadow-sm border border-default font-bold text-xs text-secondary uppercase tracking-tighter"
           >
             ← {t.backToList}
           </button>
-          <div className="flex items-center bg-white rounded-2xl border border-slate-100 p-1 shadow-sm">
-             <button 
+          <div className="flex items-center bg-card rounded-2xl border border-default p-1 shadow-sm">
+             <button
                 onClick={() => setFontSize(prev => Math.max(12, prev - 2))}
-                className="w-10 h-10 flex items-center justify-center font-black text-slate-400 border-r border-slate-50"
+                className="w-10 h-10 flex items-center justify-center font-black text-secondary border-r border-default"
              >A-</button>
-             <button 
+             <button
                 onClick={() => setFontSize(prev => Math.min(24, prev + 2))}
-                className="w-10 h-10 flex items-center justify-center font-black text-slate-700"
+                className="w-10 h-10 flex items-center justify-center font-black text-primary"
              >A+</button>
           </div>
         </div>
 
-        <article className="bg-white rounded-[3rem] p-8 shadow-2xl border border-slate-50 relative overflow-hidden">
+        <article className="bg-card rounded-[3rem] p-8 shadow-2xl border border-default relative overflow-hidden">
           <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
              <span className="text-9xl">{selectedMaterial.icon}</span>
           </div>
-          
-          <h2 className="text-2xl font-black text-slate-900 mb-8 leading-tight relative z-10">
+
+          <h2 className="text-2xl font-black text-primary mb-8 leading-tight relative z-10">
             {language === 'ru' ? selectedMaterial.title_ru : selectedMaterial.title_kk}
           </h2>
 
           <div 
-            className="prose prose-slate prose-emerald text-slate-700 whitespace-pre-wrap relative z-10"
+            className="prose text-secondary whitespace-pre-wrap relative z-10"
             style={{ fontSize: `${fontSize}px` }}
           >
             {renderContent(language === 'ru' ? selectedMaterial.content_ru : selectedMaterial.content_kk)}
           </div>
 
-          <div className="mt-12 pt-8 border-t border-slate-100 flex justify-center">
-             <button 
+          <div className="mt-12 pt-8 border-t border-default flex justify-center">
+             <button
                onClick={handleNext}
-               className="bg-emerald-600 text-white px-8 py-4 rounded-[2rem] font-black text-sm shadow-xl shadow-emerald-200 active:scale-95 transition-all"
+               className="btn-primary px-8 py-4 rounded-[2rem] font-black text-sm shadow-xl active:scale-95 transition-all"
              >
                {t.nextArticle} →
              </button>
@@ -114,8 +114,8 @@ const UsefulMaterials: React.FC<UsefulMaterialsProps> = ({ language, setView }) 
 
   return (
     <div className="space-y-6 pb-10">
-      <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-        <h2 className="text-2xl font-black text-slate-800">{t.usefulTitle}</h2>
+      <div className="bg-card p-6 rounded-[2rem] shadow-sm border border-default">
+        <h2 className="text-2xl font-black text-primary">{t.usefulTitle}</h2>
       </div>
 
       <div 
@@ -143,16 +143,16 @@ const UsefulMaterials: React.FC<UsefulMaterialsProps> = ({ language, setView }) 
               setSelectedId(item.id);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-start space-x-4 active:scale-[0.98] transition-all cursor-pointer hover:border-emerald-200 group"
+            className="bg-card p-6 rounded-[2.5rem] border border-default shadow-sm flex items-start space-x-4 active:scale-[0.98] transition-all cursor-pointer group"
           >
-            <div className="p-4 bg-slate-50 rounded-2xl text-2xl group-hover:bg-emerald-50 transition-colors">
+            <div className="p-4 bg-surface rounded-2xl text-2xl group-hover:bg-brand-tint transition-colors">
               {item.icon}
             </div>
             <div className="flex-1">
-              <h3 className="font-black text-slate-800 text-lg mb-1">
+              <h3 className="font-black text-primary text-lg mb-1">
                 {language === 'ru' ? item.title_ru : item.title_kk}
               </h3>
-              <p className="text-slate-500 text-sm leading-relaxed line-clamp-2">
+              <p className="text-secondary text-sm leading-relaxed line-clamp-2">
                 {language === 'ru' ? item.desc_ru : item.desc_kk}
               </p>
             </div>

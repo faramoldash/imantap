@@ -28,7 +28,7 @@ const Navigation: React.FC<NavigationProps> = ({
 
   return (
     <nav className={`
-      fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50
+      fixed bottom-0 left-0 right-0 bg-card border-t border-default z-50
       transition-transform duration-300 ease-in-out
       ${isHidden ? 'translate-y-full' : 'translate-y-0'}
     `}>
@@ -43,8 +43,8 @@ const Navigation: React.FC<NavigationProps> = ({
             className={`
               flex flex-col items-center justify-center gap-1
               py-2 px-4 rounded-full transition-colors duration-200
-              ${currentView === item.id 
-                ? 'bg-slate-100' 
+              ${currentView === item.id
+                ? 'bg-brand-tint'
                 : 'bg-transparent'
               }
             `}
@@ -56,7 +56,7 @@ const Navigation: React.FC<NavigationProps> = ({
             </span>
             
             <span className={`text-[10px] font-semibold leading-none ${
-              currentView === item.id ? 'text-emerald-600' : 'text-slate-400'
+              currentView === item.id ? 'text-brand' : 'text-secondary'
             }`}>
               {item.label}
             </span>

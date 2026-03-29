@@ -634,7 +634,7 @@ const App: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-900 to-emerald-800 flex items-center justify-center">
+      <div className="min-h-screen bg-header flex items-center justify-center">
         <div className="text-center">
           <div className="mb-8 relative">
             <div className="w-24 h-24 mx-auto bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30 shadow-2xl">
@@ -660,7 +660,7 @@ const App: React.FC = () => {
   const showDemoBanner = accessData?.paymentStatus === 'demo' && !!accessData.demoExpires;
 
   return (
-    <div className="min-h-full max-w-md mx-auto relative overflow-x-hidden bg-slate-50 flex flex-col">
+    <div className="min-h-full max-w-md mx-auto relative overflow-x-hidden bg-page flex flex-col">
 
       <style>{`
         @keyframes xpFloat {
@@ -685,13 +685,13 @@ const App: React.FC = () => {
 
       {newBadge && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-24 pointer-events-none">
-          <div className="bg-slate-900 text-white p-4 rounded-3xl shadow-2xl flex items-center space-x-4 animate-in slide-in-from-bottom-10 fade-in duration-500 w-full max-w-sm border border-slate-700 pointer-events-auto">
+          <div className="bg-slate-900 text-white p-4 rounded-3xl shadow-2xl flex items-center space-x-4 animate-in slide-in-from-bottom-10 fade-in duration-500 w-full max-w-sm border border-white/10 pointer-events-auto">
             <div className="text-4xl animate-bounce">{newBadge.icon}</div>
             <div className="flex-1">
-              <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">ЖАҢА ЖЕТІСТІК!</p>
+              <p className="text-[10px] font-black text-brand uppercase tracking-widest">ЖАҢА ЖЕТІСТІК!</p>
               <h4 className="font-bold text-lg leading-tight">{newBadge.name_kk}</h4>
             </div>
-            <button onClick={() => setNewBadge(null)} className="text-slate-500">✕</button>
+            <button onClick={() => setNewBadge(null)} className="text-white/40">✕</button>
           </div>
         </div>
       )}
@@ -720,7 +720,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <header className="px-6 pt-6 pb-4 text-center bg-gradient-to-b from-emerald-900 to-emerald-800 rounded-b-[3rem] shadow-xl relative overflow-hidden">
+      <header className="px-6 pt-6 pb-4 text-center bg-header rounded-b-[3rem] shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-10 opacity-10"><span className="text-9xl">🌙</span></div>
         <div className="flex items-center justify-between mb-4 relative z-10">
           <div

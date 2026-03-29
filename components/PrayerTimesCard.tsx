@@ -92,19 +92,19 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
   const gregorianDate = `${day} ${month} ${year}${yearSuffix}`;
 
   return (
-    <div className="bg-gradient-to-br from-emerald-900 to-teal-700 rounded-[2rem] p-4 text-white shadow-xl">
+    <div className="bg-header rounded-[2rem] p-4 text-white shadow-xl">
 
       {/* Шапка: город, дата, таймер */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-emerald-300 text-[10px] font-bold leading-none">📍 {city}</p>
+          <p className="text-[10px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>📍 {city}</p>
           <p className="text-white font-black text-xs leading-tight mt-0.5">{gregorianDate}</p>
-          <p className="text-emerald-200 text-[9px] mt-0.5 opacity-80">{hijriDate}</p>
+          <p className="text-[9px] mt-0.5 opacity-80" style={{ color: 'var(--bronze-disabled)' }}>{hijriDate}</p>
         </div>
 
         {nextPrayer && nextPrayerInfo && (
           <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center">
-            <p className="text-emerald-200 text-[9px] font-bold leading-none">
+            <p className="text-[9px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>
               {nextPrayerInfo.icon} {language === 'kk' ? nextPrayerInfo.kk.split(' ')[0] : nextPrayerInfo.ru}
             </p>
             <p className="text-white font-black text-sm leading-tight mt-0.5">
@@ -127,14 +127,15 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
               key={prayer.key}
               className={`rounded-xl p-1.5 text-center transition-all ${
                 isNext
-                  ? 'bg-white text-emerald-800 shadow-md scale-105'
+                  ? 'bg-white shadow-md scale-105'
                   : isPast
                   ? 'bg-white/10 text-white/50'
                   : 'bg-white/15 text-white'
               }`}
+              style={isNext ? { color: 'var(--bronze-pressed)' } : undefined}
             >
               <p className="text-sm leading-none">{prayer.icon}</p>
-              <p className={`text-[9px] font-black mt-0.5 leading-none ${isNext ? 'text-emerald-900' : ''}`}>
+              <p className="text-[9px] font-black mt-0.5 leading-none">
                 {timeStr}
               </p>
             </div>

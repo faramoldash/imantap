@@ -56,20 +56,20 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
   return (
     <div className="space-y-6 pb-8 pt-4">
       {/* Header with Stats */}
-      <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl">
+      <div className="bg-header p-8 rounded-[2.5rem] text-white relative overflow-hidden shadow-xl">
         <div className="absolute top-0 right-0 p-8 opacity-5">
            <span className="text-8xl">🕌</span>
         </div>
         <div className="relative z-10 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-black mb-1 leading-tight">{t.namesTitle}</h2>
-            <p className="text-emerald-400 font-black tracking-widest text-xs uppercase">{memorizedCount} / 99 {t.namesMemorized}</p>
+            <p className="text-brand font-black tracking-widest text-xs uppercase">{memorizedCount} / 99 {t.namesMemorized}</p>
           </div>
           <div className="relative w-20 h-20">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="40" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="10" />
               <circle 
-                cx="50" cy="50" r="40" fill="transparent" stroke="#10b981" strokeWidth="10" 
+                cx="50" cy="50" r="40" fill="transparent" stroke="var(--bronze)" strokeWidth="10" 
                 strokeDasharray={2 * Math.PI * 40} 
                 strokeDashoffset={2 * Math.PI * 40 * (1 - progressPercent / 100)}
                 strokeLinecap="round"
@@ -84,13 +84,13 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
       </div>
 
       {/* Filters */}
-      <div className="flex bg-white p-1.5 rounded-[1.5rem] border border-slate-100 shadow-sm sticky top-2 z-30 backdrop-blur-md bg-white/90">
+      <div className="flex bg-card p-1.5 rounded-[1.5rem] border border-default shadow-sm sticky top-2 z-30 backdrop-blur-md">
         {(['all', 'learning', 'learned'] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`flex-1 py-3 text-[10px] font-black rounded-2xl transition-all ${
-              filter === f ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'
+              filter === f ? 'bg-brand text-white shadow-lg' : 'text-secondary'
             } uppercase tracking-widest`}
           >
             {f === 'all' ? (language === 'kk' ? 'БАРЛЫҒЫ' : 'ВСЕ') : f === 'learning' ? t.namesStatusToLearn : t.namesStatusLearned}
@@ -108,19 +108,19 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
               key={item.id}
               onClick={() => setSelectedId(item.id)}
               className={`p-4 rounded-[1.8rem] border transition-all relative overflow-hidden cursor-pointer h-24 flex flex-col items-center justify-center ${
-                isMemorized 
-                  ? 'bg-emerald-50 border-emerald-100 text-emerald-900' 
-                  : 'bg-white border-slate-100 shadow-sm hover:border-emerald-200'
+                isMemorized
+                  ? 'btn-tracker-active'
+                  : 'btn-tracker-inactive shadow-sm'
               } active:scale-95`}
             >
               <div className="text-center w-full flex flex-col items-center justify-center h-full">
-                <span className="text-xl font-serif block text-emerald-900 leading-none mb-1 px-1 w-full truncate">{item.arabic}</span>
-                <span className="text-[7px] font-black text-slate-400 block uppercase tracking-tighter leading-tight px-0.5 w-full break-words whitespace-normal line-clamp-2">
+                <span className="text-xl font-serif block text-primary leading-none mb-1 px-1 w-full truncate">{item.arabic}</span>
+                <span className="text-[7px] font-black text-secondary block uppercase tracking-tighter leading-tight px-0.5 w-full break-words whitespace-normal line-clamp-2">
                   {item.translit}
                 </span>
               </div>
               {isMemorized && (
-                <div className="absolute top-1.5 right-1.5 w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center text-[7px] text-white shadow-sm border border-white">✓</div>
+                <div className="absolute top-1.5 right-1.5 w-3 h-3 bg-brand rounded-full flex items-center justify-center text-[7px] text-white shadow-sm">✓</div>
               )}
             </div>
           );
@@ -137,33 +137,33 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
           
           {/* Card */}
-          <div 
-            className="bg-white w-full max-w-sm rounded-[3rem] p-8 shadow-2xl relative z-10 animate-in zoom-in slide-in-from-bottom-8 duration-300"
+          <div
+            className="bg-card w-full max-w-sm rounded-[3rem] p-8 shadow-2xl relative z-10 animate-in zoom-in slide-in-from-bottom-8 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             <button 
               onClick={() => setSelectedId(null)}
-              className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-400 rounded-full font-black text-xl active:scale-90 transition-transform"
+              className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center bg-surface text-secondary rounded-full font-black text-xl active:scale-90 transition-transform"
             >
               ✕
             </button>
 
             <div className="text-center space-y-6 mt-4">
-              <div className="bg-emerald-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-2 text-2xl font-black text-emerald-600 shadow-inner">
+              <div className="bg-brand-tint w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-2 text-2xl font-black text-brand shadow-inner">
                 {selectedName.id}
               </div>
-              
+
               <div className="space-y-2">
-                <span className="text-6xl font-serif block text-emerald-900 leading-none">
+                <span className="text-6xl font-serif block text-primary leading-none">
                   {selectedName.arabic}
                 </span>
-                <span className="text-sm font-black text-emerald-600 uppercase tracking-[0.2em]">
+                <span className="text-sm font-black text-brand uppercase tracking-[0.2em]">
                   {selectedName.translit}
                 </span>
               </div>
 
-              <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
-                <p className="text-base font-bold text-slate-800 leading-relaxed">
+              <div className="bg-surface p-6 rounded-[2rem] border border-default">
+                <p className="text-base font-bold text-primary leading-relaxed">
                   {selectedName.meaning}
                 </p>
               </div>
@@ -176,7 +176,7 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
                     className={`w-full py-5 rounded-[1.8rem] text-sm font-black transition-all shadow-xl active:scale-95 flex items-center justify-center space-x-2 ${
                       userData.memorizedNames?.includes(selectedName.id)
                         ? 'bg-red-50 text-red-600 border border-red-100'
-                        : 'bg-emerald-600 text-white shadow-emerald-200'
+                        : 'btn-primary'
                     }`}
                   >
                     <span>{userData.memorizedNames?.includes(selectedName.id) ? t.namesUnmark : t.namesButton}</span>
@@ -187,7 +187,7 @@ const NamesMemorizer: React.FC<NamesMemorizerProps> = ({ language, userData, set
                   {userData.memorizedNames?.includes(selectedName.id) && hasNext && (
                       <button
                         onClick={goToNextName}
-                        className="w-full py-4 rounded-[1.8rem] text-sm font-black bg-slate-900 text-white shadow-lg active:scale-95 transition-transform flex items-center justify-center space-x-2"
+                        className="w-full py-4 rounded-[1.8rem] text-sm font-black bg-header text-white shadow-lg active:scale-95 transition-transform flex items-center justify-center space-x-2"
                       >
                          <span>{t.namesNext}</span>
                          <span>→</span>

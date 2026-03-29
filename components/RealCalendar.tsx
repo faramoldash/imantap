@@ -159,23 +159,23 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
     .toLocaleDateString('en-CA', { timeZone: userTZ });
 
   return (
-    <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+    <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <button 
           onClick={goToPrevMonth}
-          className="w-10 h-10 rounded-2xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 font-black text-lg transition-colors active:scale-95"
+          className="w-10 h-10 rounded-2xl bg-surface flex items-center justify-center text-primary font-black text-lg transition-colors active:scale-95"
         >
           ←
         </button>
         
         <div className="text-center">
-          <h3 className="text-base font-black text-slate-800">
+          <h3 className="text-base font-black text-primary">
             {monthNames[language][currentMonth.getMonth()]} {currentMonth.getFullYear()}
           </h3>
           <button
             onClick={goToToday}
-            className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-1 hover:underline active:scale-95"
+            className="text-[9px] font-bold text-brand uppercase tracking-wider mt-1 hover:underline active:scale-95"
           >
             {language === 'kk' ? 'Бүгінге өту' : 'Сегодня'}
           </button>
@@ -183,7 +183,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
         
         <button 
           onClick={goToNextMonth}
-          className="w-10 h-10 rounded-2xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-600 font-black text-lg transition-colors active:scale-95"
+          className="w-10 h-10 rounded-2xl bg-surface flex items-center justify-center text-primary font-black text-lg transition-colors active:scale-95"
         >
           →
         </button>
@@ -192,7 +192,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
       {/* Week days */}
       <div className="grid grid-cols-7 gap-2 mb-2">
         {weekDays[language].map((day, idx) => (
-          <div key={idx} className="text-center text-[10px] font-black text-slate-400 uppercase">
+          <div key={idx} className="text-center text-[10px] font-black text-secondary uppercase">
             {day}
           </div>
         ))}
@@ -221,11 +221,11 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
                           prepDay ? calculateProgress(prepDay, true) : 0;
           
           // Цвета
-          let bgColor = 'rgb(248 250 252)'; // обычный день
-          let textColor = 'text-slate-600';
+          let bgColor = 'var(--surface)'; // обычный день
+          let textColor = 'text-primary';
 
           if (isTodayDate) {
-            bgColor = 'rgb(16 185 129)'; // зелёный
+            bgColor = 'var(--bronze)';
             textColor = 'text-white';
           } else if (isEid) {
             bgColor = 'rgb(251 146 60)'; // яркий оранжевый - Ораза айт
@@ -234,11 +234,11 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
             bgColor = 'rgb(251 191 36)'; // золотой - первый таравих
             textColor = 'text-white';
           } else if (isRamadan) {
-            bgColor = progress > 0 ? '' : 'rgb(240 253 244)'; // светло-зелёный
-            textColor = 'text-emerald-700';
+            bgColor = progress > 0 ? '' : 'var(--brand-tint)';
+            textColor = 'text-brand';
           } else if (isPrep) {
-            bgColor = progress > 0 ? '' : 'rgb(224 242 254)'; // голубой
-            textColor = 'text-sky-700';
+            bgColor = progress > 0 ? '' : 'var(--brand-tint)';
+            textColor = 'text-brand';
           }
           
           return (
@@ -254,29 +254,27 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               className={`
                 aspect-square rounded-2xl flex flex-col items-center justify-center text-center
                 transition-all relative overflow-hidden cursor-pointer active:scale-95
-                ${isSelected ? 'ring-2 ring-emerald-600 scale-105 z-10' : ''}
+                ${isSelected ? 'ring-2 ring-brand scale-105 z-10' : ''}
               `}
               style={{
                 background: (ramadanDay || prepDay) && progress > 0
                   ? isTaraweeh
                     ? `conic-gradient(rgb(251 191 36) ${progress * 3.6}deg, rgb(254 243 199) ${progress * 3.6}deg)`
-                    : isRamadan
-                      ? `conic-gradient(rgb(16 185 129) ${progress * 3.6}deg, rgb(240 253 244) ${progress * 3.6}deg)`
-                      : `conic-gradient(rgb(14 165 233) ${progress * 3.6}deg, rgb(224 242 254) ${progress * 3.6}deg)`
+                    : `conic-gradient(var(--bronze) ${progress * 3.6}deg, var(--brand-tint) ${progress * 3.6}deg)`
                   : bgColor
               }}
             >
               {/* Внутренний круг для радиального прогресса */}
               {(ramadanDay || prepDay) && progress > 0 && progress < 100 && (
                 <div className={`absolute inset-1 rounded-xl flex items-center justify-center ${
-                  isTodayDate ? 'bg-emerald-500' : 'bg-white'
+                  isTodayDate ? 'bg-brand' : 'bg-card'
                 }`}>
                   <div className="flex flex-col items-center">
-                    <span className={`text-sm font-bold ${isTodayDate ? 'text-white' : 'text-slate-800'}`}>
+                    <span className={`text-sm font-bold ${isTodayDate ? 'text-white' : 'text-primary'}`}>
                       {date.getDate()}
                     </span>
                     <span className={`text-[8px] font-black mt-0.5 ${
-                      isTodayDate ? 'text-white' : isTaraweeh ? 'text-amber-600' : isRamadan ? 'text-emerald-600' : 'text-sky-600'
+                      isTodayDate ? 'text-white' : isTaraweeh ? 'text-amber-600' : 'text-brand'
                     }`}>
                       {isTaraweeh ? '⭐' : ramadanDay || (prepDay && '📝')}
                     </span>
@@ -293,7 +291,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
                   
                   {ramadanDay && (
                     <span className={`text-[8px] font-black mt-0.5 ${
-                      isTodayDate ? 'text-white' : 'text-emerald-600'
+                      isTodayDate ? 'text-white' : 'text-brand'
                     }`}>
                       {ramadanDay}
                     </span>
@@ -301,7 +299,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
 
                   {prepDay && (
                     <span className={`text-[8px] font-black mt-0.5 ${
-                      isTaraweeh ? 'text-white' : 'text-sky-600'
+                      isTaraweeh ? 'text-white' : 'text-brand'
                     }`}>
                       {isTaraweeh ? '⭐' : '📝'}
                     </span>
@@ -317,7 +315,7 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
               {/* Галочка для завершённых дней */}
               {(ramadanDay || prepDay) && progress === 100 && (
                 <div className={`absolute top-0.5 right-0.5 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center ${
-                  isTaraweeh ? 'bg-amber-500' : isRamadan ? 'bg-emerald-600' : 'bg-sky-600'
+                  isTaraweeh ? 'bg-amber-500' : 'bg-brand'
                 }`}>
                   ✓
                 </div>
@@ -330,24 +328,24 @@ const RealCalendar: React.FC<RealCalendarProps> = ({
       {/* Legend */}
       <div className="grid grid-cols-2 gap-2 mt-5 text-[9px] font-bold">
         <div className="flex items-center space-x-1.5">
-          <div className="w-3 h-3 bg-emerald-600 rounded"></div>
-          <span className="text-slate-600">{language === 'kk' ? 'Бүгін' : 'Сегодня'}</span>
+          <div className="w-3 h-3 bg-brand rounded"></div>
+          <span className="text-secondary">{language === 'kk' ? 'Бүгін' : 'Сегодня'}</span>
         </div>
         <div className="flex items-center space-x-1.5">
-          <div className="w-3 h-3 bg-sky-100 border border-sky-300 rounded"></div>
-          <span className="text-slate-600">{language === 'kk' ? 'Дайындық' : 'Подготовка'}</span>
+          <div className="w-3 h-3 bg-brand-tint border border-brand-subtle rounded"></div>
+          <span className="text-secondary">{language === 'kk' ? 'Дайындық' : 'Подготовка'}</span>
         </div>
         <div className="flex items-center space-x-1.5">
-          <div className="w-3 h-3 bg-emerald-50 border border-emerald-200 rounded"></div>
-          <span className="text-slate-600">{language === 'kk' ? 'Рамазан' : 'Рамадан'}</span>
+          <div className="w-3 h-3 bg-brand-tint border border-brand-subtle rounded"></div>
+          <span className="text-secondary">{language === 'kk' ? 'Рамазан' : 'Рамадан'}</span>
         </div>
         <div className="flex items-center space-x-1.5">
           <div className="w-3 h-3 bg-amber-400 rounded flex items-center justify-center text-[6px]">⭐</div>
-          <span className="text-slate-600">{language === 'kk' ? '1-ші тарауық' : '1-й таравих'}</span>
+          <span className="text-secondary">{language === 'kk' ? '1-ші тарауық' : '1-й таравих'}</span>
         </div>
         <div className="flex items-center space-x-1.5">
           <div className="w-3 h-3 bg-orange-500 rounded flex items-center justify-center text-[6px]">🎉</div>
-          <span className="text-slate-600">{language === 'kk' ? 'Ораза айт' : 'Ораза айт'}</span>
+          <span className="text-secondary">{language === 'kk' ? 'Ораза айт' : 'Ораза айт'}</span>
         </div>
       </div>
     </div>

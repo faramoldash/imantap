@@ -20,7 +20,7 @@ const Calendar: React.FC<CalendarProps> = ({ progress, realTodayDay, selectedDay
 
   const getStatusColor = (day: number, isLocked: boolean) => {
     if (isLocked) {
-      return 'bg-slate-50 border-slate-100 text-slate-300 opacity-50 cursor-not-allowed';
+      return 'bg-surface border-default text-placeholder opacity-50 cursor-not-allowed';
     }
 
     const data = progress[day];
@@ -28,21 +28,21 @@ const Calendar: React.FC<CalendarProps> = ({ progress, realTodayDay, selectedDay
     const isSelected = day === selectedDay;
 
     if (!data) {
-        if (isSelected) return 'bg-emerald-50 border-emerald-500 text-emerald-900 border-[3px] shadow-lg';
-        if (isToday) return 'bg-white border-emerald-300 text-emerald-600 border-[2px] shadow-sm';
-        return 'bg-white border-slate-100 text-slate-300';
+        if (isSelected) return 'bg-brand-tint border-brand text-brand border-[3px] shadow-lg';
+        if (isToday) return 'bg-card border-brand-subtle text-brand border-[2px] shadow-sm';
+        return 'bg-card border-default text-placeholder';
     }
     
     const completedCount = TRACKER_KEYS.filter(key => data[key as keyof DayProgress]).length;
     const progressPercent = (completedCount / TRACKER_KEYS.length) * 100;
 
     let baseClasses = '';
-    if (progressPercent >= 80) baseClasses = 'bg-emerald-500 text-white shadow-emerald-200 shadow-lg border-emerald-400';
-    else if (progressPercent > 0) baseClasses = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    else baseClasses = 'bg-white border-slate-200 text-slate-700';
+    if (progressPercent >= 80) baseClasses = 'bg-brand text-white shadow-lg border-brand';
+    else if (progressPercent > 0) baseClasses = 'bg-brand-tint text-brand border-brand-subtle';
+    else baseClasses = 'bg-card border-default text-primary';
 
     if (isSelected) {
-        return `${baseClasses} ring-4 ring-emerald-500/30 border-[4px] border-emerald-600 scale-105 z-10`;
+        return `${baseClasses} ring-4 ring-brand/30 border-[4px] border-brand scale-105 z-10`;
     }
     if (isToday) {
         return `${baseClasses} border-amber-400 border-[3px]`;
@@ -52,12 +52,12 @@ const Calendar: React.FC<CalendarProps> = ({ progress, realTodayDay, selectedDay
   };
 
   return (
-    <div className="bg-white p-8 rounded-[3rem] shadow-sm border border-slate-100 mb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-card p-8 rounded-[3rem] shadow-sm border border-default mb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex justify-between items-center mb-8 px-2">
-        <h3 className="text-2xl font-black text-slate-800 tracking-tight">{t.calendarTitle}</h3>
+        <h3 className="text-2xl font-black text-primary tracking-tight">{t.calendarTitle}</h3>
         <div className="flex items-center space-x-2">
            <div className="w-3 h-3 bg-amber-400 rounded-full"></div>
-           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.todayLabel}</span>
+           <span className="text-[10px] font-black text-secondary uppercase tracking-widest">{t.todayLabel}</span>
         </div>
       </div>
       

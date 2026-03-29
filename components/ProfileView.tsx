@@ -359,35 +359,35 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
     <div className="space-y-6 pb-8 pt-4 animate-in fade-in slide-in-from-right duration-500">
       
       {/* Header / Profile Card */}
-      <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 relative overflow-hidden">
+      <div className="bg-card p-8 rounded-[3rem] shadow-xl border border-default relative overflow-hidden">
         <div className="flex items-center space-x-6 relative z-10">
           {userData.photoUrl ? (
             <img 
               src={userData.photoUrl} 
               alt="Profile" 
-              className="w-20 h-20 rounded-[2rem] object-cover border-4 border-emerald-50 shadow-md"
+              className="w-20 h-20 rounded-[2rem] object-cover border-4 border-brand-tint shadow-md"
             />
           ) : (
-            <div className="w-20 h-20 bg-emerald-100 rounded-[2rem] flex items-center justify-center text-4xl shadow-inner text-emerald-600">
+            <div className="w-20 h-20 bg-brand-tint rounded-[2rem] flex items-center justify-center text-4xl shadow-inner text-brand">
               👤
             </div>
           )}
           
           <div className="flex-1 min-w-0">
-            <h2 className="text-xl font-black text-slate-900 mb-0.5 truncate leading-tight">{userData.name || 'User'}</h2>
+            <h2 className="text-xl font-black text-primary mb-0.5 truncate leading-tight">{userData.name || 'User'}</h2>
             {userData.username && (
-              <p className="text-xs text-slate-400 font-bold mb-2">@{userData.username.replace('@','')}</p>
+              <p className="text-xs text-secondary font-bold mb-2">@{userData.username.replace('@','')}</p>
             )}
-            
+
             <div className="flex items-center space-x-2 mb-2">
-              <span className="bg-emerald-600 text-white px-2 py-0.5 rounded-lg text-[10px] font-black uppercase flex items-center space-x-1">
+              <span className="bg-brand text-white px-2 py-0.5 rounded-lg text-[10px] font-black uppercase flex items-center space-x-1">
                 <span>{levelInfo.icon}</span>
                 <span>{levelInfo.name}</span>
               </span>
-              <span className="text-xs font-bold text-slate-400">LVL {levelInfo.level}</span>
+              <span className="text-xs font-bold text-secondary">LVL {levelInfo.level}</span>
             </div>
-            
-            <p className="text-[10px] text-slate-400 uppercase tracking-wide">
+
+            <p className="text-[10px] text-secondary uppercase tracking-wide">
               {t.joinDate}: {new Date(userData.registrationDate || userData.startDate).toLocaleDateString('ru-RU', {
                 day: '2-digit',
                 month: '2-digit', 
@@ -396,14 +396,14 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
             </p>
             
             {userData.subscriptionExpiresAt && userData.daysLeft !== null && (
-              <p className="text-[10px] text-slate-400 uppercase tracking-wide mt-1">
+              <p className="text-[10px] text-secondary uppercase tracking-wide mt-1">
                 {language === 'kk' ? 'Жазылым аяқталатын күн' : 'Подписка до'}: {' '}
                 <span className={`${
-                  userData.daysLeft <= 3 
-                    ? 'text-red-600' 
-                    : userData.daysLeft <= 7 
-                    ? 'text-orange-600' 
-                    : 'text-slate-600'
+                  userData.daysLeft <= 3
+                    ? 'text-error'
+                    : userData.daysLeft <= 7
+                    ? 'text-warning'
+                    : 'text-secondary'
                 }`}>
                   {new Date(userData.subscriptionExpiresAt).toLocaleDateString('ru-RU', {
                     day: '2-digit',
@@ -417,8 +417,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         </div>
         
         {/* User Badges Strip */}
-        <div className="mt-6 pt-4 border-t border-slate-50">
-          <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 px-2">
+        <div className="mt-6 pt-4 border-t border-default">
+          <h4 className="text-xs font-black text-secondary uppercase tracking-widest mb-3 px-2">
             {language === 'kk' ? 'Жетістіктеріңіз' : 'Ваши достижения'}
           </h4>
           <div className="grid grid-cols-4 gap-3">
@@ -427,12 +427,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
               return (
                 <div key={badge.id} className="flex flex-col items-center group">
                   <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-all duration-500 ${
-                    isUnlocked ? 'bg-amber-50 shadow-lg shadow-amber-100 grayscale-0 scale-100' : 'bg-slate-50 grayscale scale-90 opacity-40'
+                    isUnlocked ? 'bg-amber-50 shadow-lg shadow-amber-100 grayscale-0 scale-100' : 'bg-surface grayscale scale-90 opacity-40'
                   }`}>
                     {badge.icon}
                   </div>
                   <p className={`text-[8px] font-black text-center mt-2 uppercase tracking-tighter leading-tight ${
-                    isUnlocked ? 'text-slate-800' : 'text-slate-300'
+                    isUnlocked ? 'text-primary' : 'text-placeholder'
                   }`}>
                     {language === 'kk' ? badge.name_kk : badge.name_ru}
                   </p>
@@ -444,7 +444,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       </div>
 
       {/* ✅ ЕДИНАЯ HERO CARD - XP + Streak + Прогресс */}
-      <div className="bg-gradient-to-br from-emerald-600 to-teal-600 p-6 rounded-[3rem] text-white shadow-xl relative overflow-hidden">
+      <div className="bg-header p-6 rounded-[3rem] text-white shadow-xl relative overflow-hidden">
         <div className="absolute -top-8 -right-8 text-[160px] opacity-5 pointer-events-none">⭐</div>
         
         <div className="relative z-10">
@@ -452,12 +452,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
           <div className="flex items-start justify-between mb-4">
             {/* XP (слева) */}
             <div className="flex-1">
-              <p className="text-emerald-200 text-[10px] font-black uppercase tracking-widest mb-1">
+              <p className="text-white/60 text-[10px] font-black uppercase tracking-widest mb-1">
                 {language === 'kk' ? '✨ Тәжірибе' : '✨ Опыт'}
               </p>
               <div className="flex items-baseline space-x-2 mb-1">
                 <span className="text-4xl font-black leading-none">{userData.xp.toLocaleString()}</span>
-                <span className="text-sm text-emerald-200 font-bold">XP</span>
+                <span className="text-sm text-white/60 font-bold">XP</span>
               </div>
               <div className="flex items-center space-x-1.5">
                 <span className="bg-white/10 backdrop-blur-sm rounded-lg px-2 py-1 text-[10px] font-bold border border-white/20">
@@ -474,16 +474,16 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
             {/* Streak (справа) */}
             {userData.currentStreak > 0 && (
               <div className="text-right bg-white/10 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/20 ml-3">
-                <p className="text-emerald-200 text-[9px] font-black uppercase tracking-wider mb-1">
+                <p className="text-white/60 text-[9px] font-black uppercase tracking-wider mb-1">
                   🔥 {language === 'kk' ? 'Серия' : 'Streak'}
                 </p>
                 <div className="flex items-baseline justify-end space-x-1.5">
                   <span className="text-3xl font-black leading-none">{userData.currentStreak}</span>
-                  <span className="text-xs text-emerald-200 font-bold">
+                  <span className="text-xs text-white/60 font-bold">
                     {language === 'kk' ? 'күн' : 'дней'}
                   </span>
                 </div>
-                <p className="text-[8px] text-emerald-100 mt-1 opacity-80">
+                <p className="text-[8px] text-white/70 mt-1 opacity-80">
                   {language === 'kk' ? 'Рекорд' : 'Рекорд'}: {Math.max(userData.currentStreak || 0, userData.longestStreak || 0)} {language === 'kk' ? 'күн' : 'дней'}
                 </p>
               </div>
@@ -493,18 +493,18 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
           {/* Прогресс за сегодня (внизу на всю ширину) */}
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-100">
+              <span className="text-[10px] font-black uppercase tracking-wider text-white/70">
                 {language === 'kk' ? '📊 Бүгінгі прогресс' : '📊 Прогресс сегодня'}
               </span>
               <span className="text-sm font-black">{stats.todayTasks} / {stats.totalTodayTasks}</span>
             </div>
             <div className="w-full h-2.5 bg-white/10 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-white to-emerald-100 transition-all duration-500 rounded-full shadow-lg" 
+                className="h-full bg-white/80 transition-all duration-500 rounded-full shadow-lg" 
                 style={{ width: `${stats.totalTodayTasks > 0 ? (stats.todayTasks / stats.totalTodayTasks) * 100 : 0}%` }}
               ></div>
             </div>
-            <p className="text-[9px] text-emerald-100 text-center mt-2">
+            <p className="text-[9px] text-white/70 text-center mt-2">
               {Math.round(stats.totalTodayTasks > 0 ? (stats.todayTasks / stats.totalTodayTasks) * 100 : 0)}% {language === 'kk' ? 'аяқталды' : 'выполнено'}
             </p>
           </div>
@@ -513,7 +513,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
 
       {/* ✅ ВРЕМЕННЫЕ ФИЛЬТРЫ */}
       <div>
-        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-3 px-2">
+        <h3 className="text-sm font-black text-secondary uppercase tracking-widest mb-3 px-2">
           {language === 'kk' ? 'Статистика' : 'Статистика'}
         </h3>
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
@@ -528,9 +528,9 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
               key={period.value}
               onClick={() => setPeriodFilter(period.value as PeriodFilter)}
               className={`px-4 py-3.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all ${
-                periodFilter === period.value 
-                  ? 'bg-emerald-600 text-white' 
-                  : 'bg-slate-100 text-slate-600'
+                periodFilter === period.value
+                  ? 'bg-brand text-white'
+                  : 'bg-surface text-secondary'
               }`}
             >
               {period.label}
@@ -542,20 +542,20 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       {/* ✅ ДЕТАЛЬНАЯ СТАТИСТИКА */}
       <div className="space-y-4">
         {/* Намазы */}
-        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center text-xl">🕌</div>
               <div>
-                <h4 className="text-sm font-black text-slate-800">
+                <h4 className="text-sm font-black text-primary">
                   {language === 'kk' ? 'Намаздар' : 'Намазы'}
                 </h4>
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] text-secondary">
                   {stats.totalPrayers} / {stats.daysInPeriod * 5} ({stats.prayerPercent}%)
                 </p>
               </div>
             </div>
-            <span className="text-2xl font-black text-emerald-600">{stats.prayerPercent}%</span>
+            <span className="text-2xl font-black text-brand">{stats.prayerPercent}%</span>
           </div>
           
           <div className="space-y-3">
@@ -571,13 +571,13 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
               return (
                 <div key={prayer.key}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-slate-700 flex items-center space-x-2">
+                    <span className="text-xs font-bold text-primary flex items-center space-x-2">
                       <span>{prayer.icon}</span>
                       <span>{prayer.name}</span>
                     </span>
-                    <span className="text-xs font-black text-slate-400">{count}/{stats.daysInPeriod}</span>
+                    <span className="text-xs font-black text-secondary">{count}/{stats.daysInPeriod}</span>
                   </div>
-                  <div className="w-full h-2 bg-slate-50 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-amber-500 to-amber-400 transition-all duration-500" 
                       style={{ width: `${percent}%` }}
@@ -590,32 +590,32 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         </div>
 
         {/* Құран */}
-        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-xl">📖</div>
+              <div className="w-10 h-10 bg-brand-tint rounded-2xl flex items-center justify-center text-xl">📖</div>
               <div>
-                <h4 className="text-sm font-black text-slate-800">
+                <h4 className="text-sm font-black text-primary">
                   {language === 'kk' ? 'Құран оқу' : 'Чтение Корана'}
                 </h4>
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] text-secondary">
                   {language === 'kk' ? 'Барлығы оқылды' : 'Всего прочитано'}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-black text-emerald-600">{stats.totalQuran}</span>
-              <p className="text-[9px] text-slate-400 uppercase">{language === 'kk' ? 'бет' : 'стр'}</p>
+              <span className="text-2xl font-black text-brand">{stats.totalQuran}</span>
+              <p className="text-[9px] text-secondary uppercase">{language === 'kk' ? 'бет' : 'стр'}</p>
             </div>
           </div>
           
           {stats.daysInPeriod > 0 && (
-            <div className="bg-emerald-50 rounded-2xl p-4">
+            <div className="bg-brand-tint rounded-2xl p-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-800">
+                <span className="text-xs font-bold text-primary">
                   {language === 'kk' ? 'Орташа күніне' : 'В среднем в день'}
                 </span>
-                <span className="text-lg font-black text-emerald-600">
+                <span className="text-lg font-black text-brand">
                   {(stats.totalQuran / stats.daysInPeriod).toFixed(1)} {language === 'kk' ? 'бет' : 'стр'}
                 </span>
               </div>
@@ -624,22 +624,22 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         </div>
 
         {/* Садақа */}
-        <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+        <div className="bg-card p-6 rounded-[2.5rem] shadow-sm border border-default">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-rose-50 rounded-2xl flex items-center justify-center text-xl">💎</div>
               <div>
-                <h4 className="text-sm font-black text-slate-800">
+                <h4 className="text-sm font-black text-primary">
                   {language === 'kk' ? 'Садақа' : 'Садака'}
                 </h4>
-                <p className="text-[10px] text-slate-400">
+                <p className="text-[10px] text-secondary">
                   {language === 'kk' ? 'Барлығы' : 'Всего'}
                 </p>
               </div>
             </div>
             <div className="text-right">
               <span className="text-2xl font-black text-rose-600">{stats.totalCharity.toLocaleString()}</span>
-              <p className="text-[9px] text-slate-400 uppercase">₸</p>
+              <p className="text-[9px] text-secondary uppercase">₸</p>
             </div>
           </div>
           
@@ -659,17 +659,17 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
       </div>
 
       {/* Referral System */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-8 rounded-[3rem] text-white shadow-xl relative overflow-hidden group">
+      <div className="bg-header p-8 rounded-[3rem] text-white shadow-xl relative overflow-hidden group">
         <div className="absolute top-0 right-0 opacity-20 transform translate-x-4 -translate-y-4">
           <span className="text-8xl">🤝</span>
         </div>
         <div className="relative z-10">
           <h3 className="text-lg font-black uppercase mb-1">{t.referralTitle}</h3>
-          <p className="text-xs text-emerald-100 mb-6 w-3/4 leading-relaxed">{t.referralDesc}</p>
+          <p className="text-xs text-white/70 mb-6 w-3/4 leading-relaxed">{t.referralDesc}</p>
           
           {userData.myPromoCode && (
             <div className="mb-6 bg-white/10 p-3 rounded-2xl border border-white/10 backdrop-blur-sm">
-              <p className="text-[9px] uppercase tracking-widest text-emerald-200 mb-1">{t.yourCodeLabel}</p>
+              <p className="text-[9px] uppercase tracking-widest text-white/60 mb-1">{t.yourCodeLabel}</p>
               <p className="text-2xl font-black font-mono tracking-wider select-all">{userData.myPromoCode}</p>
             </div>
           )}
@@ -683,7 +683,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
           <div className="flex items-center justify-between">
             <button 
               onClick={inviteFriend}
-              className="bg-white text-emerald-800 px-6 py-4 rounded-2xl font-black text-xs shadow-lg active:opacity-90 transition-opacity"
+              className="bg-white text-brand px-6 py-4 rounded-2xl font-black text-xs shadow-lg active:opacity-90 transition-opacity"
             >
               {userData.myPromoCode ? t.referralBtnShare : t.referralBtn}
             </button>

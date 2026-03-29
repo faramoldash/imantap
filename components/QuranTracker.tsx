@@ -63,16 +63,16 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
     <div className="space-y-6 pb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
       {/* 1. Прогресс */}
-      <div className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-50 flex flex-col items-center">
-        <h3 className="text-lg font-black text-slate-800 mb-6 uppercase tracking-widest">{t.quranProgress}</h3>
+      <div className="bg-card p-8 rounded-[3rem] shadow-xl border border-default flex flex-col items-center">
+        <h3 className="text-lg font-black text-primary mb-6 uppercase tracking-widest">{t.quranProgress}</h3>
 
         {percent === 100 ? (
           <div className="flex flex-col items-center text-center animate-in zoom-in duration-500">
-            <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center text-5xl mb-4 shadow-inner">
+            <div className="w-24 h-24 bg-brand-tint rounded-full flex items-center justify-center text-5xl mb-4 shadow-inner">
               🕋
             </div>
-            <h2 className="text-2xl font-black text-emerald-700 mb-2 leading-tight">{t.quranKhatamCompleted}</h2>
-            <p className="text-sm text-slate-500 mb-4 px-4">
+            <h2 className="text-2xl font-black text-brand mb-2 leading-tight">{t.quranKhatamCompleted}</h2>
+            <p className="text-sm text-secondary mb-4 px-4">
               {language === 'kk' ? 'МашаАлла! Сіз Құранды толық оқып шықтыңыз.' : 'МашаАлла! Вы полностью прочитали Коран.'}
             </p>
             {isFirstKhatam && (
@@ -91,7 +91,7 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
             )}
             <button
               onClick={handleKhatamFinish}
-              className="bg-emerald-600 text-white px-8 py-4 rounded-[2rem] font-black shadow-lg shadow-emerald-200 active:scale-95 transition-transform"
+              className="btn-primary px-8 py-4 rounded-[2rem] font-black shadow-lg active:scale-95 transition-transform"
             >
               {t.quranStartOver}
             </button>
@@ -99,10 +99,10 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
         ) : (
           <div className="relative flex items-center justify-center">
             <svg width={size} height={size} className="transform -rotate-90">
-              <circle cx={center} cy={center} r={radius} stroke="#f8fafc" strokeWidth={strokeWidth} fill="transparent" />
+              <circle cx={center} cy={center} r={radius} stroke="var(--surface)" strokeWidth={strokeWidth} fill="transparent" />
               <circle
                 cx={center} cy={center} r={radius}
-                stroke="#10b981" strokeWidth={strokeWidth} fill="transparent"
+                stroke="var(--bronze)" strokeWidth={strokeWidth} fill="transparent"
                 strokeDasharray={circumference}
                 strokeDashoffset={offset}
                 strokeLinecap="round"
@@ -110,8 +110,8 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-4xl font-black text-slate-800 leading-none">{percent}%</span>
-              <span className="text-[9px] font-black text-slate-400 mt-2 uppercase tracking-[0.2em]">
+              <span className="text-4xl font-black text-primary leading-none">{percent}%</span>
+              <span className="text-[9px] font-black text-secondary mt-2 uppercase tracking-[0.2em]">
                 {completedCount} / 30 {t.quranJuzCol}
               </span>
             </div>
@@ -129,26 +129,26 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
       </div>
 
       {/* 2. Хадис */}
-      <div className="bg-emerald-900 p-8 rounded-[2.5rem] shadow-2xl text-white relative overflow-hidden text-center">
+      <div className="bg-header p-8 rounded-[2.5rem] shadow-2xl text-white relative overflow-hidden text-center">
         <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
           <span className="text-8xl font-serif">"</span>
         </div>
         <div className="relative z-10 space-y-4">
-          <p className="text-emerald-50 text-sm italic leading-relaxed font-medium">«{t.quranHadith}»</p>
+          <p className="text-white/90 text-sm italic leading-relaxed font-medium">«{t.quranHadith}»</p>
           <div className="flex flex-col items-center">
-            <div className="h-0.5 w-12 bg-emerald-500 mb-2 rounded-full"></div>
-            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{t.quranHadithSource}</p>
+            <div className="h-0.5 w-12 mb-2 rounded-full" style={{ background: 'var(--bronze)' }}></div>
+            <p className="text-[10px] font-black text-brand uppercase tracking-widest">{t.quranHadithSource}</p>
           </div>
         </div>
       </div>
 
       {/* 3. Кесте */}
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-slate-50 px-6 py-5 flex items-center justify-between border-b border-slate-100 sticky top-0 z-10">
-          <h4 className="text-[12px] font-black text-slate-800 uppercase tracking-widest">{t.quranScheduleTitle}</h4>
-          <span className="text-[10px] font-bold text-slate-400 uppercase">{language === 'kk' ? '30 КҮН' : '30 ДНЕЙ'}</span>
+      <div className="bg-card rounded-[2.5rem] shadow-sm border border-default overflow-hidden">
+        <div className="bg-surface px-6 py-5 flex items-center justify-between border-b border-default sticky top-0 z-10">
+          <h4 className="text-[12px] font-black text-primary uppercase tracking-widest">{t.quranScheduleTitle}</h4>
+          <span className="text-[10px] font-bold text-secondary uppercase">{language === 'kk' ? '30 КҮН' : '30 ДНЕЙ'}</span>
         </div>
-        <div className="divide-y divide-slate-50">
+        <div className="divide-y divide-default">
           {QURAN_SCHEDULE.map((item) => {
             const isDone = userData.completedJuzs?.includes(item.id);
             const isEarned = (userData.earnedJuzXpIds || []).includes(item.id);
@@ -156,27 +156,27 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
               <div
                 key={item.id}
                 onClick={() => toggleJuz(item.id)}
-                className={`grid grid-cols-12 gap-3 px-6 py-4 items-center transition-all cursor-pointer active:bg-slate-50 ${isDone ? 'bg-emerald-50/40' : 'bg-white'}`}
+                className={`grid grid-cols-12 gap-3 px-6 py-4 items-center transition-all cursor-pointer active:bg-surface ${isDone ? 'bg-brand-tint' : 'bg-card'}`}
               >
                 <div className="col-span-2">
-                  <div className={`w-8 h-8 rounded-2xl flex items-center justify-center text-[10px] font-black transition-all ${isDone ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                  <div className={`w-8 h-8 rounded-2xl flex items-center justify-center text-[10px] font-black transition-all ${isDone ? 'bg-brand text-white' : 'bg-surface text-secondary'}`}>
                     {item.juz}
                   </div>
                 </div>
                 <div className="col-span-8 flex flex-col justify-center">
                   <div className="flex items-center space-x-1.5">
-                    <span className={`text-[11px] font-black truncate ${isDone ? 'text-emerald-800' : 'text-slate-700'}`}>{item.start}</span>
+                    <span className={`text-[11px] font-black truncate ${isDone ? 'text-brand' : 'text-primary'}`}>{item.start}</span>
                     <span className="text-slate-300 text-[10px]">→</span>
-                    <span className={`text-[11px] font-black truncate ${isDone ? 'text-emerald-800' : 'text-slate-700'}`}>{item.end}</span>
+                    <span className={`text-[11px] font-black truncate ${isDone ? 'text-brand' : 'text-primary'}`}>{item.end}</span>
                   </div>
                   {isEarned ? (
-                    <span className="text-[9px] font-black text-emerald-500 mt-0.5">✓ +150 XP {language === 'kk' ? 'берілді' : 'получено'}</span>
+                    <span className="text-[9px] font-black text-brand mt-0.5">✓ +150 XP {language === 'kk' ? 'берілді' : 'получено'}</span>
                   ) : (
-                    <span className="text-[9px] font-bold text-slate-300 mt-0.5">+150 XP</span>
+                    <span className="text-[9px] font-bold text-placeholder mt-0.5">+150 XP</span>
                   )}
                 </div>
                 <div className="col-span-2 flex justify-end">
-                  <div className={`w-6 h-6 rounded-xl border-2 flex items-center justify-center transition-all ${isDone ? 'bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-200' : 'border-slate-100 bg-white'}`}>
+                  <div className={`w-6 h-6 rounded-xl border-2 flex items-center justify-center transition-all ${isDone ? 'bg-brand border-brand text-white shadow-md' : 'border-default bg-card'}`}>
                     {isDone && <span className="text-[12px] font-black">✓</span>}
                   </div>
                 </div>
@@ -187,41 +187,41 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
       </div>
 
       {/* 4. XP Ережелері — минимальный инфоблок */}
-      <div className="px-5 py-4 rounded-[1.75rem] bg-slate-50 border border-slate-100">
+      <div className="px-5 py-4 rounded-[1.75rem] bg-surface border border-default">
 
         {/* Заголовок */}
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+        <p className="text-[10px] font-bold text-secondary uppercase tracking-widest mb-3">
           {language === 'kk' ? 'ℹ️  XP Ережелері' : 'ℹ️  Правила XP'}
         </p>
 
         {/* Правила — одна строка без разделителей */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[12px] text-slate-500">
+            <span className="text-[12px] text-secondary">
               {language === 'kk' ? '📖 Жаңа пара (бір рет)' : '📖 Новая пара (один раз)'}
             </span>
-            <span className="text-[12px] font-black text-emerald-600">+150 XP</span>
+            <span className="text-[12px] font-black text-brand">+150 XP</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[12px] text-slate-500">
+            <span className="text-[12px] text-secondary">
               {language === 'kk' ? '🕋 Алғашқы хатым (бір рет)' : '🕋 Первый хатым (один раз)'}
             </span>
-            <span className="text-[12px] font-black text-emerald-600">+1000 XP</span>
+            <span className="text-[12px] font-black text-brand">+1000 XP</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-[12px] text-slate-400">
+            <span className="text-[12px] text-secondary">
               {language === 'kk' ? '🔄 Қайта оқу / келесі хатым' : '🔄 Повторное / хатым'}
             </span>
-            <span className="text-[12px] font-bold text-slate-300">0 XP</span>
+            <span className="text-[12px] font-bold text-placeholder">0 XP</span>
           </div>
         </div>
 
         {/* Итог */}
-        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-          <span className="text-[11px] text-slate-400">
+        <div className="mt-3 pt-3 border-t border-default flex items-center justify-between">
+          <span className="text-[11px] text-secondary">
             {language === 'kk' ? 'Жалпы жинаған' : 'Всего заработано'}
           </span>
-          <span className="text-[12px] font-black text-slate-500">
+          <span className="text-[12px] font-black text-secondary">
             {earnedCount}/30 · {earnedCount * 150} XP
           </span>
         </div>

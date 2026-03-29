@@ -58,7 +58,7 @@ const XpSection = ({
 }) => (
   <div>
     <div className="px-6 pt-3 pb-2">
-      <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
+      <p className="text-[10px] font-bold text-brand uppercase tracking-widest">
         {language === 'kk' ? titleKk : titleRu}
       </p>
       <div className="mt-2 h-px bg-white/10" />
@@ -66,7 +66,7 @@ const XpSection = ({
     {items.map(item => (
       <div key={item.nameKk} className="flex items-center justify-between px-6 py-2">
         <span className="text-[12px] text-white/80">{item.emoji} {language === 'kk' ? item.nameKk : item.nameRu}</span>
-        <span className="text-[12px] font-black text-emerald-400">+{item.xp} XP</span>
+        <span className="text-[12px] font-black text-brand">+{item.xp} XP</span>
       </div>
     ))}
   </div>
@@ -157,17 +157,17 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12"><span className="text-9xl">{levelInfo.icon}</span></div>
         <div className="relative z-10">
-          <p className="text-emerald-400 font-black tracking-widest text-[10px] uppercase mb-2">{language === 'kk' ? 'ДӘРЕЖЕҢІЗ' : 'ВАШ УРОВЕНЬ'}</p>
+          <p className="text-brand font-black tracking-widest text-[10px] uppercase mb-2">{language === 'kk' ? 'ДӘРЕЖЕҢІЗ' : 'ВАШ УРОВЕНЬ'}</p>
           <div className="flex items-center space-x-3 mb-2"><span className="text-4xl">{levelInfo.icon}</span><h2 className="text-3xl font-black">{levelInfo.name}</h2></div>
-          <p className="text-emerald-300 text-sm font-bold mb-6">{language === 'kk' ? 'Деңгей' : 'Уровень'} {levelInfo.level}</p>
+          <p className="text-sm font-bold mb-6" style={{ color: 'var(--bronze-hover)' }}>{language === 'kk' ? 'Деңгей' : 'Уровень'} {levelInfo.level}</p>
           {userRank !== null && (
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-6 border border-white/20">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <span className="text-3xl">🏆</span>
                   <div>
-                    <p className="text-[9px] font-black text-emerald-300 uppercase tracking-wider">{language === 'kk' ? 'Сіздің орныңыз' : 'Ваше место'}</p>
-                    <p className="text-2xl font-black text-white">{userRank}{totalUsers > 0 && <span className="text-sm font-medium text-slate-300 ml-2">/ {totalUsers}</span>}</p>
+                    <p className="text-[9px] font-black uppercase tracking-wider" style={{ color: 'var(--bronze-hover)' }}>{language === 'kk' ? 'Сіздің орныңыз' : 'Ваше место'}</p>
+                    <p className="text-2xl font-black text-white">{userRank}{totalUsers > 0 && <span className="text-sm font-medium text-white/40 ml-2">/ {totalUsers}</span>}</p>
                   </div>
                 </div>
                 {userRank <= 3 && <span className="text-4xl animate-bounce">{userRank === 1 ? '🥇' : userRank === 2 ? '🥈' : '🥉'}</span>}
@@ -176,15 +176,15 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           )}
           <div className="space-y-2">
             <div className="flex justify-between items-center text-[10px] font-black uppercase">
-              <span className="text-slate-400">XP</span>
-              <span className="text-emerald-400">{userData.xp.toLocaleString()} XP</span>
+              <span className="text-white/40">XP</span>
+              <span className="text-brand">{userData.xp.toLocaleString()} XP</span>
             </div>
             <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500" style={{ width: `${levelInfo.progressPercent}%` }}></div>
+              <div className="h-full progress-bar transition-all duration-500" style={{ width: `${levelInfo.progressPercent}%` }}></div>
             </div>
             {levelInfo.hasNextLevel
-              ? <p className="text-[9px] text-slate-400 italic">{language === 'kk' ? `Келесі деңгейге: ${levelInfo.xpToNextLevel.toLocaleString()} XP қалды` : `До следующего уровня: ${levelInfo.xpToNextLevel.toLocaleString()} XP`}</p>
-              : <p className="text-[9px] text-emerald-400 italic font-bold">{language === 'kk' ? '🎉 Максималды деңгей!' : '🎉 Максимальный уровень!'}</p>
+              ? <p className="text-[9px] text-white/40 italic">{language === 'kk' ? `Келесі деңгейге: ${levelInfo.xpToNextLevel.toLocaleString()} XP қалды` : `До следующего уровня: ${levelInfo.xpToNextLevel.toLocaleString()} XP`}</p>
+              : <p className="text-[9px] text-brand italic font-bold">{language === 'kk' ? '🎉 Максималды деңгей!' : '🎉 Максимальный уровень!'}</p>
             }
           </div>
         </div>
@@ -198,15 +198,15 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           <p className="text-white/40 text-[10px]">{language === 'kk' ? 'Достармен бірге прогресс' : 'Прогресс вместе с друзьями'}</p>
         </div>
         {isLoadingCircles ? (
-          <div className="text-center py-8"><div className="inline-block w-6 h-6 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div></div>
+          <div className="text-center py-8"><div className="inline-block w-6 h-6 border-3 border-t-transparent rounded-full animate-spin"></div></div>
         ) : userCircles.length > 0 ? (
           <div className="relative z-10 space-y-5">
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10"><div className="text-3xl font-black bg-gradient-to-br from-emerald-400 to-teal-400 bg-clip-text text-transparent mb-1">{userCircles.length}</div><div className="text-[9px] font-bold text-white/90">{language === 'kk' ? 'барлық топ' : 'всего кругов'}</div></div>
+              <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10"><div className="text-3xl font-black text-brand mb-1">{userCircles.length}</div><div className="text-[9px] font-bold text-white/90">{language === 'kk' ? 'барлық топ' : 'всего кругов'}</div></div>
               <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10"><div className="text-3xl font-black bg-gradient-to-br from-orange-400 to-red-400 bg-clip-text text-transparent mb-1">{userCircles.filter((c: any) => c.members?.find((m: any) => m.userId === userData.userId)?.status === 'active').length}</div><div className="text-[9px] font-bold text-white/90">{language === 'kk' ? 'белсенді топ' : 'активных'}</div></div>
               <div className="bg-white/5 rounded-2xl p-4 text-center border border-white/10"><div className="text-3xl font-black bg-gradient-to-br from-blue-400 to-purple-400 bg-clip-text text-transparent mb-1">{(() => { if (!userCircles.length) return 0; const p = userCircles.map((c: any) => { const ms = c.members?.filter((m: any) => m.status === 'active') || []; if (!ms.length) return 0; const avg = ms.reduce((s: number, m: any) => s + (m.xp || 0), 0) / ms.length; const max = Math.max(...ms.map((m: any) => m.xp || 0), 1); return max > 0 ? Math.round((avg / max) * 100) : 0; }); return Math.round(p.reduce((s: number, x: number) => s + x, 0) / p.length); })()}%</div><div className="text-[9px] font-bold text-white/90">{language === 'kk' ? 'орташа прогресс' : 'средний прогресс'}</div></div>
             </div>
-            <button onClick={handleViewAllCircles} className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-black uppercase tracking-wider active:scale-[0.98] flex items-center justify-center space-x-2 border border-emerald-400/30">
+            <button onClick={handleViewAllCircles} className="w-full py-4 rounded-2xl btn-primary text-sm font-black uppercase tracking-wider active:scale-[0.98] flex items-center justify-center space-x-2">
               <span>{language === 'kk' ? 'Ашу' : 'Открыть'}</span><span className="text-lg">→</span>
             </button>
           </div>
@@ -216,7 +216,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
             <h4 className="text-lg font-black text-white mb-2">{language === 'kk' ? 'Әлі топтар жоқ' : 'Пока нет кругов'}</h4>
             <p className="text-xs text-white/40 mb-6 max-w-[220px] mx-auto leading-relaxed">{language === 'kk' ? 'Досыңызбен бірге жарысыңыз!' : 'Соревнуйтесь с друзьями!'}</p>
             <div className="space-y-3">
-              <button onClick={handleCreateCircle} className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-black uppercase tracking-wider active:scale-[0.98] border border-emerald-400/30">{language === 'kk' ? '+ Жаңа топ құру' : '+ Создать круг'}</button>
+              <button onClick={handleCreateCircle} className="w-full py-3.5 rounded-2xl btn-primary text-sm font-black uppercase tracking-wider active:scale-[0.98]">{language === 'kk' ? '+ Жаңа топ құру' : '+ Создать круг'}</button>
               <button onClick={handleJoinByCode} className="w-full py-3.5 rounded-2xl bg-white/10 text-white/90 text-sm font-black uppercase tracking-wider active:scale-[0.98] border border-white/20">{language === 'kk' ? '📥 Кодпен қосылу' : '📥 Присоединиться по коду'}</button>
             </div>
           </div>
@@ -224,21 +224,21 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
       </div>
 
       {/* Лидерборд */}
-      <div className="bg-white rounded-[3rem] shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-card rounded-[3rem] shadow-sm border border-default overflow-hidden">
         {isPulling && (
           <div className="absolute top-0 left-0 right-0 z-50 flex justify-center pt-2" style={{ transform: `translateY(${Math.min(pullDistance - 40, 40)}px)` }}>
-            <div className="bg-white rounded-full p-2 shadow-lg">
-              <svg className={`w-5 h-5 text-emerald-600 ${pullDistance > 80 ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="bg-card rounded-full p-2 shadow-lg">
+              <svg className={`w-5 h-5 text-brand ${pullDistance > 80 ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
             </div>
           </div>
         )}
-        <div className="p-6 pb-4 sticky top-0 bg-white z-10 border-b border-slate-50">
-          <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-4">{t.rewardsLeaderboard}</h3>
+        <div className="p-6 pb-4 sticky top-0 bg-card z-10 border-b border-default">
+          <h3 className="text-sm font-black text-secondary uppercase tracking-widest mb-4">{t.rewardsLeaderboard}</h3>
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
             {(['global','country','city','friends'] as FilterType[]).map(type => (
-              <button key={type} onClick={() => handleFilterChange(type)} className={`px-4 py-3.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all ${ filterType === type ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600' }`}>
+              <button key={type} onClick={() => handleFilterChange(type)} className={`px-4 py-3.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all ${ filterType === type ? 'bg-brand text-white' : 'bg-surface text-secondary' }`}>
                 {type === 'global' && `🌍 ${language === 'kk' ? 'Жалпы' : 'Глобальный'}`}
                 {type === 'country' && `🇰🇿 ${language === 'kk' ? 'Ел бойынша' : 'По стране'}`}
                 {type === 'city' && `🏙️ ${language === 'kk' ? 'Қала бойынша' : 'По городу'}`}
@@ -248,41 +248,41 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
           </div>
           {filterType === 'city' && (
             <div className="mt-3">
-              <select value={selectedCity || ''} onChange={e => setSelectedCity(e.target.value || null)} className="w-full px-4 py-3 rounded-2xl text-sm font-bold bg-slate-50 border-2 border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <select value={selectedCity || ''} onChange={e => setSelectedCity(e.target.value || null)} className="w-full px-4 py-3 rounded-2xl text-sm font-bold bg-surface border-2 border-default text-primary focus:outline-none">
                 <option value="">{language === 'kk' ? '🌍 Барлық қалалар' : '🌍 Все города'}</option>
                 {cities.map(c => <option key={c.city} value={c.city}>{c.city} ({c.count.toLocaleString()} {language === 'kk' ? 'адам' : 'чел.'})</option>)}
               </select>
             </div>
           )}
         </div>
-        <div ref={leaderboardRef} className="divide-y divide-slate-50 max-h-[60vh] overflow-y-auto" onScroll={handleScroll} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+        <div ref={leaderboardRef} className="divide-y divide-default max-h-[60vh] overflow-y-auto" onScroll={handleScroll} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
           {isLoading ? (
-            <div className="px-8 py-12 text-center"><div className="inline-block w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div></div>
+            <div className="px-8 py-12 text-center"><div className="inline-block w-8 h-8 border-4 border-t-transparent rounded-full animate-spin"></div></div>
           ) : leaderboard.length === 0 ? (
-            <div className="px-8 py-12 text-center"><span className="text-6xl mb-4 block">🏆</span><p className="text-slate-400 text-sm">{language === 'kk' ? 'Деректер жоқ' : 'Нет данных'}</p></div>
+            <div className="px-8 py-12 text-center"><span className="text-6xl mb-4 block">🏆</span><p className="text-secondary text-sm">{language === 'kk' ? 'Деректер жоқ' : 'Нет данных'}</p></div>
           ) : (
             <>
               {leaderboard.map((user, idx) => (
-                <div key={user.userId || idx} className={`flex items-center justify-between px-6 py-4 animate-in fade-in slide-in-from-right-4 ${ user.isMe ? 'bg-emerald-50' : 'bg-white hover:bg-slate-50' }`} style={{ animationDelay: `${idx * 30}ms`, animationDuration: '400ms' }}>
+                <div key={user.userId || idx} className={`flex items-center justify-between px-6 py-4 animate-in fade-in slide-in-from-right-4 ${ user.isMe ? 'bg-brand-tint' : 'bg-card hover:bg-surface' }`} style={{ animationDelay: `${idx * 30}ms`, animationDuration: '400ms' }}>
                   <div className="flex items-center space-x-4">
-                    <span className={`w-6 text-xs font-black ${ user.rank === 1 ? 'text-amber-500 text-xl' : user.rank === 2 ? 'text-slate-400 text-lg' : user.rank === 3 ? 'text-amber-700 text-lg' : 'text-slate-300' }`}>{user.rank}.</span>
-                    <div className={`w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0 ${ user.isMe ? 'ring-2 ring-emerald-500 scale-110' : '' }`}>
+                    <span className={`w-6 text-xs font-black ${ user.rank === 1 ? 'text-amber-500 text-xl' : user.rank === 2 ? 'text-secondary text-lg' : user.rank === 3 ? 'text-amber-700 text-lg' : 'text-placeholder' }`}>{user.rank}.</span>
+                    <div className={`w-10 h-10 rounded-2xl overflow-hidden flex-shrink-0 ${ user.isMe ? 'ring-2 ring-brand scale-110' : '' }`}>
                       {(() => { const p = user.isMe ? (userData.photoUrl || user.photoUrl) : user.photoUrl; return p ? <img src={p} alt={user.name} className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.removeAttribute('style'); }} /> : null; })()}
-                      <div className={`w-full h-full flex items-center justify-center text-sm font-black ${ user.isMe ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600' }`} style={(() => { const p = user.isMe ? (userData.photoUrl || user.photoUrl) : user.photoUrl; return p ? { display: 'none' } : {}; })()}>{(user.name || user.username || 'U').charAt(0).toUpperCase()}</div>
+                      <div className={`w-full h-full flex items-center justify-center text-sm font-black ${ user.isMe ? 'bg-brand text-white' : 'bg-surface text-secondary' }`} style={(() => { const p = user.isMe ? (userData.photoUrl || user.photoUrl) : user.photoUrl; return p ? { display: 'none' } : {}; })()}>{(user.name || user.username || 'U').charAt(0).toUpperCase()}</div>
                     </div>
                     <div>
-                      <p className={`text-sm font-black ${ user.isMe ? 'text-emerald-900' : 'text-slate-700' }`}>{user.name || user.username || 'User'}{user.isMe && <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-md ml-1 animate-pulse">{language === 'kk' ? 'СІЗ' : 'ВЫ'}</span>}</p>
+                      <p className={`text-sm font-black ${ user.isMe ? 'text-brand' : 'text-primary' }`}>{user.name || user.username || 'User'}{user.isMe && <span className="text-[8px] bg-brand-tint text-brand px-1.5 py-0.5 rounded-md ml-1 animate-pulse">{language === 'kk' ? 'СІЗ' : 'ВЫ'}</span>}</p>
                       <div className="flex items-center gap-2">
-                        <p className="text-[10px] text-slate-400 font-bold">{user.xp} XP</p>
-                        {user.location?.city && <span className="text-[9px] text-slate-300">📍 {translateName(user.location.city, language, 'city')}</span>}
+                        <p className="text-[10px] text-secondary font-bold">{user.xp} XP</p>
+                        {user.location?.city && <span className="text-[9px] text-placeholder">📍 {translateName(user.location.city, language, 'city')}</span>}
                       </div>
                     </div>
                   </div>
                   {user.rank <= 3 && <span className="text-2xl animate-bounce" style={{ animationDelay: `${(user.rank - 1) * 100}ms` }}>{user.rank === 1 ? '🥇' : user.rank === 2 ? '🥈' : '🥉'}</span>}
                 </div>
               ))}
-              {isLoadingMore && <div className="px-8 py-4 text-center"><div className="inline-block w-6 h-6 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div></div>}
-              {!hasMore && !isLoadingMore && filterType !== 'friends' && <div className="px-8 py-4 text-center"><p className="text-[10px] text-slate-400 italic">{language === 'kk' ? 'Барлық қатысушылар' : 'Все участники показаны'}</p></div>}
+              {isLoadingMore && <div className="px-8 py-4 text-center"><div className="inline-block w-6 h-6 border-3 border-t-transparent rounded-full animate-spin"></div></div>}
+              {!hasMore && !isLoadingMore && filterType !== 'friends' && <div className="px-8 py-4 text-center"><p className="text-[10px] text-secondary italic">{language === 'kk' ? 'Барлық қатысушылар' : 'Все участники показаны'}</p></div>}
             </>
           )}
         </div>
@@ -304,7 +304,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
               <p className="font-black text-white text-sm">
                 {language === 'kk' ? 'XP қалай жинауға болады?' : 'Как зарабатывать XP?'}
               </p>
-              <p className="text-[11px] text-emerald-400 font-bold mt-0.5">
+              <p className="text-[11px] text-brand font-bold mt-0.5">
                 {language === 'kk' ? 'Күнде 1730+ XP жинауға болады' : 'Можно заработать 1730+ XP в день'}
               </p>
             </div>
@@ -338,9 +338,9 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
                     <p className="text-[12px] font-black text-white leading-none">×2.0</p>
                     <p className="text-[9px] text-white/50 mt-0.5">{language === 'kk' ? '10 күн' : '10 дней'}</p>
                   </div>
-                  <div className="bg-emerald-500/20 rounded-2xl px-3 py-2 text-center border border-emerald-500/30">
-                    <p className="text-[12px] font-black text-emerald-400 leading-none">×3.0</p>
-                    <p className="text-[9px] text-emerald-400/70 mt-0.5">{language === 'kk' ? '20+ күн' : '20+ дней'}</p>
+                  <div className="bg-brand-tint rounded-2xl px-3 py-2 text-center border border-brand-subtle">
+                    <p className="text-[12px] font-black text-brand leading-none">×3.0</p>
+                    <p className="text-[9px] text-brand/70 mt-0.5">{language === 'kk' ? '20+ күн' : '20+ дней'}</p>
                   </div>
                 </div>
               </div>
@@ -356,8 +356,8 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
       </div>
 
       {/* Индикатор автообновления */}
-      <div className="fixed bottom-32 right-4 bg-white rounded-full p-2 shadow-lg border border-slate-100 animate-pulse">
-        <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="fixed bottom-32 right-4 bg-card rounded-full p-2 shadow-lg border border-default animate-pulse">
+        <svg className="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
       </div>

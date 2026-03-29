@@ -28,7 +28,7 @@ function haptic(type: 'light' | 'success' = 'light') {
   } catch {}
 }
 
-const ACCENT  = '#10b981';
+const ACCENT  = 'var(--bronze)';
 const R       = 90;
 const CIRCUM  = 2 * Math.PI * R;
 // Кнопка меньше кольца → кольцо всегда видно, scale не закрывает
@@ -191,9 +191,9 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
             {lang === 'kk' ? 'Зікір санағышы' : 'Счётчик зикра'}
           </p>
           {xpToday > 0 && (
-            <span style={{ background:'rgba(16,185,129,0.18)',
-              border:'1px solid rgba(16,185,129,0.3)', borderRadius:14,
-              padding:'5px 13px', fontSize:13, fontWeight:900, color:'#34d399' }}>
+            <span style={{ background:'rgba(196,122,69,0.18)',
+              border:'1px solid rgba(196,122,69,0.3)', borderRadius:14,
+              padding:'5px 13px', fontSize:13, fontWeight:900, color:'var(--bronze-hover)' }}>
               +{xpToday} XP
             </span>
           )}
@@ -244,7 +244,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
                 maxWidth: 200,
                 padding: '8px 12px',
                 borderRadius: 16,
-                background: sel ? ACCENT : done ? '#ecfdf5' : '#f8fafc',
+                background: sel ? ACCENT : done ? 'var(--brand-tint)' : 'var(--surface)',
                 border: `1.5px solid ${sel ? ACCENT : done ? ACCENT + '55' : '#e2e8f0'}`,
                 cursor: 'pointer',
                 touchAction: 'manipulation',
@@ -336,7 +336,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
               width:  BTN_SIZE,
               height: BTN_SIZE,
               borderRadius: '50%',
-              background: xpEarned ? '#ecfdf5' : '#ffffff',
+              background: xpEarned ? 'var(--brand-tint)' : 'var(--white)',
               border: 'none',
               cursor: 'pointer',
               zIndex: 1,

@@ -30,9 +30,9 @@ const CategoryRow: React.FC<{
   const done     = rec?.completed === true;
   const selected = !!rec && !done;
   const name     = lang === 'kk' ? cat.name_kk : cat.name_ru;
-  const bg       = done ? '#ecfdf5' : selected ? '#fefce8' : '#ffffff';
-  const border   = done ? '#6ee7b7' : selected ? '#fde68a' : '#f1f5f9';
-  const shadow   = done ? '0 2px 8px rgba(16,185,129,.12)' : selected ? '0 2px 8px rgba(234,179,8,.12)' : '0 1px 4px rgba(0,0,0,.05)';
+  const bg       = done ? 'var(--brand-tint)' : selected ? '#fefce8' : 'var(--white)';
+  const border   = done ? 'var(--bronze)' : selected ? '#fde68a' : 'var(--border)';
+  const shadow   = done ? '0 2px 8px rgba(196,122,69,.12)' : selected ? '0 2px 8px rgba(234,179,8,.12)' : '0 1px 4px rgba(0,0,0,.05)';
 
   return (
     <div style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 28, boxShadow: shadow, overflow: 'hidden' }}>
@@ -56,20 +56,20 @@ const CategoryRow: React.FC<{
         onClick={onOpen}
         onKeyDown={e => e.key === 'Enter' && onOpen()}
       >
-        <div style={{ width: 44, height: 44, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, background: done ? '#d1fae5' : selected ? '#fef9c3' : '#f8fafc' }}>
+        <div style={{ width: 44, height: 44, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0, background: done ? 'var(--brand-tint)' : selected ? '#fef9c3' : 'var(--surface)' }}>
           {done ? '✅' : cat.icon}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontWeight: 700, fontSize: 14, color: done ? '#059669' : '#0f172a', textDecoration: done ? 'line-through' : 'none', opacity: done ? .75 : 1 }}>{name}</span>
+            <span style={{ fontWeight: 700, fontSize: 14, color: done ? 'var(--bronze)' : 'var(--text-primary)', textDecoration: done ? 'line-through' : 'none', opacity: done ? .75 : 1 }}>{name}</span>
             {streak > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: '#f97316' }}>🔥{streak}</span>}
           </div>
           {selected && rec && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#b45309', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.goalText}</p>}
-          {done    && rec && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#059669', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.goalText}</p>}
+          {done    && rec && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--bronze)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rec.goalText}</p>}
           {!done && !selected && <p style={{ margin: '2px 0 0', fontSize: 12, color: '#94a3b8' }}>{lang === 'kk' ? 'Таңдау →' : 'Выбрать →'}</p>}
         </div>
         <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-          {done && rec && rec.xpEarned > 0 && <span style={{ fontSize: 12, fontWeight: 900, color: '#10b981' }}>+{rec.xpEarned} XP</span>}
+          {done && rec && rec.xpEarned > 0 && <span style={{ fontSize: 12, fontWeight: 900, color: 'var(--bronze)' }}>+{rec.xpEarned} XP</span>}
           {selected && (
             // Теперь это законная вложенная <button> — родитель div, не button
             <button
@@ -77,7 +77,7 @@ const CategoryRow: React.FC<{
               style={{
                 touchAction: 'manipulation',
                 WebkitTapHighlightColor: 'transparent',
-                background: 'linear-gradient(135deg,#10b981,#059669)',
+                background: 'linear-gradient(135deg, var(--bronze), var(--bronze-pressed))',
                 color: '#fff',
                 fontWeight: 900,
                 fontSize: 12,
@@ -146,7 +146,7 @@ const GoalSheet: React.FC<{
     >
       <div
         style={{
-          background: '#fff',
+          background: 'var(--white)',
           borderRadius: '22px 22px 0 0',
           maxHeight: sheetMaxH,
           display: 'flex',
@@ -159,18 +159,18 @@ const GoalSheet: React.FC<{
       >
         {/* Handle */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0 }}>
-          <div style={{ width: 38, height: 4, borderRadius: 4, background: '#e2e8f0' }} />
+          <div style={{ width: 38, height: 4, borderRadius: 4, background: 'var(--border)' }} />
         </div>
 
         {/* Шапка */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 20px 12px', borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 20px 12px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 16, background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+            <div style={{ width: 44, height: 44, borderRadius: 16, background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
               {done ? '✅' : cat.icon}
             </div>
             <div>
-              <p style={{ fontWeight: 900, fontSize: 16, color: '#0f172a', margin: 0 }}>{name}</p>
-              <p style={{ fontSize: 11, margin: 0, fontWeight: 600, color: done ? '#10b981' : selected ? '#d97706' : '#94a3b8' }}>
+              <p style={{ fontWeight: 900, fontSize: 16, color: 'var(--text-primary)', margin: 0 }}>{name}</p>
+              <p style={{ fontSize: 11, margin: 0, fontWeight: 600, color: done ? 'var(--bronze)' : selected ? '#d97706' : 'var(--text-secondary)' }}>
                 {done
                   ? (lang === 'kk' ? '✓ Орындалды' : '✓ Выполнено')
                   : selected
@@ -180,7 +180,7 @@ const GoalSheet: React.FC<{
             </div>
           </div>
           <button type="button"
-            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', width: 32, height: 32, borderRadius: '50%', background: '#f1f5f9', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#64748b', fontWeight: 700 }}
+            style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', width: 32, height: 32, borderRadius: '50%', background: 'var(--surface)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: 'var(--text-secondary)', fontWeight: 700 }}
             onClick={onClose}>✕</button>
         </div>
 
@@ -189,10 +189,10 @@ const GoalSheet: React.FC<{
 
           {/* ВЫПОЛНЕНО */}
           {done && localRec && (
-            <div style={{ background: 'linear-gradient(135deg,#ecfdf5,#d1fae5)', border: '1.5px solid #6ee7b7', borderRadius: 16, padding: '20px 16px', textAlign: 'center' }}>
+            <div style={{ background: 'var(--brand-tint)', border: '1.5px solid var(--bronze)', borderRadius: 16, padding: '20px 16px', textAlign: 'center' }}>
               <p style={{ fontSize: 36, margin: '0 0 8px' }}>🎉</p>
-              <p style={{ fontWeight: 700, fontSize: 15, color: '#065f46', margin: '0 0 4px' }}>{localRec.goalText}</p>
-              {localRec.xpEarned > 0 && <p style={{ fontWeight: 900, fontSize: 14, color: '#10b981', margin: '0 0 8px' }}>+{localRec.xpEarned} XP</p>}
+              <p style={{ fontWeight: 700, fontSize: 15, color: 'var(--text-primary)', margin: '0 0 4px' }}>{localRec.goalText}</p>
+              {localRec.xpEarned > 0 && <p style={{ fontWeight: 900, fontSize: 14, color: 'var(--bronze)', margin: '0 0 8px' }}>+{localRec.xpEarned} XP</p>}
               <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>{lang === 'kk' ? 'Ертең жаңа мақсат таңдауға болады' : 'Завтра можно выбрать новую цель'}</p>
             </div>
           )}
@@ -208,10 +208,10 @@ const GoalSheet: React.FC<{
                 {localRec.xpEarned > 0 ? <span style={{ fontWeight: 900, fontSize: 13, color: '#d97706' }}>+{localRec.xpEarned} XP</span> : <span />}
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button type="button"
-                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', background: '#f1f5f9', color: '#64748b', fontWeight: 700, fontSize: 13, padding: '10px 14px', borderRadius: 14, border: 'none', cursor: 'pointer' }}
+                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', background: 'var(--surface)', color: 'var(--text-secondary)', fontWeight: 700, fontSize: 13, padding: '10px 14px', borderRadius: 14, border: 'none', cursor: 'pointer' }}
                     onClick={onDeselect}>{lang === 'kk' ? 'Алып тастау' : 'Снять'}</button>
                   <button type="button"
-                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', background: 'linear-gradient(135deg,#10b981,#059669)', color: '#fff', fontWeight: 900, fontSize: 14, padding: '10px 22px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16,185,129,.4)' }}
+                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', background: 'linear-gradient(135deg,var(--bronze),var(--bronze-pressed))', color: '#fff', fontWeight: 900, fontSize: 14, padding: '10px 22px', borderRadius: 14, border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px rgba(196,122,69,.4)' }}
                     onClick={onDone}>{t.goalsDoneBtn || 'Орындадым ✓'}</button>
                 </div>
               </div>
@@ -233,15 +233,15 @@ const GoalSheet: React.FC<{
                       style={{
                         touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent',
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-                        background: chosen ? 'linear-gradient(135deg,#10b981,#059669)' : '#f8fafc',
-                        border: chosen ? '1.5px solid #10b981' : '1.5px solid #f1f5f9',
+                        background: chosen ? 'linear-gradient(135deg,var(--bronze),var(--bronze-pressed))' : 'var(--surface)',
+                        border: chosen ? '1.5px solid var(--bronze)' : '1.5px solid var(--border)',
                         borderRadius: 14, padding: '12px 14px', cursor: 'pointer',
-                        boxShadow: chosen ? '0 2px 10px rgba(16,185,129,.2)' : 'none',
+                        boxShadow: chosen ? '0 2px 10px rgba(196,122,69,.2)' : 'none',
                         textAlign: 'left', width: '100%', transition: 'background .15s, border-color .15s',
                       }}
                       onClick={() => chosen ? onDeselect() : onSelect(tmpl.id, label, tmpl.xp)}>
-                      <span style={{ fontWeight: 600, fontSize: 13, color: chosen ? '#fff' : '#1e293b', lineHeight: 1.35, flex: 1 }}>{label}</span>
-                      <span style={{ fontWeight: 900, fontSize: 11, color: chosen ? 'rgba(255,255,255,.8)' : '#10b981', flexShrink: 0 }}>{chosen ? '✓ ' : '+'}{tmpl.xp} XP</span>
+                      <span style={{ fontWeight: 600, fontSize: 13, color: chosen ? '#fff' : 'var(--text-primary)', lineHeight: 1.35, flex: 1 }}>{label}</span>
+                      <span style={{ fontWeight: 900, fontSize: 11, color: chosen ? 'rgba(255,255,255,.8)' : 'var(--bronze)', flexShrink: 0 }}>{chosen ? '✓ ' : '+'}{tmpl.xp} XP</span>
                     </button>
                   );
                 })}
@@ -259,11 +259,11 @@ const GoalSheet: React.FC<{
                 {customItems.map(item => {
                   const chosen = localRec?.goalId === item.id;
                   return (
-                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: chosen ? 'linear-gradient(135deg,#10b981,#059669)' : '#f8fafc', border: chosen ? '1.5px solid #10b981' : '1.5px solid #f1f5f9', borderRadius: 14, padding: '12px 14px', transition: 'background .15s' }}>
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 8, background: chosen ? 'linear-gradient(135deg,var(--bronze),var(--bronze-pressed))' : 'var(--surface)', border: chosen ? '1.5px solid var(--bronze)' : '1.5px solid var(--border)', borderRadius: 14, padding: '12px 14px', transition: 'background .15s' }}>
                       <button type="button"
                         style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                         onClick={() => chosen ? onDeselect() : onSelect(item.id, item.text, 0)}>
-                        <span style={{ fontWeight: 600, fontSize: 13, color: chosen ? '#fff' : '#1e293b', display: 'block' }}>{item.text}</span>
+                        <span style={{ fontWeight: 600, fontSize: 13, color: chosen ? '#fff' : 'var(--text-primary)', display: 'block' }}>{item.text}</span>
                         <span style={{ fontSize: 11, color: chosen ? 'rgba(255,255,255,.6)' : '#94a3b8' }}>{lang === 'kk' ? 'Өз мақсат' : 'Своя цель'}</span>
                       </button>
                       <button type="button"
@@ -291,16 +291,16 @@ const GoalSheet: React.FC<{
                   // FIX #5: onKeyPress устарел → onKeyDown
                   onKeyDown={e => e.key === 'Enter' && onAddCustom()}
                   placeholder={lang === 'kk' ? 'Мақсатыңызды жазыңыз...' : 'Напишите цель...'}
-                  style={{ flex: 1, fontSize: 14, background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '12px 16px', outline: 'none' }}
+                  style={{ flex: 1, fontSize: 14, background: 'var(--surface)', border: '1.5px solid var(--border)', borderRadius: 14, padding: '12px 16px', outline: 'none' }}
                   onFocus={e => {
-                    (e.target as HTMLInputElement).style.borderColor = '#10b981';
+                    (e.target as HTMLInputElement).style.borderColor = 'var(--bronze)';
                     // FIX #7: уменьшена задержка 400ms → 200ms для Android
                     setTimeout(() => inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 200);
                   }}
-                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = '#e2e8f0'; }}
+                  onBlur={e => { (e.target as HTMLInputElement).style.borderColor = 'var(--border)'; }}
                 />
                 <button type="button"
-                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', width: 48, height: 48, borderRadius: 14, background: inputVal.trim() ? 'linear-gradient(135deg,#10b981,#059669)' : '#e2e8f0', border: 'none', cursor: 'pointer', color: inputVal.trim() ? '#fff' : '#94a3b8', fontSize: 22, fontWeight: 900, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent', width: 48, height: 48, borderRadius: 14, background: inputVal.trim() ? 'linear-gradient(135deg,var(--bronze),var(--bronze-pressed))' : 'var(--border)', border: 'none', cursor: 'pointer', color: inputVal.trim() ? '#fff' : 'var(--text-secondary)', fontSize: 22, fontWeight: 900, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   onClick={onAddCustom}>+</button>
               </div>
             </div>
@@ -457,7 +457,7 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
 
       {/* ── Шапка ── */}
       <div style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        background: 'linear-gradient(135deg, #3D2010 0%, #6B3A1A 100%)',
         borderRadius: 40,
         padding: '18px 20px 16px',
         marginBottom: 20,
@@ -465,13 +465,13 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
         overflow: 'hidden',
       }}>
         {/* Декоративные круги */}
-        <div style={{ position: 'absolute', top: -24, right: -24, width: 100, height: 100, borderRadius: '50%', background: 'rgba(16,185,129,0.12)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: -24, right: -24, width: 100, height: 100, borderRadius: '50%', background: 'rgba(196,122,69,0.15)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -16, left: 60, width: 60, height: 60, borderRadius: '50%', background: 'rgba(251,191,36,0.08)', pointerEvents: 'none' }} />
 
         {/* Верхняя строка */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
           <div>
-            <h4 className="text-[10px] font-black text-slate-400 mb-5 tracking-widest uppercase px-1">
+            <h4 className="text-[10px] font-black text-white/60 mb-5 tracking-widest uppercase px-1">
               {lang === 'kk' ? 'Күнделікті мақсаттар' : 'Ежедневные цели'}
             </h4>
             <p style={{ fontSize: 12, color: '#94a3b8', margin: '3px 0 0', fontWeight: 500 }}>
@@ -489,16 +489,16 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
             transition: 'width .7s cubic-bezier(.22,1,.36,1)',
             width: `${progressPct}%`,
             background:
-              progressPct === 100 ? 'linear-gradient(90deg,#10b981,#34d399)'
-              : progressPct > 50  ? 'linear-gradient(90deg,#f59e0b,#10b981)'
+              progressPct === 100 ? 'linear-gradient(90deg,var(--bronze),var(--bronze-hover))'
+              : progressPct > 50  ? 'linear-gradient(90deg,#f59e0b,var(--bronze))'
               : progressPct > 0   ? 'linear-gradient(90deg,#fbbf24,#f59e0b)'
               : 'transparent',
-            boxShadow: progressPct > 0 ? '0 0 8px rgba(16,185,129,0.4)' : 'none',
+            boxShadow: progressPct > 0 ? '0 0 8px rgba(196,122,69,0.4)' : 'none',
           }} />
         </div>
 
         {/* Статус */}
-        <p style={{ fontSize: 12, margin: 0, fontWeight: 600, color: progressPct === 100 ? '#34d399' : progressPct > 0 ? '#fbbf24' : '#475569' }}>
+        <p style={{ fontSize: 12, margin: 0, fontWeight: 600, color: progressPct === 100 ? 'var(--bronze-hover)' : progressPct > 0 ? '#fbbf24' : 'rgba(255,255,255,0.5)' }}>
           {progressPct === 100
             ? `🎉 ${lang === 'kk' ? 'Барлық мақсаттар орындалды!' : 'Все цели выполнены!'}`
             : progressPct > 0
@@ -519,7 +519,7 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
       </div>
 
       {/* ── XP Ережелері ── */}
-      <div className="px-5 py-4 rounded-[1.75rem] bg-slate-50 border border-slate-100" style={{ marginTop: 8 }}>
+      <div className="px-5 py-4 rounded-[1.75rem] bg-surface border border-default" style={{ marginTop: 8 }}>
 
         {/* Заголовок */}
         <p style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 12px' }}>
@@ -539,7 +539,7 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
                 <span style={{ fontSize: 12, color: '#64748b' }}>
                   {cat.icon} {lang === 'kk' ? cat.name_kk : cat.name_ru}
                 </span>
-                <span style={{ fontSize: 12, fontWeight: 900, color: isDone ? '#10b981' : '#94a3b8' }}>
+                <span style={{ fontSize: 12, fontWeight: 900, color: isDone ? 'var(--bronze)' : 'var(--text-secondary)' }}>
                   {isDone && rec ? `✓ +${rec.xpEarned} XP` : xpLabel}
                 </span>
               </div>
@@ -548,11 +548,11 @@ const TasksList: React.FC<Props> = ({ language: lang, userData, setUserData }) =
         </div>
 
         {/* Итог */}
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 11, color: '#94a3b8' }}>
             {lang === 'kk' ? 'Бүгін жиналды' : 'Сегодня заработано'}
           </span>
-          <span style={{ fontSize: 12, fontWeight: 900, color: xpToday > 0 ? '#10b981' : '#94a3b8' }}>
+          <span style={{ fontSize: 12, fontWeight: 900, color: xpToday > 0 ? 'var(--bronze)' : 'var(--text-secondary)' }}>
             {doneCount}/{GOAL_CATEGORIES.length} · {xpToday} XP
           </span>
         </div>

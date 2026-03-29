@@ -19,7 +19,7 @@ const Paywall: React.FC<PaywallProps> = ({ language }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+    <div className="min-h-screen bg-header flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 right-0 p-10 opacity-10">
         <span className="text-9xl">🔒</span>
@@ -28,38 +28,38 @@ const Paywall: React.FC<PaywallProps> = ({ language }) => {
         <span className="text-9xl">🌙</span>
       </div>
 
-      <div className="bg-white p-8 rounded-[3rem] shadow-2xl relative z-10 max-w-sm w-full animate-in zoom-in duration-500">
-        <div className="w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner">
+      <div className="bg-card p-8 rounded-[3rem] shadow-2xl relative z-10 max-w-sm w-full animate-in zoom-in duration-500">
+        <div className="w-20 h-20 bg-brand-tint rounded-3xl flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner">
           💎
         </div>
 
-        <h2 className="text-2xl font-black text-slate-800 mb-4 uppercase leading-tight">
+        <h2 className="text-2xl font-black text-primary mb-4 uppercase leading-tight">
           {isKk ? 'Төлем қажет' : 'Требуется оплата'}
         </h2>
 
-        <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+        <p className="text-secondary text-sm mb-6 leading-relaxed">
           {isKk 
             ? 'Бұл қосымшаға кіру үшін алдымен Telegram бот арқылы төлем жасауыңыз керек.' 
             : 'Для доступа к приложению необходимо сначала произвести оплату через Telegram бота.'}
         </p>
 
-        <div className="bg-slate-50 rounded-2xl p-4 mb-8 border border-slate-100">
+        <div className="bg-surface rounded-2xl p-4 mb-8 border border-default">
            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-bold text-slate-400 uppercase">{isKk ? 'Бағасы:' : 'Цена:'}</span>
-              <span className="text-lg font-black text-slate-800 line-through decoration-red-400 decoration-2">2 490 ₸</span>
+              <span className="text-xs font-bold text-secondary uppercase">{isKk ? 'Бағасы:' : 'Цена:'}</span>
+              <span className="text-lg font-black text-primary line-through decoration-red-400 decoration-2">2 490 ₸</span>
            </div>
            <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-emerald-600 uppercase">{isKk ? 'Промокодпен:' : 'С промокодом:'}</span>
-              <span className="text-xl font-black text-emerald-600">1 990 ₸</span>
+              <span className="text-xs font-bold text-brand uppercase">{isKk ? 'Промокодпен:' : 'С промокодом:'}</span>
+              <span className="text-xl font-black text-brand">1 990 ₸</span>
            </div>
-           <p className="text-[10px] text-slate-400 mt-2 italic">
+           <p className="text-[10px] text-secondary mt-2 italic">
              {isKk ? '(-20% жеңілдік)' : '(-20% скидка)'}
            </p>
         </div>
 
         <button 
           onClick={handleClose}
-          className="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase text-sm shadow-xl shadow-emerald-200 active:scale-95 transition-transform"
+          className="w-full btn-primary py-4 rounded-2xl font-black uppercase text-sm shadow-xl active:scale-95 transition-transform"
         >
           {isKk ? 'Ботқа оралу' : 'Вернуться в бот'}
         </button>

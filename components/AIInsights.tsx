@@ -77,8 +77,8 @@ const AIInsights: React.FC<{ day: number, language: Language }> = ({ day, langua
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-slate-400 font-medium animate-pulse">...</p>
+        <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--bronze) transparent var(--bronze) var(--bronze)' }}></div>
+        <p className="text-secondary font-medium animate-pulse">...</p>
       </div>
     );
   }
@@ -86,42 +86,42 @@ const AIInsights: React.FC<{ day: number, language: Language }> = ({ day, langua
   return (
     <div className="space-y-6">
       {/* Daily Insight Card */}
-      <div className="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100 relative overflow-hidden">
+      <div className="bg-card rounded-[2.5rem] p-8 shadow-xl border border-default relative overflow-hidden">
         <div className="absolute top-0 right-0 p-6 opacity-5 rotate-12">
           <span className="text-6xl">✨</span>
         </div>
         
         <div className="flex justify-between items-start mb-4 relative z-10">
-          <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest inline-block">
+          <span className="bg-brand-tint text-brand px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest inline-block">
             {t.insightDaily}
           </span>
-          <button 
+          <button
             onClick={handleShareInsight}
-            className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full flex items-center space-x-1 active:scale-90 transition-transform"
+            className="text-[10px] font-black text-brand bg-brand-tint px-3 py-1 rounded-full flex items-center space-x-1 active:scale-90 transition-transform"
           >
             <span>{t.shareBtn}</span>
             <span>✈️</span>
           </button>
         </div>
         
-        <h2 className="text-2xl font-black text-slate-800 mb-4">{insight?.title}</h2>
-        
+        <h2 className="text-2xl font-black text-primary mb-4">{insight?.title}</h2>
+
         <div className="space-y-6">
           <div className="relative">
-            <p className="text-lg font-serif italic text-emerald-800 text-right leading-loose mb-2">
+            <p className="text-lg font-serif italic text-primary text-right leading-loose mb-2">
                {insight?.ayah}
             </p>
-            <p className="text-slate-600 text-sm border-l-4 border-emerald-200 pl-4 py-1 italic">
+            <p className="text-secondary text-sm border-l-4 border-brand-subtle pl-4 py-1 italic">
               «{insight?.meaning}»
             </p>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-2xl">
-            <p className="text-slate-700 text-sm leading-relaxed">{insight?.advice}</p>
+          <div className="bg-surface p-4 rounded-2xl">
+            <p className="text-primary text-sm leading-relaxed">{insight?.advice}</p>
           </div>
 
           <div>
-            <p className="text-slate-700 text-sm leading-relaxed">{insight?.reflection}</p>
+            <p className="text-primary text-sm leading-relaxed">{insight?.reflection}</p>
           </div>
         </div>
       </div>
@@ -166,7 +166,7 @@ const AIInsights: React.FC<{ day: number, language: Language }> = ({ day, langua
             </div>
             <p className="text-xl font-serif text-amber-900 text-center mb-3 leading-relaxed">{dua.arabic}</p>
             <p className="text-xs text-amber-600 italic text-center mb-3">[{dua.transliteration}]</p>
-            <p className="text-sm text-slate-700 border-t border-slate-100 pt-3">{dua.translation}</p>
+            <p className="text-sm text-primary border-t border-default pt-3">{dua.translation}</p>
             {dua.benefit && (
               <p className="text-[10px] text-amber-500 font-bold uppercase mt-3 tracking-wider">{dua.benefit}</p>
             )}
