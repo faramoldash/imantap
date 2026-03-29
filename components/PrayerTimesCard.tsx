@@ -18,12 +18,12 @@ interface Props {
 }
 
 const PRAYERS = [
-  { key: 'fajr',    icon: PRAYER_ICONS.fajr,    kk: 'Таңғы (Фаджр)',   ru: 'Фаджр',   kkCountdown: 'Таң намазына дейін',    ruCountdown: 'До намаза Фаджр'   },
-  { key: 'sunrise', icon: PRAYER_ICONS.sunrise,  kk: 'Күн шығу',         ru: 'Восход',  kkCountdown: 'Күннің шығуына дейін',  ruCountdown: 'До восхода'        },
-  { key: 'dhuhr',   icon: PRAYER_ICONS.dhuhr,    kk: 'Бесін (Зухр)',     ru: 'Зухр',    kkCountdown: 'Бесін намазына дейін',  ruCountdown: 'До намаза Зухр'    },
-  { key: 'asr',     icon: PRAYER_ICONS.asr,      kk: 'Екінті (Аср)',     ru: 'Аср',     kkCountdown: 'Екінті намазына дейін', ruCountdown: 'До намаза Аср'     },
-  { key: 'maghrib', icon: PRAYER_ICONS.maghrib,  kk: 'Ақшам (Мағриб)',   ru: 'Магриб',  kkCountdown: 'Ақшам намазына дейін',  ruCountdown: 'До намаза Магриб'  },
-  { key: 'isha',    icon: PRAYER_ICONS.isha,      kk: 'Құптан (Иша)',     ru: 'Иша',     kkCountdown: 'Құптан намазына дейін', ruCountdown: 'До намаза Иша'     },
+  { key: 'fajr',    icon: PRAYER_ICONS.fajr,    kk: 'Таңғы (Фаджр)',   ru: 'Фаджр',   kkShort: 'Таң',       kkCountdown: 'Таң намазына дейін',    ruCountdown: 'До намаза Фаджр'   },
+  { key: 'sunrise', icon: PRAYER_ICONS.sunrise,  kk: 'Күн шығу',         ru: 'Восход',  kkShort: 'Күн шығу', kkCountdown: 'Күннің шығуына дейін',  ruCountdown: 'До восхода'        },
+  { key: 'dhuhr',   icon: PRAYER_ICONS.dhuhr,    kk: 'Бесін (Зухр)',     ru: 'Зухр',    kkShort: 'Бесін',    kkCountdown: 'Бесін намазына дейін',  ruCountdown: 'До намаза Зухр'    },
+  { key: 'asr',     icon: PRAYER_ICONS.asr,      kk: 'Екінті (Аср)',     ru: 'Аср',     kkShort: 'Екінті',   kkCountdown: 'Екінті намазына дейін', ruCountdown: 'До намаза Аср'     },
+  { key: 'maghrib', icon: PRAYER_ICONS.maghrib,  kk: 'Ақшам (Мағриб)',   ru: 'Магриб',  kkShort: 'Ақшам',   kkCountdown: 'Ақшам намазына дейін',  ruCountdown: 'До намаза Магриб'  },
+  { key: 'isha',    icon: PRAYER_ICONS.isha,      kk: 'Құптан (Иша)',     ru: 'Иша',     kkShort: 'Құптан',  kkCountdown: 'Құптан намазына дейін', ruCountdown: 'До намаза Иша'     },
 ];
 
 function getTimeInSeconds(timeStr: string): number {
@@ -96,11 +96,15 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
   const monthNames = language === 'kk' ? monthNamesKk : monthNamesRu;
   const gregorianDate = `${today.getDate()} ${monthNames[today.getMonth()]} ${today.getFullYear()}`;
 
-  // Хиджри дата
-  const hijriDate = new Intl.DateTimeFormat(
+  // Хиджри дата (без суффиксов вроде "ХЖ")
+  const hijriParts = new Intl.DateTimeFormat(
     language === 'kk' ? 'kk-KZ-u-ca-islamic' : 'ru-RU-u-ca-islamic',
     { day: 'numeric', month: 'long', year: 'numeric' }
-  ).format(today);
+  ).formatToParts(today);
+  const hijriDay = hijriParts.find(p => p.type === 'day')?.value ?? '';
+  const hijriMonth = hijriParts.find(p => p.type === 'month')?.value ?? '';
+  const hijriYear = hijriParts.find(p => p.type === 'year')?.value?.replace(/[^\d]/g, '') ?? '';
+  const hijriDate = `${hijriDay} ${hijriMonth} ${hijriYear}`;
 
   return (
     <div className="bg-header rounded-[2rem] p-4 text-white shadow-xl">
@@ -130,9 +134,9 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city }) => {
         {PRAYERS.map(prayer => {
           const timeStr = prayerTimes[prayer.key as keyof PrayerTimes];
           const prayerSec = getTimeInSeconds(timeStr);
-          const isPast = prayer.key !== 'sunrise' && prayerSec < nowSec;
+          const isPast = prayerSec < nowSec;
           const isCurrent = prayer.key === currentPrayerKey;
-          const name = language === 'kk' ? prayer.kk.split(' ')[0] : prayer.ru;
+          const name = language === 'kk' ? prayer.kkShort : prayer.ru;
 
           return (
             <div

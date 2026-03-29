@@ -105,6 +105,9 @@ const Dashboard: React.FC<DashboardProps> = ({
   const [isInitialized, setIsInitialized] = useState(false);
 
   const [shawwalLoading, setShawwalLoading] = useState(false);
+  const [shawwalDismissed, setShawwalDismissed] = useState(() =>
+    localStorage.getItem('shawwal_done_dismissed') === '1'
+  );
 
   // Проверяем все ли имена выучены
   const allNamesLearned = (userData?.memorizedNames?.length || 0) === 99;
@@ -446,7 +449,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
 
       {/* 🌙 Shawwal Banner */}
-      {(isShawwalActive || isShawwalDone) && !isFutureDay && (() => {
+      {(isShawwalActive || (isShawwalDone && !shawwalDismissed)) && !isFutureDay && (() => {
         const selectedDateStr = toLocalDateStr(selectedDayInfo.selectedDate);
         const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const todayStr = new Date().toLocaleDateString('en-CA', { timeZone: userTZ });
@@ -461,7 +464,13 @@ const Dashboard: React.FC<DashboardProps> = ({
 
           <div className="relative z-10">
             {isShawwalDone ? (
-              <div className="text-center">
+              <div className="text-center relative">
+                <button
+                  onClick={() => { setShawwalDismissed(true); localStorage.setItem('shawwal_done_dismissed', '1'); }}
+                  className="absolute -top-1 right-0 w-7 h-7 rounded-full bg-black/20 flex items-center justify-center text-white/80 hover:bg-black/30 active:scale-90 transition-all text-sm font-black"
+                >
+                  ✕
+                </button>
                 <p className="text-3xl mb-2">🎉</p>
                 <h3 className="text-lg font-black">
                   {language === 'kk' ? 'Шәууал оразасы аяқталды!' : 'Пост Шавваля завершён!'}

@@ -749,7 +749,7 @@ const App: React.FC = () => {
 
       <main
         key={`${currentView}-${selectedBasicDate?.toISOString() || ''}-${selectedPreparationDay || ''}`}
-        className="px-6 -mt-8 relative z-20 flex-1 pb-32"
+        className="px-6 mt-4 relative z-20 flex-1 pb-32"
       >
         {renderView()}
       </main>
