@@ -162,7 +162,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
   const name     = lang === 'kk' ? dhikr.name_kk     : dhikr.name_ru;
 
   return (
-    <div style={{ paddingBottom: 112, paddingTop: 4 }}>
+    <div style={{ paddingBottom: 112 }}>
       <style>{`
         @keyframes flashGlow {
           0%   { opacity: 1; }

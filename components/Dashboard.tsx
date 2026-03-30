@@ -413,7 +413,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Real-time Countdown Card */}
       {!ramadanInfo.isStarted && isToday && (
-        <section className="bg-header p-8 rounded-[3rem] shadow-2xl relative overflow-hidden text-center text-white border border-white/10 animate-in fade-in">
+        <section className="bg-header p-8 rounded-[3rem] shadow-2xl relative overflow-hidden text-center text-white border border-white/10">
           <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12">
             <span className="text-8xl">🌙</span>
           </div>

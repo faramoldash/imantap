@@ -356,7 +356,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
   };
 
   return (
-    <div className="space-y-6 pb-8 pt-4 animate-in fade-in slide-in-from-right duration-500">
+    <div className="space-y-6 pb-8">
       
       {/* Header / Profile Card */}
       <div className="bg-card p-8 rounded-[3rem] shadow-xl border border-default relative overflow-hidden">

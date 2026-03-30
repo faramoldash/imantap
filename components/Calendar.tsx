@@ -52,7 +52,7 @@ const Calendar: React.FC<CalendarProps> = ({ progress, realTodayDay, selectedDay
   };
 
   return (
-    <div className="bg-card p-8 rounded-[3rem] shadow-sm border border-default mb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-card p-8 rounded-[3rem] shadow-sm border border-default mb-20">
       <div className="flex justify-between items-center mb-8 px-2">
         <h3 className="text-2xl font-black text-primary tracking-tight">{t.calendarTitle}</h3>
         <div className="flex items-center space-x-2">

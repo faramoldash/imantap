@@ -151,10 +151,10 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
   const handleViewAllCircles = () => onNavigate?.('circles', { from: 'rewards' });
 
   return (
-    <div className="space-y-6 pb-8 pt-4">
+    <div className="space-y-6 pb-8">
 
       {/* Дәрежеңіз */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12"><span className="text-9xl">{levelInfo.icon}</span></div>
         <div className="relative z-10">
           <p className="text-brand font-black tracking-widest text-[10px] uppercase mb-2">{language === 'kk' ? 'ДӘРЕЖЕҢІЗ' : 'ВАШ УРОВЕНЬ'}</p>

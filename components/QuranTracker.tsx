@@ -60,7 +60,7 @@ const QuranTracker: React.FC<QuranTrackerProps> = ({ userData, setUserData, lang
   const isFirstKhatam = (userData.quranKhatams || 0) === 0;
 
   return (
-    <div className="space-y-6 pb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 pb-8">
 
       {/* 1. Прогресс */}
       <div className="bg-card p-8 rounded-[3rem] shadow-xl border border-default flex flex-col items-center">

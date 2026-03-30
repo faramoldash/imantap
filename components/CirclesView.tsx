@@ -468,7 +468,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     return (
       <>
         <style>{spinReverseStyle}</style>
-        <div className="space-y-5 pb-8 pt-4">
+        <div className="space-y-5 pb-8">
           
           {/* 🎨 ТЕМНАЯ ШАПКА */}
           <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm p-6 rounded-[3rem] shadow-xl overflow-hidden">
