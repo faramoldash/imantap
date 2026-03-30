@@ -83,35 +83,41 @@ const PrayerTimesCard: React.FC<Props> = ({ prayerTimes, language, city, xp, onX
 
   return (
     <div className="px-4 pb-4 pt-1 text-white">
-      <div className="flex items-center justify-between gap-2">
+      <div className="grid grid-cols-3 items-center gap-2">
 
-        {/* Обратный отсчёт */}
-        {nextPrayer && countdownLabel ? (
-          <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center flex-shrink-0">
-            <p className="text-[9px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>
-              {language === 'kk' ? countdownLabel.kk : countdownLabel.ru}
-            </p>
-            <p className="text-white font-black text-sm leading-tight mt-0.5">
-              {formatCountdown(nextPrayer.secondsLeft)}
-            </p>
-          </div>
-        ) : <div />}
-
-        {/* XP — центр, акцент */}
-        <div
-          onClick={onXpClick}
-          className="flex flex-col items-center justify-center rounded-2xl px-4 py-2 flex-shrink-0 shadow-lg active:scale-95 transition-transform cursor-pointer"
-          style={{ background: 'linear-gradient(135deg, #C8860A, #E8A020)' }}
-        >
-          <span className="text-lg leading-none">🏆</span>
-          <span className="text-white font-black text-base leading-tight tracking-tight">{xp.toLocaleString()}</span>
-          <span className="text-white/80 font-black text-[9px] uppercase tracking-widest leading-none">XP</span>
+        {/* Левая колонка — обратный отсчёт */}
+        <div className="flex justify-start">
+          {nextPrayer && countdownLabel ? (
+            <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center">
+              <p className="text-[9px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>
+                {language === 'kk' ? countdownLabel.kk : countdownLabel.ru}
+              </p>
+              <p className="text-white font-black text-sm leading-tight mt-0.5">
+                {formatCountdown(nextPrayer.secondsLeft)}
+              </p>
+            </div>
+          ) : <div />}
         </div>
 
-        {/* Город/дата */}
-        <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center flex-shrink-0">
-          <p className="text-[9px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>📍 {city}</p>
-          <p className="text-white font-black text-xs leading-tight mt-0.5">{gregorianDate}</p>
+        {/* Центральная колонка — XP */}
+        <div className="flex justify-center">
+          <div
+            onClick={onXpClick}
+            className="flex flex-col items-center justify-center rounded-2xl px-4 py-2 shadow-lg active:scale-95 transition-transform cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #C8860A, #E8A020)' }}
+          >
+            <span className="text-lg leading-none">🏆</span>
+            <span className="text-white font-black text-base leading-tight tracking-tight">{xp.toLocaleString()}</span>
+            <span className="text-white/80 font-black text-[9px] uppercase tracking-widest leading-none">XP</span>
+          </div>
+        </div>
+
+        {/* Правая колонка — город/дата */}
+        <div className="flex justify-end">
+          <div className="bg-white/15 rounded-xl px-3 py-1.5 text-center">
+            <p className="text-[9px] font-bold leading-none" style={{ color: 'var(--bronze-hover)' }}>📍 {city}</p>
+            <p className="text-white font-black text-xs leading-tight mt-0.5">{gregorianDate}</p>
+          </div>
         </div>
 
       </div>
