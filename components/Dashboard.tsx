@@ -548,42 +548,40 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl">✅</div>
 
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-1">
             <button
               onClick={() => { haptics.selection(); onDaySelect(selectedDay - 1); }}
               className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white font-black active:scale-90 transition-transform"
             >
               ←
             </button>
-            <h4 className="text-[11px] font-black uppercase tracking-widest text-brand">
-              {isToday
-                ? (language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс')
-                : (language === 'kk' ? 'Прогресс' : 'Прогресс')}
-            </h4>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-white/60">
-                {(() => {
-                  const date = selectedDayInfo.selectedDate;
-                  const day = date.getDate();
-                  const monthNames = language === 'kk'
-                    ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
-                    : ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-                  return `${day} ${monthNames[date.getMonth()]}`;
-                })()}
-              </span>
-              <button
-                onClick={() => { haptics.selection(); onDaySelect(selectedDay + 1); }}
-                disabled={selectedDay >= currentDay + 1}
-                className={`w-8 h-8 rounded-xl flex items-center justify-center font-black transition-transform ${
-                  selectedDay >= currentDay + 1
-                    ? 'bg-white/5 text-white/30 cursor-not-allowed'
-                    : 'bg-white/10 text-white active:scale-90'
-                }`}
-              >
-                →
-              </button>
-            </div>
+            <span className="text-sm font-bold text-white/70">
+              {(() => {
+                const date = selectedDayInfo.selectedDate;
+                const day = date.getDate();
+                const monthNames = language === 'kk'
+                  ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
+                  : ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+                return `${day} ${monthNames[date.getMonth()]}`;
+              })()}
+            </span>
+            <button
+              onClick={() => { haptics.selection(); onDaySelect(selectedDay + 1); }}
+              disabled={selectedDay >= currentDay + 1}
+              className={`w-8 h-8 rounded-xl flex items-center justify-center font-black transition-transform ${
+                selectedDay >= currentDay + 1
+                  ? 'bg-white/5 text-white/30 cursor-not-allowed'
+                  : 'bg-white/10 text-white active:scale-90'
+              }`}
+            >
+              →
+            </button>
           </div>
+          <h4 className="text-[11px] font-black uppercase tracking-widest text-brand text-center mb-4">
+            {isToday
+              ? (language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс')
+              : (language === 'kk' ? 'Прогресс' : 'Прогресс')}
+          </h4>
 
           <div className="flex items-end justify-between mb-3">
             <div>
