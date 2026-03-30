@@ -747,7 +747,8 @@ const Dashboard: React.FC<DashboardProps> = ({
             </h4>
             <div className="grid grid-cols-3 gap-3">
               <ItemButton id="fajr"    icon={<span className="text-2xl">{PRAYER_ICONS.fajr}</span>}    small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.fajr} />
-              <ItemButton id="duha"    icon={<span className="text-2xl">{PRAYER_ICONS.duha}</span>}    small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+              <ItemButton id="sunrise" icon={<span className="text-2xl">{PRAYER_ICONS.sunrise}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={true} prayerTime={pt?.sunrise} />
+              <ItemButton id="duha"    icon={<span className="text-2xl">{PRAYER_ICONS.duha}</span>}    small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={language === 'kk' ? '(қосымша)' : '(доп.)'} />
               <ItemButton id="dhuhr"   icon={<span className="text-2xl">{PRAYER_ICONS.dhuhr}</span>}   small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.dhuhr} />
               <ItemButton id="asr"     icon={<span className="text-2xl">{PRAYER_ICONS.asr}</span>}     small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.asr} />
               <ItemButton id="maghrib" icon={<span className="text-2xl">{PRAYER_ICONS.maghrib}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.maghrib} />
@@ -755,15 +756,21 @@ const Dashboard: React.FC<DashboardProps> = ({
               {selectedDayInfo.phase === 'ramadan' && (
                 <>
                   <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-                  <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-                  <ItemButton id="witr"     icon={<span className="text-2xl">✨</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+                  <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={language === 'kk' ? '(қосымша)' : '(доп.)'} />
+                  <ItemButton id="witr"     icon={<span className="text-2xl">✨</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={language === 'kk' ? '(міндетті)' : '(обяз.)'} />
                 </>
               )}
               {(selectedDayInfo.phase === 'preparation' || selectedDayInfo.phase === 'basic') && (() => {
                 const isFirstTaraweehDay = toLocalDateStr(selectedDayInfo.selectedDate) === FIRST_TARAWEEH_DATE;
-                return isFirstTaraweehDay ? (
-                  <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
-                ) : null;
+                return (
+                  <>
+                    {isFirstTaraweehDay && (
+                      <ItemButton id="taraweeh" icon={<span className="text-2xl">⭐</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} />
+                    )}
+                    <ItemButton id="tahajjud" icon={<span className="text-2xl">🌌</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={language === 'kk' ? '(қосымша)' : '(доп.)'} />
+                    <ItemButton id="witr"     icon={<span className="text-2xl">✨</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={language === 'kk' ? '(міндетті)' : '(обяз.)'} />
+                  </>
+                );
               })()}
             </div>
           </div>
