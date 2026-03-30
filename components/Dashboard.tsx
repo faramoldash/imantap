@@ -583,16 +583,16 @@ const Dashboard: React.FC<DashboardProps> = ({
               : (language === 'kk' ? 'Прогресс' : 'Прогресс')}
           </h4>
 
-          <div className="flex items-end justify-between mb-3">
-            <div>
-              <p className="text-5xl font-black leading-none">{completedTasks}</p>
-              <p className="text-sm font-bold text-white/60 mt-1">
+          <div className="grid grid-cols-2 mb-3">
+            <div className="flex flex-col items-center border-r border-white/20 pr-4">
+              <p className="text-4xl font-black leading-none">{completedTasks}</p>
+              <p className="text-xs font-bold text-white/60 mt-1">
                 / {totalTasks} {language === 'kk' ? 'тапсырма' : 'задач'}
               </p>
             </div>
-            <div className="text-right">
-              <p className="text-3xl font-black">{selectedDayProgress}%</p>
-              <p className="text-[10px] font-black text-white/60 uppercase">
+            <div className="flex flex-col items-center pl-4">
+              <p className="text-4xl font-black leading-none">{selectedDayProgress}%</p>
+              <p className="text-xs font-bold text-white/60 uppercase mt-1">
                 {language === 'kk' ? 'орындалды' : 'выполнено'}
               </p>
             </div>
