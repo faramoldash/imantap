@@ -40,13 +40,15 @@ interface DashboardProps {
   onPreparationDaySelect: (day: number) => void;
 }
 
-const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t, disabled, prayerTime }: any) => (
+const ItemButton = React.memo(({ id, icon, small, displayedData, toggleItem, t, disabled, prayerTime, nonClickable }: any) => (
     <button
-      onClick={(e) => !disabled && toggleItem(id, e)}
+      onClick={(e) => !disabled && !nonClickable && toggleItem(id, e)}
       disabled={disabled}
       className={`p-2 rounded-[1.25rem] border transition-all flex flex-col items-center justify-center space-y-1 relative ${
         disabled
           ? 'cursor-not-allowed opacity-40'
+          : nonClickable
+          ? 'pointer-events-none'
           : 'active:scale-95 cursor-pointer'
       } ${small ? 'h-20' : 'h-24'} ${
         displayedData[id]
@@ -747,7 +749,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             </h4>
             <div className="grid grid-cols-3 gap-3">
               <ItemButton id="fajr"    icon={<span className="text-2xl">{PRAYER_ICONS.fajr}</span>}    small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.fajr} />
-              <ItemButton id="sunrise" icon={<span className="text-2xl">{PRAYER_ICONS.sunrise}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={true} prayerTime={pt?.sunrise} />
+              <ItemButton id="sunrise" icon={<span className="text-2xl">{PRAYER_ICONS.sunrise}</span>} small displayedData={displayedData} toggleItem={toggleItem} t={t} nonClickable={true} prayerTime={pt?.sunrise} />
               <ItemButton id="duha"    icon={<span className="text-2xl">{PRAYER_ICONS.duha}</span>}    small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={language === 'kk' ? '(қосымша)' : '(доп.)'} />
               <ItemButton id="dhuhr"   icon={<span className="text-2xl">{PRAYER_ICONS.dhuhr}</span>}   small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.dhuhr} />
               <ItemButton id="asr"     icon={<span className="text-2xl">{PRAYER_ICONS.asr}</span>}     small displayedData={displayedData} toggleItem={toggleItem} t={t} disabled={isFutureDay} prayerTime={pt?.asr} />
