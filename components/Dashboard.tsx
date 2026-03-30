@@ -542,35 +542,68 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       )}
 
-      {/* ✅ СЧЁТЧИК STREAK с множителем - для текущего дня */}
-      {isToday && userData?.currentStreak && userData.currentStreak > 0 && (
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 rounded-[2.5rem] shadow-xl text-white flex items-center justify-between relative overflow-hidden border border-orange-300">
-          <div className="absolute top-0 right-0 p-8 opacity-10 text-7xl">🔥</div>
-          
-          <div className="relative z-10 flex items-center space-x-4">
-            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-[2rem] flex items-center justify-center border border-white/30">
-              <span className="text-3xl">🔥</span>
-            </div>
+      {/* ✅ ПРОГРЕСС БАР */}
+      <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl">✅</div>
+
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-[11px] font-black uppercase tracking-widest text-brand">
+              {isToday
+                ? (language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс')
+                : (language === 'kk' ? 'Прогресс' : 'Прогресс')}
+            </h4>
+            <span className="text-xs font-bold text-white/60">
+              {(() => {
+                const date = selectedDayInfo.selectedDate;
+                const day = date.getDate();
+                const monthNames = language === 'kk'
+                  ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
+                  : ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+                return `${day} ${monthNames[date.getMonth()]}`;
+              })()}
+            </span>
+          </div>
+
+          <div className="flex items-end justify-between mb-3">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider opacity-90">
-                {language === 'kk' ? 'Белсенділік серияңыз' : 'Серия активности'}
+              <p className="text-5xl font-black leading-none">{completedTasks}</p>
+              <p className="text-sm font-bold text-white/60 mt-1">
+                / {totalTasks} {language === 'kk' ? 'тапсырма' : 'задач'}
               </p>
-              <p className="text-2xl font-black leading-none mt-1">
-                {userData.currentStreak} {language === 'kk' ? 'күн' : 'дней'}
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-black">{selectedDayProgress}%</p>
+              <p className="text-[10px] font-black text-white/60 uppercase">
+                {language === 'kk' ? 'орындалды' : 'выполнено'}
               </p>
             </div>
           </div>
-          
-          <div className="relative z-10 text-right bg-white/20 backdrop-blur-sm rounded-[1.5rem] px-4 py-2.5 border border-white/30">
-            <p className="text-[9px] font-black uppercase opacity-80 leading-tight">
-              {language === 'kk' ? 'XP бонусы' : 'Бонус XP'}
-            </p>
-            <p className="text-xl font-black leading-none mt-1">
-              x{Math.min(1 + (userData.currentStreak * 0.1), 3.0).toFixed(1)}
-            </p>
+
+          <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full progress-bar transition-all duration-1000 ease-out"
+              style={{ width: `${selectedDayProgress}%` }}
+            />
           </div>
+
+          {selectedDayProgress === 100 && (
+            <p className="text-xs font-black text-brand mt-3 text-center">
+              🎉 {language === 'kk' ? 'Жарайсыз! Барлық амалдар орындалды!' : 'Отлично! Все задачи выполнены!'}
+            </p>
+          )}
+          {selectedDayProgress >= 50 && selectedDayProgress < 100 && (
+            <p className="text-xs font-bold text-white/80 mt-3 text-center">
+              💪 {language === 'kk' ? 'Жақсы нәтиже! Тоқтамаңыз!' : 'Хороший результат! Не останавливайтесь!'}
+            </p>
+          )}
+          {selectedDayProgress < 50 && selectedDayProgress > 0 && (
+            <p className="text-xs font-bold text-white/80 mt-3 text-center">
+              🚀 {language === 'kk' ? 'Керемет бастама! Толық орындауға тырысыңыз!' : 'Отличное начало! Постарайтесь выполнить все!'}
+            </p>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Ораза */}
       {(() => {
@@ -840,8 +873,38 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       )}
 
+      {/* ✅ СЧЁТЧИК STREAK с множителем - для текущего дня */}
+      {isToday && userData?.currentStreak && userData.currentStreak > 0 && (
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 rounded-[2.5rem] shadow-xl text-white flex items-center justify-between relative overflow-hidden border border-orange-300">
+          <div className="absolute top-0 right-0 p-8 opacity-10 text-7xl">🔥</div>
+
+          <div className="relative z-10 flex items-center space-x-4">
+            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-[2rem] flex items-center justify-center border border-white/30">
+              <span className="text-3xl">🔥</span>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider opacity-90">
+                {language === 'kk' ? 'Белсенділік серияңыз' : 'Серия активности'}
+              </p>
+              <p className="text-2xl font-black leading-none mt-1">
+                {userData.currentStreak} {language === 'kk' ? 'күн' : 'дней'}
+              </p>
+            </div>
+          </div>
+
+          <div className="relative z-10 text-right bg-white/20 backdrop-blur-sm rounded-[1.5rem] px-4 py-2.5 border border-white/30">
+            <p className="text-[9px] font-black uppercase opacity-80 leading-tight">
+              {language === 'kk' ? 'XP бонусы' : 'Бонус XP'}
+            </p>
+            <p className="text-xl font-black leading-none mt-1">
+              x{Math.min(1 + (userData.currentStreak * 0.1), 3.0).toFixed(1)}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ✅ КАЛЕНДАРЬ */}
-      <RealCalendar 
+      <RealCalendar
         language={language}
         ramadanStartDate={RAMADAN_START_DATE}
         preparationStartDate={PREPARATION_START_DATE}
@@ -857,77 +920,6 @@ const Dashboard: React.FC<DashboardProps> = ({
         trackerKeys={[...TRACKER_KEYS]}
         preparationTrackerKeys={PREPARATION_TRACKER_KEYS}
       />
-
-      {/* ✅ ПРОГРЕСС БАР */}
-      <div className="bg-slate-900 p-6 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl">✅</div>
-        
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-[11px] font-black uppercase tracking-widest text-brand">
-              {isToday 
-                ? (language === 'kk' ? 'Бүгінгі прогресс' : 'Сегодняшний прогресс')
-                : (language === 'kk' ? 'Прогресс' : 'Прогресс')}
-            </h4>
-            <span className="text-xs font-bold text-white/60">
-              {(() => {
-                const date = selectedDayInfo.selectedDate;
-                const day = date.getDate();
-                const monthNames = language === 'kk' 
-                  ? ['қаңтар', 'ақпан', 'наурыз', 'сәуір', 'мамыр', 'маусым', 'шілде', 'тамыз', 'қыркүйек', 'қазан', 'қараша', 'желтоқсан']
-                  : ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-                return `${day} ${monthNames[date.getMonth()]}`;
-              })()}
-            </span>
-          </div>
-          
-          <div className="flex items-end justify-between mb-3">
-            <div>
-              <p className="text-5xl font-black leading-none">
-                {completedTasks}
-              </p>
-              <p className="text-sm font-bold text-white/60 mt-1">
-                / {totalTasks} {language === 'kk' ? 'тапсырма' : 'задач'}
-              </p>
-            </div>
-            
-            <div className="text-right">
-              <p className="text-3xl font-black">
-                {selectedDayProgress}%
-              </p>
-              <p className="text-[10px] font-black text-white/60 uppercase">
-                {language === 'kk' ? 'орындалды' : 'выполнено'}
-              </p>
-            </div>
-          </div>
-          
-          <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-            <div 
-              className="h-full progress-bar transition-all duration-1000 ease-out"
-              style={{ width: `${selectedDayProgress}%` }}
-            ></div>
-          </div>
-          
-          {/* Мотивационные сообщения */}
-          {selectedDayProgress === 100 && (
-            <p className="text-xs font-black text-brand mt-3 text-center">
-              🎉 {language === 'kk' ? 'Жарайсыз! Барлық амалдар орындалды!' : 'Отлично! Все задачи выполнены!'}
-            </p>
-          )}
-          
-          {selectedDayProgress >= 50 && selectedDayProgress < 100 && (
-            <p className="text-xs font-bold text-white/80 mt-3 text-center">
-              💪 {language === 'kk' ? 'Жақсы нәтиже! Тоқтамаңыз!' : 'Хороший результат! Не останавливайтесь!'}
-            </p>
-          )}
-          
-          {selectedDayProgress < 50 && selectedDayProgress > 0 && (
-            <p className="text-xs font-bold text-white/80 mt-3 text-center">
-              🚀 {language === 'kk' ? 'Керемет бастама! Толық орындауға тырысыңыз!' : 'Отличное начало! Постарайтесь выполнить все!'}
-            </p>
-          )}
-        </div>
-      </div>
     </div>
   );
 };
