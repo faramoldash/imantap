@@ -1,20 +1,23 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { UserData, Language } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
-import { getGlobalLeaderboard, getFriendsLeaderboard, getCountries, getCities } from '../src/services/api';
+import { getGlobalLeaderboard, getFriendsLeaderboard, getCountries, getCities, getContestLeaderboard } from '../src/services/api';
 import { translateName } from '../src/utils/translations';
 import { getUserLevelInfo } from '../src/utils/levelHelper';
 import { getUserCircles } from '../src/services/api';
 import { useUserCircles } from '../src/hooks/useUserCircles';
+import ContestBanner from './ContestBanner';
 
 interface RewardsViewProps {
   userData: UserData;
   language: Language;
   setUserData?: (data: UserData) => void;
   onNavigate?: (view: string, data?: any) => void;
+  contestData?: { contest: any; participant: any } | null;
+  navigationData?: any;
 }
 
-type FilterType = 'global' | 'country' | 'city' | 'friends';
+type FilterType = 'global' | 'country' | 'city' | 'friends' | 'contest';
 
 const XP_GUIDE_NAMAZ = [
   { emoji: '🌅', nameKk: 'Таң', nameRu: 'Фаджр', xp: 50 },
@@ -72,7 +75,7 @@ const XpSection = ({
   </div>
 );
 
-const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigate }) => {
+const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigate, contestData, navigationData }) => {
   const t = TRANSLATIONS[language];
   const levelInfo = getUserLevelInfo(userData.xp, language);
 
@@ -82,6 +85,12 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [filterType, setFilterType] = useState<FilterType>('global');
+  // Auto-select contest filter if navigated with { filter: 'contest' }
+  useEffect(() => {
+    if (navigationData?.filter === 'contest' && contestData?.contest) {
+      setFilterType('contest');
+    }
+  }, [navigationData, contestData]);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [cities, setCities] = useState<Array<{ city: string; count: number }>>([]);
   const [offset, setOffset] = useState(0);
@@ -100,6 +109,18 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
       if (reset) { setIsLoading(true); setOffset(0); setLeaderboard([]); }
       else setIsLoadingMore(true);
       const currentOffset = reset ? 0 : offset;
+      if (filterType === 'contest') {
+        const contestId = contestData?.contest?._id;
+        if (!contestId) { setLeaderboard([]); setIsLoading(false); setIsLoadingMore(false); return; }
+        const data = await getContestLeaderboard(String(contestId), 50);
+        const withMe = data.map((u: any) => ({ ...u, isMe: u.userId === userData.userId }));
+        setLeaderboard(withMe);
+        setHasMore(false);
+        setUserRank(contestData?.participant?.rank || null);
+        setIsLoading(false);
+        setIsLoadingMore(false);
+        return;
+      }
       if (filterType === 'friends') {
         const data = await getFriendsLeaderboard(userData.userId, 20);
         if (data) {
@@ -234,15 +255,23 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
             </div>
           </div>
         )}
+        <ContestBanner
+          contestData={contestData || null}
+          isPaid={userData.paymentStatus === 'paid'}
+          language={language}
+          onViewLeaderboard={() => setFilterType('contest')}
+          onPaywall={() => onNavigate?.('paywall')}
+        />
         <div className="p-6 pb-4 sticky top-0 bg-card z-10 border-b border-default">
           <h3 className="text-sm font-black text-secondary uppercase tracking-widest mb-4">{t.rewardsLeaderboard}</h3>
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-            {(['global','country','city','friends'] as FilterType[]).map(type => (
+            {(['global','country','city','friends', ...(contestData?.contest ? ['contest'] : [])] as FilterType[]).map(type => (
               <button key={type} onClick={() => handleFilterChange(type)} className={`px-4 py-3.5 rounded-2xl text-xs font-black whitespace-nowrap transition-all ${ filterType === type ? 'bg-brand text-white' : 'bg-surface text-secondary' }`}>
                 {type === 'global' && `🌍 ${language === 'kk' ? 'Жалпы' : 'Глобальный'}`}
                 {type === 'country' && `🇰🇿 ${language === 'kk' ? 'Ел бойынша' : 'По стране'}`}
                 {type === 'city' && `🏙️ ${language === 'kk' ? 'Қала бойынша' : 'По городу'}`}
                 {type === 'friends' && `👥 ${language === 'kk' ? 'Достар' : 'Друзья'}`}
+                {type === 'contest' && `🏆 ${t.contestFilterLabel}`}
               </button>
             ))}
           </div>
@@ -282,7 +311,17 @@ const RewardsView: React.FC<RewardsViewProps> = ({ userData, language, onNavigat
                 </div>
               ))}
               {isLoadingMore && <div className="px-8 py-4 text-center"><div className="inline-block w-6 h-6 border-3 border-t-transparent rounded-full animate-spin"></div></div>}
-              {!hasMore && !isLoadingMore && filterType !== 'friends' && <div className="px-8 py-4 text-center"><p className="text-[10px] text-secondary italic">{language === 'kk' ? 'Барлық қатысушылар' : 'Все участники показаны'}</p></div>}
+              {!hasMore && !isLoadingMore && filterType !== 'friends' && (
+                <div className="px-8 py-4 text-center">
+                  {filterType === 'contest' && contestData?.contest?.status === 'finished' ? (
+                    <p className="text-[10px] text-amber-400 font-bold">
+                      🏆 {t.contestFinished}
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-secondary italic">{language === 'kk' ? 'Барлық қатысушылар' : 'Все участники показаны'}</p>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>

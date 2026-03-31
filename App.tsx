@@ -22,6 +22,8 @@ import { useAppInitialization } from './src/hooks/useAppInitialization';
 import { useTheme } from './src/hooks/useTheme';
 import CirclesView from './components/CirclesView';
 import { getUserCircles } from './src/services/api';
+import { getCurrentContest } from './src/services/api';
+import ContestBanner from './components/ContestBanner';
 import { PREPARATION_START_DATE } from './constants';
 import PrayerTimesCard from './components/PrayerTimesCard';
 
@@ -203,6 +205,13 @@ const App: React.FC = () => {
 
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [navigationData, setNavigationData] = useState<any>(null);
+  const [contestData, setContestData] = useState<{ contest: any; participant: any } | null>(null);
+  useEffect(() => {
+    if (!userData?.userId) return;
+    getCurrentContest(userData.userId).then(data => {
+      setContestData(data);
+    }).catch(() => {});
+  }, [userData?.userId]);
   const hasInitializedDay = useRef(false);
   const [selectedDay, setSelectedDay] = useState<number>(1);
   const [realTodayDay, setRealTodayDay] = useState<number>(ramadanInfo.isStarted ? ramadanInfo.currentDay : 0);
@@ -602,13 +611,22 @@ const App: React.FC = () => {
             onUpdate={updatePreparationProgress} onBack={() => setSelectedPreparationDay(null)} />
         );
         return (
-          <Dashboard day={selectedDay} realTodayDay={realTodayDay} ramadanInfo={ramadanInfo}
-            data={dayData} allProgress={userData.progress} updateProgress={updateProgress}
-            updatePreparationProgress={updatePreparationProgress} updateBasicProgress={updateBasicProgress}
-            language={lang} onDaySelect={(d) => setSelectedDay(d)}
-            onPreparationDaySelect={(d) => setSelectedPreparationDay(d)}
-            onBasicDateSelect={(date) => setSelectedBasicDate(date)}
-            xp={userData.xp} userData={userData} setUserData={handleUserDataUpdate} setView={setCurrentView} />
+          <>
+            <ContestBanner
+              contestData={contestData}
+              isPaid={userData.paymentStatus === 'paid'}
+              language={lang}
+              onViewLeaderboard={() => handleNavigation('rewards', { filter: 'contest' })}
+              onPaywall={() => handleNavigation('paywall' as ViewType)}
+            />
+            <Dashboard day={selectedDay} realTodayDay={realTodayDay} ramadanInfo={ramadanInfo}
+              data={dayData} allProgress={userData.progress} updateProgress={updateProgress}
+              updatePreparationProgress={updatePreparationProgress} updateBasicProgress={updateBasicProgress}
+              language={lang} onDaySelect={(d) => setSelectedDay(d)}
+              onPreparationDaySelect={(d) => setSelectedPreparationDay(d)}
+              onBasicDateSelect={(date) => setSelectedBasicDate(date)}
+              xp={userData.xp} userData={userData} setUserData={handleUserDataUpdate} setView={setCurrentView} />
+          </>
         );
       case 'calendar':
         return <Calendar progress={userData.progress} realTodayDay={realTodayDay} selectedDay={selectedDay}
@@ -624,7 +642,7 @@ const App: React.FC = () => {
       case 'names-99':
         return <NamesMemorizer language={lang} userData={userData} setUserData={handleUserDataUpdate} />;
       case 'rewards':
-        return <RewardsView userData={userData} language={lang} setUserData={handleUserDataUpdate} onNavigate={handleNavigation} />;
+        return <RewardsView userData={userData} language={lang} setUserData={handleUserDataUpdate} onNavigate={handleNavigation} contestData={contestData} navigationData={navigationData} />;
       case 'circles':
         return <CirclesView userData={userData} language={lang} onNavigate={handleNavigation} navigationData={navigationData} />;
       default:

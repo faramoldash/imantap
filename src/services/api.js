@@ -281,9 +281,9 @@ export async function acceptCircleInvite(circleId, userId) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ circleId, userId })
     });
-    
+
     const data = await response.json();
-    
+
     if (data.success) {
       return true;
     } else {
@@ -292,5 +292,36 @@ export async function acceptCircleInvite(circleId, userId) {
   } catch (error) {
     console.error('Error accepting invite:', error);
     throw error;
+  }
+}
+
+/**
+ * Получить текущий активный или последний завершённый конкурс
+ * + позицию и XP пользователя в нём
+ */
+export async function getCurrentContest(userId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/contest/current?userId=${userId}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    return data.success ? data.data : null;
+  } catch (error) {
+    console.error('Error fetching current contest:', error);
+    return null;
+  }
+}
+
+/**
+ * Получить рейтинг участников конкурса
+ */
+export async function getContestLeaderboard(contestId, limit = 50) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/contest/${contestId}/leaderboard?limit=${limit}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    return data.success ? data.data : [];
+  } catch (error) {
+    console.error('Error fetching contest leaderboard:', error);
+    return [];
   }
 }
