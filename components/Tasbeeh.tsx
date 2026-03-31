@@ -180,19 +180,20 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
 
       {/* ── Шапка ── */}
       <div style={{
-        background: 'linear-gradient(135deg,#0f172a,#1e293b)',
+        background: 'var(--surface)',
         borderRadius: 32, padding: '18px 20px 16px',
         marginBottom: 20, position: 'relative', overflow: 'hidden',
+        border: '1.5px solid var(--border)',
       }}>
         <div style={{ position:'absolute', top:-30, right:-30, width:110, height:110,
-          borderRadius:'50%', background:'rgba(16,185,129,0.10)', pointerEvents:'none' }} />
+          borderRadius:'50%', background:'var(--bronze-tint)', pointerEvents:'none' }} />
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <p style={{ fontSize:22, fontWeight:900, color:'#fff', margin:0 }}>
+          <p style={{ fontSize:22, fontWeight:900, color:'var(--text-primary)', margin:0 }}>
             {lang === 'kk' ? 'Зікір санағышы' : 'Счётчик зикра'}
           </p>
           {xpToday > 0 && (
-            <span style={{ background:'rgba(196,122,69,0.18)',
-              border:'1px solid rgba(196,122,69,0.3)', borderRadius:14,
+            <span style={{ background:'var(--bronze-tint)',
+              border:'1px solid var(--bronze-disabled)', borderRadius:14,
               padding:'5px 13px', fontSize:13, fontWeight:900, color:'var(--bronze-hover)' }}>
               +{xpToday} XP
             </span>
@@ -245,7 +246,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
                 padding: '8px 12px',
                 borderRadius: 16,
                 background: sel ? ACCENT : done ? 'var(--brand-tint)' : 'var(--surface)',
-                border: `1.5px solid ${sel ? ACCENT : done ? ACCENT + '55' : '#e2e8f0'}`,
+                border: `1.5px solid ${sel ? ACCENT : done ? ACCENT + '55' : 'var(--border)'}`,
                 cursor: 'pointer',
                 touchAction: 'manipulation',
                 WebkitTapHighlightColor: 'transparent',
@@ -257,21 +258,21 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
             >
               <p style={{
                 margin: 0, fontSize: 12, fontWeight: 900, whiteSpace: 'normal',
-                color: sel ? '#fff' : done ? ACCENT : '#64748b',
+                color: sel ? 'var(--white)' : done ? ACCENT : 'var(--text-secondary)',
                 textAlign: 'center', wordBreak: 'break-word', lineHeight: 1.3,
               }}>
                 {done && !sel ? '✓ ' : ''}{nm}
               </p>
               <p style={{
                 margin: '4px 0 0', fontSize: 10, textAlign: 'center',
-                color: sel ? 'rgba(255,255,255,.75)' : '#94a3b8', fontWeight: 600,
+                color: sel ? 'var(--text-primary)' : 'var(--text-placeholder)', fontWeight: 600,
               }}>
                 {record.counts[d.id] ?? 0}/{d.target}
               </p>
               {(totals[d.id] ?? 0) > 0 && (
                 <p style={{
                   margin: '2px 0 0', fontSize: 9, textAlign: 'center',
-                  color: sel ? 'rgba(255,255,255,.5)' : '#cbd5e1',
+                  color: sel ? 'var(--text-secondary)' : 'var(--text-placeholder)',
                 }}>
                   {lang === 'kk' ? 'жалпы: ' : 'всего: '}{totals[d.id]}
                 </p>
@@ -285,17 +286,17 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
       <div style={{ textAlign:'center', padding:'0 20px', marginBottom:22 }}>
         {/* Arabic */}
         <p style={{
-          fontSize: 30, fontWeight: 700, color: '#0f172a',
+          fontSize: 30, fontWeight: 700, color: 'var(--text-primary)',
           margin: '0 0 8px', direction: 'rtl', fontFamily: 'serif', lineHeight: 1.6,
         }}>
           {dhikr.arabic}
         </p>
         {/* Транслит */}
-        <p style={{ fontSize: 14, fontWeight: 700, color: '#475569', margin: '0 0 6px' }}>
+        <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-secondary)', margin: '0 0 6px' }}>
           {translit}
         </p>
         {/* Перевод */}
-        <p style={{ fontSize: 14, fontWeight: 400, color: '#94a3b8', margin: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 400, color: 'var(--text-placeholder)', margin: 0 }}>
           {meaning}
         </p>
       </div>
@@ -308,7 +309,7 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
           <svg width="220" height="220"
             style={{ position:'absolute', top:0, left:0, pointerEvents:'none', zIndex:2 }}>
             <circle cx="110" cy="110" r={R}
-              fill="none" stroke="#f1f5f9" strokeWidth="10" />
+              fill="none" stroke="var(--surface)" strokeWidth="10" />
             <circle cx="110" cy="110" r={R}
               fill="none"
               stroke={ACCENT}
@@ -350,10 +351,10 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
               userSelect: 'none',
             }}
           >
-            <span style={{ fontSize:56, fontWeight:900, color:'#0f172a', lineHeight:1 }}>
+            <span style={{ fontSize:56, fontWeight:900, color:'var(--text-primary)', lineHeight:1 }}>
               {count}
             </span>
-            <p style={{ fontSize:13, color:'#94a3b8', margin:'3px 0 0', fontWeight:600 }}>
+            <p style={{ fontSize:13, color:'var(--text-placeholder)', margin:'3px 0 0', fontWeight:600 }}>
               / {dhikr.target}
             </p>
             {xpEarned ? (
@@ -374,8 +375,8 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
           <button type="button" onClick={handleReset}
             style={{
               marginTop:14, padding:'7px 18px', borderRadius:14,
-              background:'#f8fafc', border:'1.5px solid #f1f5f9',
-              fontSize:12, fontWeight:700, color:'#94a3b8',
+              background:'var(--surface)', border:'1.5px solid var(--border)',
+              fontSize:12, fontWeight:700, color:'var(--text-secondary)',
               cursor:'pointer', touchAction:'manipulation',
               WebkitTapHighlightColor:'transparent',
             }}
@@ -386,9 +387,9 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
       </div>
 
       {/* ── Итоги дня ── */}
-      <div style={{ background:'#f8fafc', border:'1.5px solid #f1f5f9',
+      <div style={{ background:'var(--white)', border:'1.5px solid var(--border)',
         borderRadius:28, padding:'16px 20px' }}>
-        <p style={{ fontSize:10, fontWeight:900, color:'#94a3b8',
+        <p style={{ fontSize:10, fontWeight:900, color:'var(--text-placeholder)',
           textTransform:'uppercase', letterSpacing:'0.1em', margin:'0 0 14px' }}>
           📊 {lang === 'kk' ? 'Бүгінгі нәтиже' : 'Итог дня'}
         </p>
@@ -401,14 +402,14 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
             return (
               <div key={d.id}>
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-                  <span style={{ fontSize:12, fontWeight:600, color: done ? ACCENT : '#64748b' }}>
+                  <span style={{ fontSize:12, fontWeight:600, color: done ? ACCENT : 'var(--text-secondary)' }}>
                     {done ? '✓ ' : ''}{nm}
                   </span>
-                  <span style={{ fontSize:12, fontWeight:900, color: done ? ACCENT : '#94a3b8' }}>
+                  <span style={{ fontSize:12, fontWeight:900, color: done ? ACCENT : 'var(--text-placeholder)' }}>
                     {c}/{d.target}{done ? ` · +${d.xp} XP` : ''}
                   </span>
                 </div>
-                <div style={{ height:4, borderRadius:4, background:'#e2e8f0', overflow:'hidden' }}>
+                <div style={{ height:4, borderRadius:4, background:'var(--surface)', overflow:'hidden' }}>
                   <div style={{ height:'100%', borderRadius:4,
                     width:`${pct}%`, background:ACCENT, transition:'width .4s ease' }} />
                 </div>
@@ -417,9 +418,9 @@ const Tasbeeh: React.FC<Props> = ({ language: lang, userData, setUserData }) => 
           })}
         </div>
         {xpToday > 0 && (
-          <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid #f1f5f9',
+          <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid var(--border)',
             display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-            <span style={{ fontSize:12, color:'#94a3b8' }}>
+            <span style={{ fontSize:12, color:'var(--text-placeholder)' }}>
               {lang === 'kk' ? 'Бүгін жиналды' : 'Заработано сегодня'}
             </span>
             <span style={{ fontSize:13, fontWeight:900, color:ACCENT }}>
