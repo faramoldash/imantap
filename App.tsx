@@ -382,7 +382,7 @@ const App: React.FC = () => {
     }
   }, [setSyncStatus]);
 
-  const debouncedSync = useDebounce(syncToServerFn, 5000);
+  const debouncedSync = useDebounce(syncToServerFn, 1500);
 
   useEffect(() => {
     if (!isLoading && userData.userId) {
