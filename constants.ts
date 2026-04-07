@@ -12,10 +12,13 @@ export const POST_RAMADAN_START_DAY = PREPARATION_DAYS + TOTAL_DAYS + 1;
 // Ramadan 2026 start date
 export const RAMADAN_START_DATE = '2026-02-19';
 
-// Ключи трекера для дней подготовки (без оразы и специфичных для Рамадана)
+// Ключи трекера для базовой и подготовительной фазы.
+// Должны точно совпадать с чекбоксами, рендеримыми в Dashboard для этих фаз.
+// fasting/taraweeh/eidPrayer добавляются динамически в calculateProgress().
 export const PREPARATION_TRACKER_KEYS: (keyof DayProgress)[] = [
   'fajr', 'duha', 'dhuhr', 'asr', 'maghrib', 'isha',
-  'quranRead', 'morningDhikr', 'eveningDhikr', 'salawat', 'hadith', 'charity'
+  'tahajjud', 'witr',
+  'quranRead', 'morningDhikr', 'eveningDhikr', 'salawat', 'charity', 'book'
 ];
 
 export const INITIAL_DAY_PROGRESS = (day: number): DayProgress => ({
