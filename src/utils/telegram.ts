@@ -38,6 +38,12 @@ export function getTelegramUserId(): number | null {
   return null;
 }
 
+/** Signed payload that the backend verifies with BOT_TOKEN. */
+export function getTelegramAuthHeaders(): Record<string, string> {
+  const initData = getTelegramWebApp()?.initData;
+  return initData ? { 'X-Telegram-Init-Data': initData } : {};
+}
+
 /**
  * Получить данные текущего пользователя
  */

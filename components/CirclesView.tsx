@@ -3,6 +3,7 @@ import { Language, UserData } from '../src/types/types';
 import { TRANSLATIONS } from '../constants';
 import { createCircle, inviteToCircle, getUserData } from '../src/services/api';
 import { useUserCircles } from '../src/hooks/useUserCircles';
+import { getTelegramAuthHeaders } from '../src/utils/telegram';
 
 
 interface CirclesViewProps {
@@ -306,7 +307,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/accept`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() },
         body: JSON.stringify({
           circleId: selectedCircle.circleId,
           userId: userData.userId
@@ -328,7 +329,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/decline`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() },
         body: JSON.stringify({ circleId: selectedCircle.circleId, userId: userData.userId })
       });
       if (!response.ok) throw new Error('Failed to decline invite');
@@ -346,7 +347,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/leave`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() },
         body: JSON.stringify({ circleId: selectedCircle.circleId, userId: userData.userId })
       });
       if (!response.ok) {
@@ -371,7 +372,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/remove-member`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() },
         body: JSON.stringify({ circleId: selectedCircle.circleId, ownerId: userData.userId, targetUserId })
       });
       if (!response.ok) throw new Error('Failed to remove member');
@@ -388,7 +389,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/delete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() },
         body: JSON.stringify({ circleId: selectedCircle.circleId, ownerId: userData.userId })
       });
       if (!response.ok) throw new Error('Failed to delete circle');
@@ -441,7 +442,7 @@ const CirclesView: React.FC<CirclesViewProps> = ({ userData, language, onNavigat
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/circles/join`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() },
         body: JSON.stringify({ inviteCode: joinCode.trim().toUpperCase(), userId: userData.userId })
       });
       const data = await response.json();

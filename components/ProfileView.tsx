@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { UserData, Language, DayProgress } from '../src/types/types';
 import { TRANSLATIONS, XP_VALUES, BADGES, PRAYER_ICONS } from '../constants';
 import { getUserLevelInfo } from '../src/utils/levelHelper';
+import { getTelegramAuthHeaders } from '../src/utils/telegram';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://imantap-bot-production.up.railway.app';
 
@@ -35,7 +36,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({ userData, language, setUserDa
         if (userData.userId === telegramUserId && userData.myPromoCode) return;
         
         const response = await fetch(
-          `${API_BASE_URL}/api/user/${telegramUserId}/full`
+          `${API_BASE_URL}/api/user/${telegramUserId}/full`,
+          { headers: getTelegramAuthHeaders() }
         );
         
         if (!response.ok) return;

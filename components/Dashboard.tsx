@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { DayProgress, Language, UserData, ViewType } from '../src/types/types';
 import { TRANSLATIONS, TRACKER_KEYS, PREPARATION_TRACKER_KEYS, NAMES_99, RAMADAN_START_DATE, PREPARATION_START_DATE, FIRST_TARAWEEH_DATE, EID_AL_FITR_DATE, PRAYER_ICONS } from '../constants';
 import { haptics } from '../src/utils/haptics';
+import { getTelegramAuthHeaders } from '../src/utils/telegram';
 import RealCalendar from './RealCalendar';
 import SubscriptionStatus from '../components/SubscriptionStatus';
 
@@ -202,7 +203,7 @@ const Dashboard: React.FC<DashboardProps> = ({
 
       const res = await fetch(`${BOT_API}/shawwal-fast`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() },
         body: JSON.stringify({ userId, date: dateStr || null })
       });
 

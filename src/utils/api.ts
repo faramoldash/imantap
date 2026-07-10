@@ -1,6 +1,6 @@
 // utils/api.ts
 import { UserData } from '../types/types';
-import { getTelegramUserId } from './telegram';
+import { getTelegramUserId, getTelegramAuthHeaders } from './telegram';
 
 
 const BOT_API_URL = import.meta.env.VITE_API_URL || 'https://imantap-bot-production.up.railway.app';
@@ -19,7 +19,7 @@ export async function loadUserDataFromServer(): Promise<Partial<UserData> | null
 
     console.log('🔍 Загрузка данных с сервера для user ID:', userId);
 
-    const response = await fetch(`${BOT_API_URL}/api/user/${userId}/full`);
+    const response = await fetch(`${BOT_API_URL}/api/user/${userId}/full`, { headers: getTelegramAuthHeaders() });
 
     if (!response.ok) {
       console.error('❌ Ошибка API:', response.status);
@@ -56,7 +56,7 @@ export async function syncUserDataToServer(userData: UserData): Promise<boolean>
 
     const response = await fetch(`${BOT_API_URL}/api/user/${userId}/sync`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() },
       body: JSON.stringify({
         name: userData.name,
         username: userData.username,
@@ -140,6 +140,7 @@ export async function checkUserAccess(userId: number): Promise<AccessData> {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getTelegramAuthHeaders(),
       },
     });
     

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { UserData } from '../types/types';
 import { checkUserAccess, AccessData } from '../utils/api';
-import { getTelegramUserId, getTelegramUser } from '../utils/telegram';
+import { getTelegramUserId, getTelegramUser, getTelegramAuthHeaders } from '../utils/telegram';
 
 const STORAGE_KEY = 'ramadan_tracker_data_v4';
 const BOT_API_URL = import.meta.env.VITE_API_URL || 'https://imantap-bot-production.up.railway.app';
@@ -90,7 +90,9 @@ export function useAppInitialization(getDefaultUserData: () => UserData) {
 
         if (hasDataAccess) {
           try {
-            const response = await fetch(`${BOT_API_URL}/api/user/${userId}/full`);
+            const response = await fetch(`${BOT_API_URL}/api/user/${userId}/full`, {
+              headers: getTelegramAuthHeaders(),
+            });
             
             if (response.ok) {
               const result = await response.json();

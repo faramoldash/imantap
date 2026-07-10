@@ -1,14 +1,23 @@
 // src/services/api.js
 
+import { getTelegramAuthHeaders } from '../utils/telegram';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
   'https://imantap-bot-production.up.railway.app';
+
+function apiFetch(url, options = {}) {
+  return fetch(url, {
+    ...options,
+    headers: { ...getTelegramAuthHeaders(), ...(options.headers || {}) },
+  });
+}
 
 /**
  * Получить данные пользователя по Telegram ID
  */
 export async function getUserData(userId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/user/${userId}/full`);
+    const response = await apiFetch(`${API_BASE_URL}/api/user/${userId}/full`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -32,7 +41,7 @@ export async function getUserData(userId) {
  */
 export async function checkApiHealth() {
   try {
-    const response = await fetch(`${API_BASE_URL}/health`);
+    const response = await apiFetch(`${API_BASE_URL}/health`);
     const data = await response.json();
     return data.status === 'ok';
   } catch (error) {
@@ -46,7 +55,7 @@ export async function checkApiHealth() {
  */
 export async function getReferralStats(promoCode) {
   try {
-    const response = await fetch(`${API_BASE_URL}/referrals?code=${promoCode}`);
+    const response = await apiFetch(`${API_BASE_URL}/referrals?code=${promoCode}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -80,7 +89,7 @@ export async function getGlobalLeaderboard(options) {
     if (country) params.append('country', country);
     if (city) params.append('city', city);
     
-    const response = await fetch(`${API_BASE_URL}/api/leaderboard/global?${params}`);
+    const response = await apiFetch(`${API_BASE_URL}/api/leaderboard/global?${params}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -108,7 +117,7 @@ export async function getGlobalLeaderboard(options) {
  */
 export async function getFriendsLeaderboard(userId, limit = 20) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/leaderboard/friends/${userId}?limit=${limit}`);
+    const response = await apiFetch(`${API_BASE_URL}/api/leaderboard/friends/${userId}?limit=${limit}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -132,7 +141,7 @@ export async function getFriendsLeaderboard(userId, limit = 20) {
  */
 export async function getCountries() {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/leaderboard/countries`);
+    const response = await apiFetch(`${API_BASE_URL}/api/leaderboard/countries`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -160,7 +169,7 @@ export async function getCities(country) {
       return [];
     }
     
-    const response = await fetch(`${API_BASE_URL}/api/leaderboard/cities?country=${encodeURIComponent(country)}`);
+    const response = await apiFetch(`${API_BASE_URL}/api/leaderboard/cities?country=${encodeURIComponent(country)}`);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -188,7 +197,7 @@ export async function getCities(country) {
  */
 export async function createCircle(userId, name, description = '') {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/circles/create`, {
+    const response = await apiFetch(`${API_BASE_URL}/api/circles/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId, name, description })
@@ -212,7 +221,7 @@ export async function createCircle(userId, name, description = '') {
  */
 export async function getUserCircles(userId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/circles/user/${userId}`);
+    const response = await apiFetch(`${API_BASE_URL}/api/circles/user/${userId}`);
     
     const data = await response.json();
     
@@ -232,7 +241,7 @@ export async function getUserCircles(userId) {
  */
 export async function getCircleDetails(circleId, userId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/circles/${circleId}/details?userId=${userId}`);
+    const response = await apiFetch(`${API_BASE_URL}/api/circles/${circleId}/details?userId=${userId}`);
     
     const data = await response.json();
     
@@ -252,7 +261,7 @@ export async function getCircleDetails(circleId, userId) {
  */
 export async function inviteToCircle(circleId, inviterId, targetUsername) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/circles/invite`, {
+    const response = await apiFetch(`${API_BASE_URL}/api/circles/invite`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ circleId, inviterId, targetUsername })
@@ -276,7 +285,7 @@ export async function inviteToCircle(circleId, inviterId, targetUsername) {
  */
 export async function acceptCircleInvite(circleId, userId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/circles/accept`, {
+    const response = await apiFetch(`${API_BASE_URL}/api/circles/accept`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ circleId, userId })
@@ -301,7 +310,7 @@ export async function acceptCircleInvite(circleId, userId) {
  */
 export async function getCurrentContest(userId) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/contest/current?userId=${userId}`);
+    const response = await apiFetch(`${API_BASE_URL}/api/contest/current?userId=${userId}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     return data.success ? data.data : null;
@@ -316,7 +325,7 @@ export async function getCurrentContest(userId) {
  */
 export async function getContestLeaderboard(contestId, limit = 50) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/contest/${contestId}/leaderboard?limit=${limit}`);
+    const response = await apiFetch(`${API_BASE_URL}/api/contest/${contestId}/leaderboard?limit=${limit}`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
     return data.success ? data.data : [];

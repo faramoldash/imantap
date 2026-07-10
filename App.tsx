@@ -17,7 +17,7 @@ import PendingScreen from './components/PendingScreen';
 import DemoBanner from './components/DemoBanner';
 import PreparationTracker from './components/PreparationTracker';
 import BasicTracker from './components/BasicTracker';
-import { initTelegramApp, getTelegramUserId, getTelegramWebApp } from './src/utils/telegram';
+import { initTelegramApp, getTelegramUserId, getTelegramWebApp, getTelegramAuthHeaders } from './src/utils/telegram';
 import { useAppInitialization } from './src/hooks/useAppInitialization';
 import { useTheme } from './src/hooks/useTheme';
 import CirclesView from './components/CirclesView';
@@ -338,7 +338,7 @@ const App: React.FC = () => {
       setSyncStatus('syncing');
       const response = await fetch(
         `${API_BASE_URL}/api/user/${userId}/sync`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(buildPayload(d)) }
+        { method: 'POST', headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() }, body: JSON.stringify(buildPayload(d)) }
       );
       if (response.ok) {
         const data = await response.json();
@@ -434,11 +434,13 @@ const App: React.FC = () => {
         tasbeehTotals: userDataRef.current.tasbeehTotals || {},
       });
       const url = `${API_BASE_URL}/api/user/${userId}/sync`;
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(url, new Blob([data], { type: 'application/json' }));
-      } else {
-        fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: data, keepalive: true }).catch(() => {});
-      }
+      // sendBeacon cannot attach Telegram auth headers, so use keepalive fetch instead.
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() },
+        body: data,
+        keepalive: true,
+      }).catch(() => {});
     };
     const tg = getTelegramWebApp();
     if (tg) tg.onEvent('viewportChanged', handleBeforeUnload);
@@ -467,7 +469,7 @@ const App: React.FC = () => {
       const processed = await syncQueue.processQueue(async (data) => {
         try {
           const response = await fetch(`${API_BASE_URL}/api/user/${data.userId}/sync`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+            method: 'POST', headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() }, body: JSON.stringify(data),
           });
           return response.ok;
         } catch { return false; }
