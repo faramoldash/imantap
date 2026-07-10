@@ -71,9 +71,87 @@ function normalizeUserData(raw: UserData): UserData {
     currentStreak:       raw.currentStreak         ?? 0,
     longestStreak:       raw.longestStreak         ?? 0,
     xp:                  raw.xp                   ?? 0,
+    syncVersion:         raw.syncVersion          ?? 0,
     quranKhatams:        raw.quranKhatams          ?? 0,
     referralCount:       raw.referralCount         ?? 0,
     registrationDate:    raw.registrationDate      || new Date().toISOString(),
+  };
+}
+
+// При конфликте сохраняем уже выполненные практики с обоих устройств: true и
+// большее числовое значение важнее устаревшего false/меньшего значения.
+function mergeProgressHistory(server: Record<string | number, any> = {}, local: Record<string | number, any> = {}) {
+  const merged: Record<string | number, any> = { ...server };
+  for (const [day, localValues] of Object.entries(local)) {
+    const serverValues = server[day] || {};
+    const dayValues = { ...serverValues };
+    for (const [key, localValue] of Object.entries(localValues as Record<string, unknown>)) {
+      const serverValue = serverValues[key];
+      if (typeof localValue === 'boolean' && typeof serverValue === 'boolean') {
+        dayValues[key] = serverValue || localValue;
+      } else if (typeof localValue === 'number' && typeof serverValue === 'number') {
+        dayValues[key] = Math.max(serverValue, localValue);
+      } else if (localValue !== undefined) {
+        dayValues[key] = localValue;
+      }
+    }
+    merged[day] = dayValues;
+  }
+  return merged;
+}
+
+function mergeAfterSync(serverData: UserData, localData: UserData): UserData {
+  const server = normalizeUserData(serverData);
+  return normalizeUserData({
+    ...server,
+    progress: mergeProgressHistory(server.progress, localData.progress),
+    preparationProgress: mergeProgressHistory(server.preparationProgress, localData.preparationProgress),
+    basicProgress: mergeProgressHistory(server.basicProgress, localData.basicProgress),
+    memorizedNames: [...new Set([...(server.memorizedNames || []), ...(localData.memorizedNames || [])])],
+    completedJuzs: [...new Set([...(server.completedJuzs || []), ...(localData.completedJuzs || [])])],
+    earnedJuzXpIds: [...new Set([...(server.earnedJuzXpIds || []), ...(localData.earnedJuzXpIds || [])])],
+    unlockedBadges: [...new Set([...(server.unlockedBadges || []), ...(localData.unlockedBadges || [])])],
+    dailyGoalRecords: { ...(server.dailyGoalRecords || {}), ...(localData.dailyGoalRecords || {}) },
+    tasbeehRecords: { ...(server.tasbeehRecords || {}), ...(localData.tasbeehRecords || {}) },
+    syncVersion: server.syncVersion,
+    xp: server.xp,
+    currentStreak: server.currentStreak,
+    longestStreak: server.longestStreak,
+    lastActiveDate: server.lastActiveDate,
+  });
+}
+
+function buildSyncPayload(data: UserData) {
+  return {
+    name: data.name,
+    username: data.username,
+    photoUrl: data.photoUrl,
+    registrationDate: data.registrationDate,
+    progress: data.progress,
+    preparationProgress: data.preparationProgress,
+    basicProgress: data.basicProgress,
+    memorizedNames: data.memorizedNames,
+    completedJuzs: data.completedJuzs,
+    earnedJuzXpIds: data.earnedJuzXpIds || [],
+    quranKhatams: data.quranKhatams,
+    completedTasks: data.completedTasks,
+    deletedPredefinedTasks: data.deletedPredefinedTasks,
+    customTasks: data.customTasks,
+    quranGoal: data.quranGoal,
+    dailyQuranGoal: data.dailyQuranGoal,
+    dailyCharityGoal: data.dailyCharityGoal,
+    language: data.language,
+    hasRedeemedReferral: data.hasRedeemedReferral,
+    unlockedBadges: Array.isArray(data.unlockedBadges) ? data.unlockedBadges : [],
+    currentStreak: data.currentStreak,
+    longestStreak: data.longestStreak,
+    lastActiveDate: data.lastActiveDate,
+    tasbeehRecords: data.tasbeehRecords || {},
+    tasbeehTotals: data.tasbeehTotals || {},
+    dailyGoalRecords: data.dailyGoalRecords || {},
+    goalCustomItems: data.goalCustomItems || {},
+    goalStreaks: data.goalStreaks || {},
+    syncVersion: data.syncVersion ?? 0,
   };
 }
 
@@ -108,6 +186,7 @@ const App: React.FC = () => {
       completedJuzs: [],
       earnedJuzXpIds: [],
       quranKhatams: 0,
+      syncVersion: 0,
       completedTasks: [],
       deletedPredefinedTasks: [],
       customTasks: templates,
@@ -153,6 +232,7 @@ const App: React.FC = () => {
 
   const [userData, setUserData] = useState<UserData>(getDefaultUserData());
   const userDataRef = useRef(userData);
+  const lastSyncedPayloadRef = useRef<string | null>(null);
   useEffect(() => { userDataRef.current = userData; }, [userData]);
 
   // ─── Инициализация из сервера ──────────────────────────────────────────────
@@ -165,6 +245,8 @@ const App: React.FC = () => {
         unlockedBadges: correctedData.unlockedBadges.length,
       });
       setUserData(correctedData);
+      // Данные только что пришли с сервера — не отправляем их обратно без изменения.
+      lastSyncedPayloadRef.current = JSON.stringify(buildSyncPayload(correctedData));
     }
   }, [initialUserData]);
 
@@ -298,71 +380,33 @@ const App: React.FC = () => {
     const userId = getTelegramUserId();
     if (!userId) { setSyncStatus('offline'); return false; }
     const d = userDataRef.current;
-    const buildPayload = (data: UserData) => ({
-      name: data.name,
-      username: data.username,
-      photoUrl: data.photoUrl,
-      registrationDate: data.registrationDate,
-      progress: data.progress,
-      preparationProgress: data.preparationProgress,
-      basicProgress: data.basicProgress,
-      memorizedNames: data.memorizedNames,
-      completedJuzs: data.completedJuzs,
-      earnedJuzXpIds: data.earnedJuzXpIds || [],
-      quranKhatams: data.quranKhatams,
-      completedTasks: data.completedTasks,
-      deletedPredefinedTasks: data.deletedPredefinedTasks,
-      customTasks: data.customTasks,
-      quranGoal: data.quranGoal,
-      dailyQuranGoal: data.dailyQuranGoal,
-      dailyCharityGoal: data.dailyCharityGoal,
-      language: data.language,
-      xp: data.xp,
-      hasRedeemedReferral: data.hasRedeemedReferral,
-      unlockedBadges: Array.isArray(data.unlockedBadges) ? data.unlockedBadges : [],
-      currentStreak: data.currentStreak,
-      longestStreak: data.longestStreak,
-      lastActiveDate: data.lastActiveDate,
-      tasbeehRecords: data.tasbeehRecords || {},
-      tasbeehTotals: data.tasbeehTotals || {},
-      dailyGoalRecords: data.dailyGoalRecords || {},
-      goalCustomItems: data.goalCustomItems || {},
-      goalStreaks: data.goalStreaks || {},
-    });
+    const payload = buildSyncPayload(d);
+    const payloadFingerprint = JSON.stringify(payload);
+    if (lastSyncedPayloadRef.current === payloadFingerprint) return true;
     if (!navigator.onLine) {
       setSyncStatus('offline');
-      syncQueue.add({ userId, ...buildPayload(d) });
+      syncQueue.add({ userId, ...payload });
       return false;
     }
     try {
       setSyncStatus('syncing');
       const response = await fetch(
         `${API_BASE_URL}/api/user/${userId}/sync`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() }, body: JSON.stringify(buildPayload(d)) }
+        { method: 'POST', headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() }, body: JSON.stringify(payload) }
       );
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
           const validatedData = normalizeUserData(data.data as UserData);
           setUserData(prev => {
-            // Берём dailyGoalRecords: мёрджим по датам, локальные данные побеждают
-            const mergedGoalRecords: typeof prev.dailyGoalRecords = {
-              ...validatedData.dailyGoalRecords,
-              ...prev.dailyGoalRecords,  // ← локальные всегда побеждают
-            };
-            const mergedStreaks =
-              Object.keys(prev.goalStreaks || {}).length > 0
-                ? prev.goalStreaks
-                : validatedData.goalStreaks;
-            return {
-              ...validatedData,
-              dailyGoalRecords: mergedGoalRecords,
-              goalStreaks: mergedStreaks,
-              tasbeehRecords: {
-                ...(validatedData.tasbeehRecords || {}),
-                ...(prev.tasbeehRecords || {}),  // локальные данные побеждают
-              },
-            };
+            const merged = mergeAfterSync(validatedData, prev);
+            const currentFingerprint = JSON.stringify(buildSyncPayload(prev));
+            // Если пользователь ничего не менял во время запроса — sync завершён.
+            // Иначе оставляем новые локальные действия «грязными» для следующей отправки.
+            lastSyncedPayloadRef.current = currentFingerprint === payloadFingerprint
+              ? JSON.stringify(buildSyncPayload(merged))
+              : JSON.stringify(buildSyncPayload(validatedData));
+            return merged;
           });
         }
         if (data.xpAdded && data.xpAdded > 0) {
@@ -372,11 +416,24 @@ const App: React.FC = () => {
         }
         setSyncStatus('success');
         return true;
+      } else if (response.status === 409) {
+        const conflict = await response.json();
+        if (conflict.data) {
+          setUserData(prev => mergeAfterSync(conflict.data as UserData, prev));
+          setSyncStatus('idle');
+          return false;
+        }
+        setSyncStatus('error');
+        return false;
       } else {
+        if (response.status !== 401 && response.status !== 403) {
+          syncQueue.add({ userId, ...payload });
+        }
         setSyncStatus('error');
         return false;
       }
     } catch {
+      syncQueue.add({ userId, ...payload });
       setSyncStatus('error');
       return false;
     }
@@ -403,36 +460,9 @@ const App: React.FC = () => {
       const userId = getTelegramUserId();
       if (!userId) return;
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(userDataRef.current)); } catch {}
-      const data = JSON.stringify({
-        name: userDataRef.current.name,
-        username: userDataRef.current.username,
-        photoUrl: userDataRef.current.photoUrl,
-        registrationDate: userDataRef.current.registrationDate,
-        progress: userDataRef.current.progress,
-        preparationProgress: userDataRef.current.preparationProgress,
-        basicProgress: userDataRef.current.basicProgress,
-        memorizedNames: userDataRef.current.memorizedNames,
-        completedJuzs: userDataRef.current.completedJuzs,
-        quranKhatams: userDataRef.current.quranKhatams,
-        completedTasks: userDataRef.current.completedTasks,
-        deletedPredefinedTasks: userDataRef.current.deletedPredefinedTasks,
-        customTasks: userDataRef.current.customTasks,
-        quranGoal: userDataRef.current.quranGoal,
-        dailyQuranGoal: userDataRef.current.dailyQuranGoal,
-        dailyCharityGoal: userDataRef.current.dailyCharityGoal,
-        language: userDataRef.current.language,
-        xp: userDataRef.current.xp,
-        hasRedeemedReferral: userDataRef.current.hasRedeemedReferral,
-        unlockedBadges: Array.isArray(userDataRef.current.unlockedBadges) ? userDataRef.current.unlockedBadges : [],
-        currentStreak: userDataRef.current.currentStreak,
-        longestStreak: userDataRef.current.longestStreak,
-        lastActiveDate: userDataRef.current.lastActiveDate,
-        dailyGoalRecords: userDataRef.current.dailyGoalRecords || {},
-        goalCustomItems: userDataRef.current.goalCustomItems || {},
-        goalStreaks: userDataRef.current.goalStreaks || {},
-        tasbeehRecords: userDataRef.current.tasbeehRecords || {},
-        tasbeehTotals: userDataRef.current.tasbeehTotals || {},
-      });
+      const payload = buildSyncPayload(userDataRef.current);
+      if (lastSyncedPayloadRef.current === JSON.stringify(payload)) return;
+      const data = JSON.stringify(payload);
       const url = `${API_BASE_URL}/api/user/${userId}/sync`;
       // sendBeacon cannot attach Telegram auth headers, so use keepalive fetch instead.
       fetch(url, {
@@ -471,7 +501,28 @@ const App: React.FC = () => {
           const response = await fetch(`${API_BASE_URL}/api/user/${data.userId}/sync`, {
             method: 'POST', headers: { 'Content-Type': 'application/json', ...getTelegramAuthHeaders() }, body: JSON.stringify(data),
           });
-          return response.ok;
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data) {
+              const serverData = normalizeUserData(result.data as UserData);
+              const queuedFingerprint = JSON.stringify(buildSyncPayload(data as UserData));
+              setUserData(prev => {
+                const merged = mergeAfterSync(serverData, prev);
+                const currentFingerprint = JSON.stringify(buildSyncPayload(prev));
+                lastSyncedPayloadRef.current = currentFingerprint === queuedFingerprint
+                  ? JSON.stringify(buildSyncPayload(merged))
+                  : JSON.stringify(buildSyncPayload(serverData));
+                return merged;
+              });
+            }
+            return true;
+          }
+          if (response.status === 409) {
+            const conflict = await response.json();
+            if (conflict.data) setUserData(prev => mergeAfterSync(conflict.data as UserData, prev));
+            return true; // Удаляем устаревший snapshot; rebased state синхронизируется отдельно.
+          }
+          return false;
         } catch { return false; }
       });
       if (processed > 0) setSyncStatus('success');

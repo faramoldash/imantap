@@ -93,6 +93,8 @@ export interface DhikrType {
 
 export interface UserData {
   userId?: number;
+  /** Версия серверной копии для защиты от конфликтов между устройствами. */
+  syncVersion?: number;
   name: string;
   username?: string; // Telegram username (e.g. @user)
   photoUrl?: string; // Telegram profile picture URL
